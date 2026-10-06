@@ -5,7 +5,7 @@
 package com.proyecto2.app.backend.Backend.Dao;
 
 import com.proyecto2.app.backend.Backend.Exception.daoException;
-import com.proyecto2.app.backend.Backend.Model.Grado;
+import com.proyecto2.app.backend.Backend.Model.Nota;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,32 +18,32 @@ import java.util.Collection;
  *
  * @author wilian
  */
-public class GradoDao {
-
+public class NotaDao {
+    
     private DBConnectionSingleton conexionDB;
 
     private static final String CREAR_TABLA = """
-        CREATE TABLE IF NOT EXISTS GRADO (
-            id_grado INT PRIMARY KEY AUTO_INCREMENT,
-            nombre VARCHAR(100) NOT NULL,
-            id_nivel INT NOT NULL,
-            id_carrera INT,
+            CREATE TABLE IF NOT EXISTS NOTA (
+                id_nota INT PRIMARY KEY AUTO_INCREMENT,
+                id_inscripcion INT NOT NULL,
+                id_zona INT NOT NULL,
+                valor DECIMAL(5,2) NOT NULL,
 
-            CONSTRAINT fk_grado_nivel
-                FOREIGN KEY (id_nivel)
-                REFERENCES NIVEL(id_nivel),
+                CONSTRAINT fk_nota_inscripcion
+                    FOREIGN KEY (id_inscripcion)
+                    REFERENCES INSCRIPCION(id_inscripcion),
 
-            CONSTRAINT fk_grado_carrera
-                FOREIGN KEY (id_carrera)
-                REFERENCES CARRERA(id_carrera)
-        )
-        """;
+                CONSTRAINT fk_nota_zona
+                    FOREIGN KEY (id_zona)
+                    REFERENCES ZONA(id_zona)
+            )
+            """;
 
-    private static final String INSERTAR = "INSERT INTO GRADO (nombre, id_nivel, id_carrera) VALUES (?, ?, ?)";
-    private static final String CONSULTAR = "SELECT id_grado, nombre, id_nivel, id_carrera FROM GRADO ORDER BY nombre";
-    private static final String ACTUALIZAR = "UPDATE GRADO SET nombre = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
+    private static final String INSERTAR = "INSERT INTO NOTA (id_inscripcion, id_zona, valor) VALUES (?, ?, ?)";
+    private static final String CONSULTAR = "SELECT id_nota, id_inscripcion, id_zona, valor FROM NOTA ORDER BY id_nota";
+    private static final String ACTUALIZAR = "UPDATE NOTA SET id_inscripcion = ?, id_zona = ?, valor = ? WHERE id_nota = ?";
 
-    public GradoDao() {
+    public NotaDao() {
         this.conexionDB = DBConnectionSingleton.getInstance();
     }
 
@@ -62,16 +62,15 @@ public class GradoDao {
         }
     }
 
-    public boolean insertar(Grado grado) {
-        if (grado == null) {
+    public boolean insertar(Nota nota) {
+
+        if (nota == null) {
             return false;
         }
-
-        if (grado.getNombre() == null || grado.getNombre().trim().isEmpty()) {
+        if (nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0) {
             return false;
         }
-
-        if (grado.getIdNivel() <= 0) {
+        if (nota.getValor() < 0) {
             return false;
         }
 
@@ -80,15 +79,10 @@ public class GradoDao {
 
         try {
             ps = conexion.prepareStatement(INSERTAR);
+            ps.setInt(1, nota.getIdInscripcion());
+            ps.setInt(2, nota.getIdZona());
+            ps.setDouble(3, nota.getValor());
 
-            ps.setString(1, grado.getNombre().trim());
-            ps.setInt(2, grado.getIdNivel());
-
-            if (grado.getIdCarrera() != null) {
-                ps.setInt(3, grado.getIdCarrera());
-            } else {
-                ps.setNull(3, java.sql.Types.INTEGER);
-            }
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -99,8 +93,8 @@ public class GradoDao {
         }
     }
 
-    public Collection<Grado> consultar() {
-        Collection<Grado> grados = new ArrayList<>();
+    public Collection<Nota> consultar() {
+        Collection<Nota> notas = new ArrayList<>();
 
         Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
@@ -111,7 +105,7 @@ public class GradoDao {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                grados.add(construirGrado(rs));
+                notas.add(construirNota(rs));
             }
 
         } catch (SQLException e) {
@@ -120,24 +114,17 @@ public class GradoDao {
             cerrar(rs);
             cerrar(ps);
         }
-
-        return grados;
+        return notas;
     }
 
-    public boolean actualizar(Grado grado) {
-        if (grado == null) {
+    public boolean actualizar(Nota nota) {
+        if (nota == null) {
             return false;
         }
-
-        if (grado.getIdGrado() <= 0) {
+        if (nota.getIdNota() <= 0 || nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0) {
             return false;
         }
-
-        if (grado.getNombre() == null || grado.getNombre().trim().isEmpty()) {
-            return false;
-        }
-
-        if (grado.getIdNivel() <= 0) {
+        if (nota.getValor() < 0) {
             return false;
         }
 
@@ -146,17 +133,10 @@ public class GradoDao {
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
-
-            ps.setString(1, grado.getNombre().trim());
-            ps.setInt(2, grado.getIdNivel());
-
-            if (grado.getIdCarrera() != null) {
-                ps.setInt(3, grado.getIdCarrera());
-            } else {
-                ps.setNull(3, java.sql.Types.INTEGER);
-            }
-
-            ps.setInt(4, grado.getIdGrado());
+            ps.setInt(1, nota.getIdInscripcion());
+            ps.setInt(2, nota.getIdZona());
+            ps.setDouble(3, nota.getValor());
+            ps.setInt(4, nota.getIdNota());
 
             return ps.executeUpdate() > 0;
 
@@ -168,13 +148,8 @@ public class GradoDao {
         }
     }
 
-    private Grado construirGrado(ResultSet rs) throws SQLException {
-        int idGrado = rs.getInt("id_grado");
-        String nombre = rs.getString("nombre");
-        int idNivel = rs.getInt("id_nivel");
-        Integer idCarrera = rs.getObject("id_carrera", Integer.class);
-
-        return new Grado( idGrado,nombre, idNivel, idCarrera);
+    private Nota construirNota(ResultSet rs) throws SQLException {
+        return new Nota( rs.getInt("id_nota"), rs.getInt("id_inscripcion"), rs.getInt("id_zona"), rs.getDouble("valor"));
     }
 
     private void cerrar(Statement statement) {
@@ -196,4 +171,5 @@ public class GradoDao {
             }
         }
     }
+    
 }

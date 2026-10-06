@@ -10,14 +10,16 @@ package com.proyecto2.app.backend.Backend.Model;
  */
 public class Grado {
     
-    private int idGrado;
+   private int idGrado;
     private String nombre;
     private int idNivel;
+    private Integer idCarrera;
 
-    public Grado(int idGrado, String nombre, int idNivel) {
+    public Grado(int idGrado, String nombre, int idNivel, Integer idCarrera) {
         this.idGrado = idGrado;
         this.nombre = nombre;
         this.idNivel = idNivel;
+        this.idCarrera = idCarrera;
     }
 
     public int getIdGrado() {
@@ -43,7 +45,16 @@ public class Grado {
     public void setIdNivel(int idNivel) {
         this.idNivel = idNivel;
     }
-    
+
+    public Integer getIdCarrera() {
+        return idCarrera;
+    }
+
+    public void setIdCarrera(Integer idCarrera) {
+        this.idCarrera = idCarrera;
+    }
+
+  
     
     
 }
