@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Carrera;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class CarreraDao {
     
-     private DBConnectionSingleton conexionDB;
+     private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS CARRERA (
@@ -43,7 +44,7 @@ public class CarreraDao {
     private static final String CONSULTAR_NIVEL =  "SELECT nombre FROM NIVEL WHERE id_nivel = ?";
 
     public CarreraDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

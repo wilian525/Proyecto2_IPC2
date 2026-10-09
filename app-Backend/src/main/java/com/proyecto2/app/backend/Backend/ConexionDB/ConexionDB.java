@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.proyecto2.app.backend.Backend.Dao;
+package com.proyecto2.app.backend.Backend.ConexionDB;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
  *
  * @author wilian
  */
-public class DBConnectionSingleton {
+public class ConexionDB {
     
     
    private static final String IP = "localhost";
@@ -22,11 +22,11 @@ public class DBConnectionSingleton {
     public static final String PASSWORD = "Clasic.Mysql";
     private static final String URL = "jdbc:mysql://" + IP + ":" + PUERTO + "/" + SCHEMA;
 
-    private static DBConnectionSingleton instance;
+    private static ConexionDB instance;
 
     private Connection connection;
 
-    private DBConnectionSingleton() {
+    private ConexionDB() {
         try {
             connection = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
         } catch (SQLException e) {
@@ -40,9 +40,9 @@ public class DBConnectionSingleton {
         return connection;
     }
 
-    public static DBConnectionSingleton getInstance() {
+    public static ConexionDB getInstance() {
         if (instance == null) {
-            instance = new DBConnectionSingleton();
+            instance = new ConexionDB();
         }
         return instance;
     }

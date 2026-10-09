@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Nota;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class NotaDao {
     
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS NOTA (
@@ -44,7 +45,7 @@ public class NotaDao {
     private static final String ACTUALIZAR = "UPDATE NOTA SET id_inscripcion = ?, id_zona = ?, valor = ? WHERE id_nota = ?";
 
     public NotaDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

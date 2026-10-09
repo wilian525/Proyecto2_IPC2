@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Curso;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class CursoDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS CURSO (
@@ -36,7 +37,7 @@ public class CursoDao {
     private static final String EXISTE_CURSO = "SELECT COUNT(*) FROM CURSO WHERE id_curso = ?";
 
     public CursoDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

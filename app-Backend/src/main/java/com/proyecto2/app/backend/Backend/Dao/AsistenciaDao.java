@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Asistencia;
 import java.sql.Connection;
@@ -21,7 +22,7 @@ import java.util.Collection;
  */
 public class AsistenciaDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS ASISTENCIA (
@@ -46,7 +47,7 @@ public class AsistenciaDao {
     private static final String ACTUALIZAR = "UPDATE ASISTENCIA SET id_asignacion = ?, id_inscripcion = ?, fecha = ?, estado = ? WHERE id_asistencia = ?";
 
     public AsistenciaDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

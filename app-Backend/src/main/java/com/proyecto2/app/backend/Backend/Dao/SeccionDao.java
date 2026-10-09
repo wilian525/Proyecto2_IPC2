@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Seccion;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class SeccionDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS SECCION (
@@ -39,7 +40,7 @@ public class SeccionDao {
     private static final String ACTUALIZAR = "UPDATE SECCION SET nombre = ?, id_grado = ? WHERE id_seccion = ?";
 
     public SeccionDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

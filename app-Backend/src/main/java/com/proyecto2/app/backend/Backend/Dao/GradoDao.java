@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Grado;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class GradoDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
         CREATE TABLE IF NOT EXISTS GRADO (
@@ -44,7 +45,7 @@ public class GradoDao {
     private static final String ACTUALIZAR = "UPDATE GRADO SET nombre = ?, id_nivel = ?, id_carrera = ? WHERE id_grado = ?";
 
     public GradoDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

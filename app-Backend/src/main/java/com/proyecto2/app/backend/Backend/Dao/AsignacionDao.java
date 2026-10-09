@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Asignacion;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class AsignacionDao {
     
-     private DBConnectionSingleton conexionDB;
+     private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS ASIGNACION (
@@ -58,7 +59,7 @@ public class AsignacionDao {
     private static final String CONSULTAR_ASIGNACION_EXISTENTE ="SELECT id_asignacion FROM ASIGNACION WHERE id_empleado = ? AND id_curso = ? AND id_seccion = ? AND id_ciclo = ?";
 
     public AsignacionDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

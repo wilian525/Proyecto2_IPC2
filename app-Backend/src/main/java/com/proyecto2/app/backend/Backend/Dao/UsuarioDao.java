@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import java.sql.Connection;
@@ -21,7 +22,7 @@ import java.util.Collection;
  */
 public class UsuarioDao {
     
-       private DBConnectionSingleton conexionDB;
+       private ConexionDB conexionDB;
        
     public static final String CREAR_TABLA = """
            id_usuario INT PRIMARY KEY AUTO_INCREMENT,
@@ -60,7 +61,7 @@ public class UsuarioDao {
             + "WHERE id_usuario = ?";
 
     public UsuarioDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Ciclo;
 import java.sql.Connection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  */
 public class cicloDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     public static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS CICLO (
@@ -37,7 +38,7 @@ public class cicloDao {
     private static final String EXISTE_CICLO = "SELECT COUNT(*) FROM CICLO " + "WHERE año_inicio = ? AND año_fin = ?";
 
     public cicloDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {

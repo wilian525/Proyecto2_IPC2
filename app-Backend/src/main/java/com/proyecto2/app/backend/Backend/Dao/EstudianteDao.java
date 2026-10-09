@@ -4,6 +4,7 @@
  */
 package com.proyecto2.app.backend.Backend.Dao;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import java.sql.Connection;
@@ -22,7 +23,7 @@ import java.util.Collection;
  */
 public class EstudianteDao {
 
-    private DBConnectionSingleton conexionDB;
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS ESTUDIANTE (
@@ -57,7 +58,7 @@ public class EstudianteDao {
     private static final String CONSULTAR_USUARIO = "SELECT id_usuario FROM USUARIO WHERE id_usuario = ?";
 
     public EstudianteDao() {
-        this.conexionDB = DBConnectionSingleton.getInstance();
+        this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {
