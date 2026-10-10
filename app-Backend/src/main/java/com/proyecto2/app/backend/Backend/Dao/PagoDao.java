@@ -21,7 +21,7 @@ import java.util.Collection;
  * @author wilian
  */
 public class PagoDao {
-    
+
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS PAGO (
                 id_pago INT PRIMARY KEY AUTO_INCREMENT,
@@ -41,30 +41,27 @@ public class PagoDao {
             )
             """;
 
-    private static final String INSERTAR ="INSERT INTO PAGO (id_estudiante, id_empleado, concepto, monto, fecha) VALUES (?, ?, ?, ?, ?)";
-    private static final String CONSULTAR ="SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO ORDER BY fecha DESC";
+    private static final String INSERTAR = "INSERT INTO PAGO (id_estudiante, id_empleado, concepto, monto, fecha) VALUES (?, ?, ?, ?, ?)";
+    private static final String CONSULTAR = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO ORDER BY fecha DESC";
 
     public void crearTabla() {
-        Connection conexion = null;
-        Statement statement = null;
-
-        try {
-
-            conexion = ConexionDB.obtenerConexion();
-
-            statement = conexion.createStatement();
+        try (Connection conexion = ConexionDB.getInstance().getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
-            cerrar(conexion);
         }
     }
 
     public boolean insertar(Pago pago) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return insertar(pago, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean insertar(Pago pago, Connection conexion) {
         if (pago == null) {
             return false;
         }
@@ -73,7 +70,7 @@ public class PagoDao {
             return false;
         }
 
-        if (pago.getConcepto() == null|| pago.getConcepto().trim().isEmpty()) {
+        if (pago.getConcepto() == null || pago.getConcepto().trim().isEmpty()) {
             return false;
         }
 
@@ -85,77 +82,61 @@ public class PagoDao {
             return false;
         }
 
-        Connection conexion = null;
         PreparedStatement ps = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, pago.getIdEstudiante());
             ps.setInt(2, pago.getIdEmpleado());
             ps.setString(3, pago.getConcepto().trim());
             ps.setDouble(4, pago.getMonto());
-            ps.setDate(5,Date.valueOf(pago.getFecha()));
+            ps.setDate(5, Date.valueOf(pago.getFecha()));
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
         } finally {
             cerrar(ps);
-            cerrar(conexion);
         }
     }
 
     public Collection<Pago> consultar() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
+    public Collection<Pago> consultar(Connection conexion) {
         Collection<Pago> pagos = new ArrayList<>();
-
-        Connection conexion = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(CONSULTAR);
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 pagos.add(construirPago(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
-            cerrar(conexion);
         }
 
         return pagos;
     }
 
-    private Pago construirPago(ResultSet rs)
-            throws SQLException {
-
-        return new Pago(
-                rs.getInt("id_pago"),
-                rs.getInt("id_estudiante"),
-                rs.getInt("id_empleado"),
-                rs.getString("concepto"),
-                rs.getDouble("monto"),
-                rs.getDate("fecha").toLocalDate()
-        );
+    private Pago construirPago(ResultSet rs) throws SQLException {
+        return new Pago(rs.getInt("id_pago"), rs.getInt("id_estudiante"), rs.getInt("id_empleado"), rs.getString("concepto"), rs.getDouble("monto"), rs.getDate("fecha").toLocalDate());
     }
 
     private void cerrar(Statement statement) {
-
         if (statement != null) {
             try {
                 statement.close();
@@ -166,7 +147,6 @@ public class PagoDao {
     }
 
     private void cerrar(ResultSet resultSet) {
-
         if (resultSet != null) {
             try {
                 resultSet.close();
@@ -177,7 +157,6 @@ public class PagoDao {
     }
 
     private void cerrar(Connection conexion) {
-
         if (conexion != null) {
             try {
                 conexion.close();

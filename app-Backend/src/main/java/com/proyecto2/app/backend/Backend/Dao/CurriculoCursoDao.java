@@ -60,49 +60,46 @@ public class CurriculoCursoDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean agregarCurso(int idCurriculo, int idCurso) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return agregarCurso(idCurriculo, idCurso, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean agregarCurso(int idCurriculo, int idCurso, Connection conexion) {
         if (idCurriculo <= 0 || idCurso <= 0) {
             return false;
         }
 
-        if (!existeCurriculo(idCurriculo)) {
+        if (!existeCurriculo(idCurriculo, conexion)) {
             return false;
         }
 
-        if (!existeCurso(idCurso)) {
+        if (!existeCurso(idCurso, conexion)) {
             return false;
         }
 
-        if (existeRelacion(idCurriculo, idCurso)) {
+        if (existeRelacion(idCurriculo, idCurso, conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(AGREGAR_CURSO);
-
             ps.setInt(1, idCurriculo);
             ps.setInt(2, idCurso);
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -112,25 +109,30 @@ public class CurriculoCursoDao {
     }
 
     public boolean eliminarCurso(int idCurriculo, int idCurso) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return eliminarCurso(idCurriculo, idCurso, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean eliminarCurso(int idCurriculo, int idCurso, Connection conexion) {
         if (idCurriculo <= 0 || idCurso <= 0) {
             return false;
         }
 
-        if (!existeRelacion(idCurriculo, idCurso)) {
+        if (!existeRelacion(idCurriculo, idCurso, conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ELIMINAR_CURSO);
-
             ps.setInt(1, idCurriculo);
             ps.setInt(2, idCurso);
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -140,86 +142,115 @@ public class CurriculoCursoDao {
     }
 
     public Collection<Curso> consultarCursos(int idCurriculo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultarCursos(idCurriculo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Collection<Curso> consultarCursos(int idCurriculo, Connection conexion) {
         Collection<Curso> cursos = new ArrayList<>();
 
         if (idCurriculo <= 0) {
             return cursos;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(CONSULTAR_CURSOS);
             ps.setInt(1, idCurriculo);
-
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 Curso curso = new Curso(rs.getInt("id_curso"), rs.getString("nombre"), rs.getString("descripcion"));
                 cursos.add(curso);
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return cursos;
     }
 
     private boolean existeCurriculo(int idCurriculo) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeCurriculo(idCurriculo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeCurriculo(int idCurriculo, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(EXISTE_CURRICULO);
             ps.setInt(1, idCurriculo);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
     private boolean existeCurso(int idCurso) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeCurso(idCurso, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeCurso(int idCurso, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(EXISTE_CURSO);
             ps.setInt(1, idCurso);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
     private boolean existeRelacion(int idCurriculo, int idCurso) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeRelacion(idCurriculo, idCurso, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeRelacion(int idCurriculo, int idCurso, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -227,19 +258,18 @@ public class CurriculoCursoDao {
             ps = conexion.prepareStatement(EXISTE_RELACION);
             ps.setInt(1, idCurriculo);
             ps.setInt(2, idCurso);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
@@ -262,5 +292,4 @@ public class CurriculoCursoDao {
             }
         }
     }
-
 }

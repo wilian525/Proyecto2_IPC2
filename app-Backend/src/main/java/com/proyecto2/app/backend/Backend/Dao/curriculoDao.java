@@ -43,7 +43,7 @@ public class curriculoDao {
     private static final String CONSULTAR = "SELECT id_curriculo, id_grado, id_ciclo FROM CURRICULO ORDER BY id_curriculo";
     private static final String ACTUALIZAR = "UPDATE CURRICULO SET id_grado = ?, id_ciclo = ? WHERE id_curriculo = ?";
     private static final String EXISTE_GRADO = "SELECT COUNT(*) FROM GRADO WHERE id_grado = ?";
-    private static final String EXISTE_CICLO  = "SELECT COUNT(*) FROM CICLO WHERE id_ciclo = ?";
+    private static final String EXISTE_CICLO = "SELECT COUNT(*) FROM CICLO WHERE id_ciclo = ?";
     private static final String EXISTE_CURRICULO = "SELECT COUNT(*) FROM CURRICULO WHERE id_curriculo = ?";
 
     public curriculoDao() {
@@ -51,21 +51,23 @@ public class curriculoDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Curriculo curriculo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(curriculo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Curriculo curriculo, Connection conexion) {
         if (curriculo == null) {
             return false;
         }
@@ -74,25 +76,22 @@ public class curriculoDao {
             return false;
         }
 
-        if (!existeGrado(curriculo.getIdGrado())) {
+        if (!existeGrado(curriculo.getIdGrado(), conexion)) {
             return false;
         }
 
-        if (!existeCiclo(curriculo.getIdCiclo())) {
+        if (!existeCiclo(curriculo.getIdCiclo(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, curriculo.getIdGrado());
             ps.setInt(2, curriculo.getIdCiclo());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -102,9 +101,16 @@ public class curriculoDao {
     }
 
     public Collection<Curriculo> consultar() {
-        Collection<Curriculo> curriculos = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Curriculo> consultar(Connection conexion) {
+        Collection<Curriculo> curriculos = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -115,49 +121,55 @@ public class curriculoDao {
             while (rs.next()) {
                 curriculos.add(construirCurriculo(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return curriculos;
     }
 
     public boolean actualizar(Curriculo curriculo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(curriculo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Curriculo curriculo, Connection conexion) {
         if (curriculo == null) {
             return false;
         }
 
-        if (curriculo.getIdCurriculo() <= 0|| curriculo.getIdGrado() <= 0|| curriculo.getIdCiclo() <= 0) {
+        if (curriculo.getIdCurriculo() <= 0 || curriculo.getIdGrado() <= 0 || curriculo.getIdCiclo() <= 0) {
             return false;
         }
 
-        if (!existeCurriculo(curriculo.getIdCurriculo())) {
+        if (!existeCurriculo(curriculo.getIdCurriculo(), conexion)) {
             return false;
         }
 
-        if (!existeGrado(curriculo.getIdGrado())) {
+        if (!existeGrado(curriculo.getIdGrado(), conexion)) {
             return false;
         }
 
-        if (!existeCiclo(curriculo.getIdCiclo())) {
+        if (!existeCiclo(curriculo.getIdCiclo(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
-
             ps.setInt(1, curriculo.getIdGrado());
             ps.setInt(2, curriculo.getIdCiclo());
             ps.setInt(3, curriculo.getIdCurriculo());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -167,20 +179,26 @@ public class curriculoDao {
     }
 
     private boolean existeGrado(int idGrado) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeGrado(idGrado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeGrado(int idGrado, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(EXISTE_GRADO);
             ps.setInt(1, idGrado);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -192,44 +210,57 @@ public class curriculoDao {
     }
 
     private boolean existeCiclo(int idCiclo) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeCiclo(idCiclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeCiclo(int idCiclo, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(EXISTE_CICLO);
             ps.setInt(1, idCiclo);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
     private boolean existeCurriculo(int idCurriculo) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeCurriculo(idCurriculo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeCurriculo(int idCurriculo, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(EXISTE_CURRICULO);
             ps.setInt(1, idCurriculo);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -245,7 +276,7 @@ public class curriculoDao {
         int idGrado = rs.getInt("id_grado");
         int idCiclo = rs.getInt("id_ciclo");
 
-        return new Curriculo(idCurriculo, idGrado, idCiclo );
+        return new Curriculo(idCurriculo, idGrado, idCiclo);
     }
 
     private void cerrar(Statement statement) {
@@ -267,5 +298,4 @@ public class curriculoDao {
             }
         }
     }
-
 }

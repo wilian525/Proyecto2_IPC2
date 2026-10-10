@@ -54,7 +54,7 @@ public class EstudianteDao {
     private static final String ACTUALIZAR
             = "UPDATE ESTUDIANTE SET nombre = ?, apellido = ?, fecha_nacimiento = ?, direccion = ?, telefono = ?, correo = ?, informacion_medica = ?, datos_encargados = ?, id_usuario = ? "
             + "WHERE id_estudiante = ?";
-    private static final String CAMBIAR_ESTADO= "UPDATE ESTUDIANTE SET estado = ? WHERE id_estudiante = ?";
+    private static final String CAMBIAR_ESTADO = "UPDATE ESTUDIANTE SET estado = ? WHERE id_estudiante = ?";
     private static final String CONSULTAR_USUARIO = "SELECT id_usuario FROM USUARIO WHERE id_usuario = ?";
 
     public EstudianteDao() {
@@ -62,13 +62,19 @@ public class EstudianteDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            crearTabla(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+    }
+
+    public void crearTabla(Connection conexion) {
         Statement statement = null;
 
         try {
             statement = conexion.createStatement();
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -77,6 +83,15 @@ public class EstudianteDao {
     }
 
     public boolean insertar(Estudiante estudiante) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(estudiante, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Estudiante estudiante, Connection conexion) {
 
         if (estudiante == null) {
             return false;
@@ -98,19 +113,17 @@ public class EstudianteDao {
             return false;
         }
 
-        if (estudiante.getIdUsuario() > 0 && !existeUsuario(estudiante.getIdUsuario())) {
+        if (estudiante.getIdUsuario() > 0 && !existeUsuario(estudiante.getIdUsuario(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setString(1, estudiante.getNombre().trim());
             ps.setString(2, estudiante.getApellido().trim());
-            ps.setDate(3,Date.valueOf(estudiante.getFechaNacimiento()));
+            ps.setDate(3, Date.valueOf(estudiante.getFechaNacimiento()));
             ps.setString(4, estudiante.getDireccion());
             ps.setString(5, estudiante.getTelefono());
             ps.setString(6, estudiante.getCorreo());
@@ -125,7 +138,6 @@ public class EstudianteDao {
             }
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -135,9 +147,17 @@ public class EstudianteDao {
     }
 
     public Collection<Estudiante> consultar() {
-        Collection<Estudiante> estudiantes = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Estudiante> consultar(Connection conexion) {
+
+        Collection<Estudiante> estudiantes = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -148,17 +168,26 @@ public class EstudianteDao {
             while (rs.next()) {
                 estudiantes.add(construirEstudiante(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return estudiantes;
     }
 
     public boolean actualizar(Estudiante estudiante) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(estudiante, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Estudiante estudiante, Connection conexion) {
 
         if (estudiante == null) {
             return false;
@@ -180,18 +209,17 @@ public class EstudianteDao {
             return false;
         }
 
-        if (estudiante.getIdUsuario() > 0
-                && !existeUsuario(estudiante.getIdUsuario())) {
+        if (estudiante.getIdUsuario() > 0 && !existeUsuario(estudiante.getIdUsuario(), conexion)) {
             return false;
         }
-        Connection conexion = conexionDB.getConnection();
+
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
             ps.setString(1, estudiante.getNombre().trim());
             ps.setString(2, estudiante.getApellido().trim());
-            ps.setDate(3,Date.valueOf(estudiante.getFechaNacimiento()));
+            ps.setDate(3, Date.valueOf(estudiante.getFechaNacimiento()));
             ps.setString(4, estudiante.getDireccion());
             ps.setString(5, estudiante.getTelefono());
             ps.setString(6, estudiante.getCorreo());
@@ -203,10 +231,10 @@ public class EstudianteDao {
             } else {
                 ps.setNull(9, Types.INTEGER);
             }
+
             ps.setInt(10, estudiante.getIdEstudiante());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -216,14 +244,24 @@ public class EstudianteDao {
     }
 
     public boolean cambiarEstado(int idEstudiante, String estado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return cambiarEstado(idEstudiante, estado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean cambiarEstado(int idEstudiante, String estado, Connection conexion) {
+
         if (idEstudiante <= 0) {
             return false;
         }
+
         if (!estadoValido(estado)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -232,7 +270,6 @@ public class EstudianteDao {
             ps.setInt(2, idEstudiante);
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -242,72 +279,61 @@ public class EstudianteDao {
     }
 
     private boolean existeUsuario(int idUsuario) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeUsuario(idUsuario, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean existeUsuario(int idUsuario, Connection conexion) {
+
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(CONSULTAR_USUARIO);
             ps.setInt(1, idUsuario);
-
             rs = ps.executeQuery();
-
             return rs.next();
-
         } catch (SQLException e) {
             daoException.manejarError(e);
+            return false;
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
-        return false;
     }
 
     private boolean estadoValido(String estado) {
-
         if (estado == null) {
             return false;
         }
         return estado.equalsIgnoreCase("ACTIVO") || estado.equalsIgnoreCase("INACTIVO") || estado.equalsIgnoreCase("GRADUADO");
     }
 
-    private Estudiante construirEstudiante(ResultSet rs)
-            throws SQLException {
-
+    private Estudiante construirEstudiante(ResultSet rs) throws SQLException {
         int idEstudiante = rs.getInt("id_estudiante");
         String nombre = rs.getString("nombre");
         String apellido = rs.getString("apellido");
-       Date fechaNacimiento = rs.getDate("fecha_nacimiento");
+        Date fechaNacimiento = rs.getDate("fecha_nacimiento");
         String direccion = rs.getString("direccion");
         String telefono = rs.getString("telefono");
         String correo = rs.getString("correo");
         String informacionMedica = rs.getString("informacion_medica");
         String datosEncargados = rs.getString("datos_encargados");
         String estado = rs.getString("estado");
-
         int idUsuario = rs.getInt("id_usuario");
 
         if (rs.wasNull()) {
             idUsuario = 0;
         }
 
-        return new Estudiante(
-                idEstudiante,
-                nombre,
-                apellido,
-                fechaNacimiento.toLocalDate(),
-                direccion,
-                telefono,
-                correo,
-                informacionMedica,
-                datosEncargados,
-                estado,
-                idUsuario
-        );
+        return new Estudiante(idEstudiante, nombre, apellido, fechaNacimiento.toLocalDate(), direccion, telefono, correo, informacionMedica, datosEncargados, estado, idUsuario);
     }
 
     private void cerrar(Statement statement) {
-
         if (statement != null) {
             try {
                 statement.close();
@@ -318,7 +344,6 @@ public class EstudianteDao {
     }
 
     private void cerrar(ResultSet resultSet) {
-
         if (resultSet != null) {
             try {
                 resultSet.close();

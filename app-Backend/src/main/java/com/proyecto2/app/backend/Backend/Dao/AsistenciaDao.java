@@ -51,25 +51,27 @@ public class AsistenciaDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Asistencia asistencia) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(asistencia, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Asistencia asistencia, Connection conexion) {
         if (asistencia == null) {
             return false;
         }
-        if (asistencia.getIdAsignacion() <= 0  || asistencia.getIdInscripcion() <= 0) {
+        if (asistencia.getIdAsignacion() <= 0 || asistencia.getIdInscripcion() <= 0) {
             return false;
         }
         if (asistencia.getFecha() == null) {
@@ -79,19 +81,15 @@ public class AsistenciaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, asistencia.getIdAsignacion());
             ps.setInt(2, asistencia.getIdInscripcion());
-            ps.setDate( 3, Date.valueOf(asistencia.getFecha()));
+            ps.setDate(3, Date.valueOf(asistencia.getFecha()));
             ps.setString(4, asistencia.getEstado().trim());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -101,9 +99,16 @@ public class AsistenciaDao {
     }
 
     public Collection<Asistencia> consultar() {
-        Collection<Asistencia> asistencias = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Asistencia> consultar(Connection conexion) {
+        Collection<Asistencia> asistencias = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -114,24 +119,32 @@ public class AsistenciaDao {
             while (rs.next()) {
                 asistencias.add(construirAsistencia(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return asistencias;
     }
 
     public boolean actualizar(Asistencia asistencia) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(asistencia, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Asistencia asistencia, Connection conexion) {
         if (asistencia == null) {
             return false;
         }
-        if (asistencia.getIdAsistencia() <= 0  || asistencia.getIdAsignacion() <= 0 || asistencia.getIdInscripcion() <= 0) {
+        if (asistencia.getIdAsistencia() <= 0 || asistencia.getIdAsignacion() <= 0 || asistencia.getIdInscripcion() <= 0) {
             return false;
         }
-
         if (asistencia.getFecha() == null) {
             return false;
         }
@@ -139,20 +152,16 @@ public class AsistenciaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
-
             ps.setInt(1, asistencia.getIdAsignacion());
             ps.setInt(2, asistencia.getIdInscripcion());
-            ps.setDate( 3, Date.valueOf(asistencia.getFecha()));
+            ps.setDate(3, Date.valueOf(asistencia.getFecha()));
             ps.setString(4, asistencia.getEstado().trim());
             ps.setInt(5, asistencia.getIdAsistencia());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -162,7 +171,7 @@ public class AsistenciaDao {
     }
 
     private Asistencia construirAsistencia(ResultSet rs) throws SQLException {
-        return new Asistencia(rs.getInt("id_asistencia"),  rs.getInt("id_asignacion"), rs.getInt("id_inscripcion"),  rs.getDate("fecha").toLocalDate(),  rs.getString("estado") );
+        return new Asistencia(rs.getInt("id_asistencia"), rs.getInt("id_asignacion"), rs.getInt("id_inscripcion"), rs.getDate("fecha").toLocalDate(), rs.getString("estado"));
     }
 
     private void cerrar(Statement statement) {
@@ -184,5 +193,4 @@ public class AsistenciaDao {
             }
         }
     }
-
 }

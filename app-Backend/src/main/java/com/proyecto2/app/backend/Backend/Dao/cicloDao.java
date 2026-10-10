@@ -33,7 +33,7 @@ public class cicloDao {
             """;
 
     private static final String INSERTAR = "INSERT INTO CICLO (año_inicio, año_fin, estado) VALUES (?, ?, ?)";
-    private static final String CONSULTAR  = "SELECT id_ciclo, año_inicio, año_fin, estado " + "FROM CICLO ORDER BY año_inicio DESC";
+    private static final String CONSULTAR = "SELECT id_ciclo, año_inicio, año_fin, estado " + "FROM CICLO ORDER BY año_inicio DESC";
     private static final String DESACTIVAR = "UPDATE CICLO SET estado = 'INACTIVO' " + "WHERE id_ciclo = ? AND estado <> 'INACTIVO'";
     private static final String EXISTE_CICLO = "SELECT COUNT(*) FROM CICLO " + "WHERE año_inicio = ? AND año_fin = ?";
 
@@ -42,15 +42,19 @@ public class cicloDao {
     }
 
     public void crearTabla() {
+        try (Connection conexion = conexionDB.getConnection()) {
+            crearTabla(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public void crearTabla(Connection conexion) {
         Statement statement = null;
 
         try {
-
             statement = conexion.createStatement();
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -59,6 +63,15 @@ public class cicloDao {
     }
 
     public boolean insertar(Ciclo ciclo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(ciclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Ciclo ciclo, Connection conexion) {
 
         if (ciclo == null) {
             return false;
@@ -72,28 +85,22 @@ public class cicloDao {
             return false;
         }
 
-        if (ciclo.getEstado() == null
-                || ciclo.getEstado().trim().isEmpty()) {
+        if (ciclo.getEstado() == null || ciclo.getEstado().trim().isEmpty()) {
             return false;
         }
 
-        if (existeCiclo(ciclo.getAnioInicio(), ciclo.getAnioFin())) {
+        if (existeCiclo(ciclo.getAnioInicio(), ciclo.getAnioFin(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
-
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, ciclo.getAnioInicio());
             ps.setInt(2, ciclo.getAnioFin());
             ps.setString(3, ciclo.getEstado().trim());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -103,10 +110,17 @@ public class cicloDao {
     }
 
     public Collection<Ciclo> consultar() {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Collection<Ciclo> consultar(Connection conexion) {
 
         Collection<Ciclo> ciclos = new ArrayList<>();
-
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -117,7 +131,6 @@ public class cicloDao {
             while (rs.next()) {
                 ciclos.add(construirCiclo(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -129,20 +142,26 @@ public class cicloDao {
     }
 
     public boolean desactivar(int idCiclo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return desactivar(idCiclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean desactivar(int idCiclo, Connection conexion) {
 
         if (idCiclo <= 0) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(DESACTIVAR);
             ps.setInt(1, idCiclo);
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -152,30 +171,35 @@ public class cicloDao {
     }
 
     private boolean existeCiclo(int anioInicio, int anioFin) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return existeCiclo(anioInicio, anioFin, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    private boolean existeCiclo(int anioInicio, int anioFin, Connection conexion) {
+
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
             ps = conexion.prepareStatement(EXISTE_CICLO);
-
             ps.setInt(1, anioInicio);
             ps.setInt(2, anioFin);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
@@ -185,11 +209,10 @@ public class cicloDao {
         int anioFin = rs.getInt("año_fin");
         String estado = rs.getString("estado");
 
-        return new Ciclo( idCiclo, anioInicio,  anioFin, estado );
+        return new Ciclo(idCiclo, anioInicio, anioFin, estado);
     }
 
     private void cerrar(Statement statement) {
-
         if (statement != null) {
             try {
                 statement.close();
@@ -200,7 +223,6 @@ public class cicloDao {
     }
 
     private void cerrar(ResultSet resultSet) {
-
         if (resultSet != null) {
             try {
                 resultSet.close();
@@ -209,5 +231,4 @@ public class cicloDao {
             }
         }
     }
-
 }

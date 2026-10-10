@@ -20,8 +20,8 @@ import java.util.Collection;
  * @author wilian
  */
 public class CarreraDao {
-    
-     private ConexionDB conexionDB;
+
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS CARRERA (
@@ -41,39 +41,39 @@ public class CarreraDao {
     private static final String ACTUALIZAR = "UPDATE CARRERA SET nombre = ?, id_nivel = ? WHERE id_carrera = ?";
     private static final String ACTIVAR = "UPDATE CARRERA SET estado = 'ACTIVO' WHERE id_carrera = ?";
     private static final String DESACTIVAR = "UPDATE CARRERA SET estado = 'INACTIVO' WHERE id_carrera = ?";
-    private static final String CONSULTAR_NIVEL =  "SELECT nombre FROM NIVEL WHERE id_nivel = ?";
+    private static final String CONSULTAR_NIVEL = "SELECT nombre FROM NIVEL WHERE id_nivel = ?";
 
     public CarreraDao() {
         this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Carrera carrera) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(carrera, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Carrera carrera, Connection conexion) {
         if (carrera == null) {
             return false;
         }
 
-        if (carrera.getNombre() == null
-                || carrera.getNombre().trim().isEmpty()) {
+        if (carrera.getNombre() == null || carrera.getNombre().trim().isEmpty()) {
             return false;
         }
 
-        if (carrera.getEstado() == null
-                || carrera.getEstado().trim().isEmpty()) {
+        if (carrera.getEstado() == null || carrera.getEstado().trim().isEmpty()) {
             return false;
         }
 
@@ -81,11 +81,11 @@ public class CarreraDao {
             return false;
         }
 
-  // carreras pertendes solo diversificado
-        if (!esNivelDiversificado(carrera.getIdNivel())) {
+        // carreras pertenecen solo a diversificado
+        if (!esNivelDiversificado(carrera.getIdNivel(), conexion)) {
             return false;
         }
-        Connection conexion = conexionDB.getConnection();
+
         PreparedStatement ps = null;
 
         try {
@@ -95,7 +95,6 @@ public class CarreraDao {
             ps.setInt(3, carrera.getIdNivel());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -105,9 +104,16 @@ public class CarreraDao {
     }
 
     public Collection<Carrera> consultar() {
-        Collection<Carrera> carreras = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Carrera> consultar(Connection conexion) {
+        Collection<Carrera> carreras = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -130,7 +136,15 @@ public class CarreraDao {
     }
 
     public boolean actualizar(Carrera carrera) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(carrera, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean actualizar(Carrera carrera, Connection conexion) {
         if (carrera == null) {
             return false;
         }
@@ -147,11 +161,10 @@ public class CarreraDao {
             return false;
         }
 
-        if (!esNivelDiversificado(carrera.getIdNivel())) {
+        if (!esNivelDiversificado(carrera.getIdNivel(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -161,7 +174,6 @@ public class CarreraDao {
             ps.setInt(3, carrera.getIdCarrera());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -171,12 +183,19 @@ public class CarreraDao {
     }
 
     public boolean activar(int idCarrera) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return activar(idCarrera, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean activar(int idCarrera, Connection conexion) {
         if (idCarrera <= 0) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -184,7 +203,6 @@ public class CarreraDao {
             ps.setInt(1, idCarrera);
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -194,11 +212,19 @@ public class CarreraDao {
     }
 
     public boolean desactivar(int idCarrera) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return desactivar(idCarrera, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean desactivar(int idCarrera, Connection conexion) {
         if (idCarrera <= 0) {
             return false;
         }
-        Connection conexion = conexionDB.getConnection();
+
         PreparedStatement ps = null;
 
         try {
@@ -206,7 +232,6 @@ public class CarreraDao {
             ps.setInt(1, idCarrera);
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -216,18 +241,24 @@ public class CarreraDao {
     }
 
     private boolean esNivelDiversificado(int idNivel) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return esNivelDiversificado(idNivel, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean esNivelDiversificado(int idNivel, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(CONSULTAR_NIVEL);
             ps.setInt(1, idNivel);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
-
                 String nombreNivel = rs.getString("nombre");
                 return nombreNivel != null && nombreNivel.equalsIgnoreCase("Diversificado");
             }
@@ -238,16 +269,17 @@ public class CarreraDao {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
-    private Carrera construirCarrera(ResultSet rs)throws SQLException {
+    private Carrera construirCarrera(ResultSet rs) throws SQLException {
         int idCarrera = rs.getInt("id_carrera");
         String nombre = rs.getString("nombre");
         String estado = rs.getString("estado");
         int idNivel = rs.getInt("id_nivel");
 
-        return new Carrera( idCarrera, nombre, estado,idNivel);
+        return new Carrera(idCarrera, nombre, estado, idNivel);
     }
 
     private void cerrar(Statement statement) {

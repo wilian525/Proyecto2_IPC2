@@ -20,7 +20,7 @@ import java.util.Collection;
  * @author wilian
  */
 public class NotaDao {
-    
+
     private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
@@ -49,22 +49,23 @@ public class NotaDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Nota nota) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(nota, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean insertar(Nota nota, Connection conexion) {
         if (nota == null) {
             return false;
         }
@@ -75,7 +76,6 @@ public class NotaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -83,9 +83,7 @@ public class NotaDao {
             ps.setInt(1, nota.getIdInscripcion());
             ps.setInt(2, nota.getIdZona());
             ps.setDouble(3, nota.getValor());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -95,9 +93,16 @@ public class NotaDao {
     }
 
     public Collection<Nota> consultar() {
-        Collection<Nota> notas = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Nota> consultar(Connection conexion) {
+        Collection<Nota> notas = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -108,17 +113,26 @@ public class NotaDao {
             while (rs.next()) {
                 notas.add(construirNota(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return notas;
     }
 
     public boolean actualizar(Nota nota) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(nota, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Nota nota, Connection conexion) {
         if (nota == null) {
             return false;
         }
@@ -129,7 +143,6 @@ public class NotaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -138,9 +151,7 @@ public class NotaDao {
             ps.setInt(2, nota.getIdZona());
             ps.setDouble(3, nota.getValor());
             ps.setInt(4, nota.getIdNota());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -150,7 +161,7 @@ public class NotaDao {
     }
 
     private Nota construirNota(ResultSet rs) throws SQLException {
-        return new Nota( rs.getInt("id_nota"), rs.getInt("id_inscripcion"), rs.getInt("id_zona"), rs.getDouble("valor"));
+        return new Nota(rs.getInt("id_nota"), rs.getInt("id_inscripcion"), rs.getInt("id_zona"), rs.getDouble("valor"));
     }
 
     private void cerrar(Statement statement) {
@@ -172,5 +183,4 @@ public class NotaDao {
             }
         }
     }
-    
 }

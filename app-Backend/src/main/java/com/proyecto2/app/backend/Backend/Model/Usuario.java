@@ -68,7 +68,7 @@ public class Usuario {
         this.estado = estado;
     }
 
-    public int getIdEmpleado() {
+    public Integer getIdEmpleado() {
         return idEmpleado;
     }
 

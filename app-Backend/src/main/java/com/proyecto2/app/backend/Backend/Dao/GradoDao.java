@@ -49,21 +49,23 @@ public class GradoDao {
     }
 
     public void crearTabla() {
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Grado grado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(grado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Grado grado, Connection conexion) {
         if (grado == null) {
             return false;
         }
@@ -76,12 +78,10 @@ public class GradoDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setString(1, grado.getNombre().trim());
             ps.setInt(2, grado.getIdNivel());
 
@@ -90,8 +90,8 @@ public class GradoDao {
             } else {
                 ps.setNull(3, java.sql.Types.INTEGER);
             }
-            return ps.executeUpdate() > 0;
 
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -101,9 +101,16 @@ public class GradoDao {
     }
 
     public Collection<Grado> consultar() {
-        Collection<Grado> grados = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Grado> consultar(Connection conexion) {
+        Collection<Grado> grados = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -114,7 +121,6 @@ public class GradoDao {
             while (rs.next()) {
                 grados.add(construirGrado(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -126,6 +132,15 @@ public class GradoDao {
     }
 
     public boolean actualizar(Grado grado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(grado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Grado grado, Connection conexion) {
         if (grado == null) {
             return false;
         }
@@ -142,12 +157,10 @@ public class GradoDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
-
             ps.setString(1, grado.getNombre().trim());
             ps.setInt(2, grado.getIdNivel());
 
@@ -160,7 +173,6 @@ public class GradoDao {
             ps.setInt(4, grado.getIdGrado());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -175,7 +187,7 @@ public class GradoDao {
         int idNivel = rs.getInt("id_nivel");
         Integer idCarrera = rs.getObject("id_carrera", Integer.class);
 
-        return new Grado( idGrado,nombre, idNivel, idCarrera);
+        return new Grado(idGrado, nombre, idNivel, idCarrera);
     }
 
     private void cerrar(Statement statement) {

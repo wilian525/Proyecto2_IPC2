@@ -38,30 +38,30 @@ public class ZonaDao {
 
     private static final String INSERTAR = "INSERT INTO ZONA (nombre, porcentaje, id_asignacion) VALUES (?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_zona, nombre, porcentaje, id_asignacion FROM ZONA ORDER BY id_zona";
-    private static final String ACTUALIZAR= "UPDATE ZONA SET nombre = ?, porcentaje = ?, id_asignacion = ? WHERE id_zona = ?";
+    private static final String ACTUALIZAR = "UPDATE ZONA SET nombre = ?, porcentaje = ?, id_asignacion = ? WHERE id_zona = ?";
 
     public ZonaDao() {
         this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {
-
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Zona zona) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(zona, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean insertar(Zona zona, Connection conexion) {
         if (zona == null) {
             return false;
         }
@@ -75,7 +75,6 @@ public class ZonaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -85,7 +84,6 @@ public class ZonaDao {
             ps.setInt(3, zona.getIdAsignacion());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -95,9 +93,16 @@ public class ZonaDao {
     }
 
     public Collection<Zona> consultar() {
-        Collection<Zona> zonas = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Zona> consultar(Connection conexion) {
+        Collection<Zona> zonas = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -108,17 +113,26 @@ public class ZonaDao {
             while (rs.next()) {
                 zonas.add(construirZona(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return zonas;
     }
 
     public boolean actualizar(Zona zona) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(zona, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Zona zona, Connection conexion) {
         if (zona == null) {
             return false;
         }
@@ -135,7 +149,6 @@ public class ZonaDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -146,7 +159,6 @@ public class ZonaDao {
             ps.setInt(4, zona.getIdZona());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -156,7 +168,7 @@ public class ZonaDao {
     }
 
     private Zona construirZona(ResultSet rs) throws SQLException {
-        return new Zona( rs.getInt("id_zona"),  rs.getString("nombre"), rs.getDouble("porcentaje"), rs.getInt("id_asignacion"));
+        return new Zona(rs.getInt("id_zona"), rs.getString("nombre"), rs.getDouble("porcentaje"), rs.getInt("id_asignacion"));
     }
 
     private void cerrar(Statement statement) {

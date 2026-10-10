@@ -20,8 +20,8 @@ import java.util.Collection;
  * @author wilian
  */
 public class AsignacionDao {
-    
-     private ConexionDB conexionDB;
+
+    private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS ASIGNACION (
@@ -49,38 +49,37 @@ public class AsignacionDao {
             )
             """;
 
-    private static final String INSERTAR ="INSERT INTO ASIGNACION (id_empleado, id_curso, id_seccion, id_ciclo) VALUES (?, ?, ?, ?)";
-    private static final String CONSULTAR ="SELECT id_asignacion, id_empleado, id_curso, id_seccion, id_ciclo FROM ASIGNACION ORDER BY id_asignacion";
-    private static final String CONSULTAR_EMPLEADO ="SELECT puesto, estado FROM EMPLEADO WHERE id_empleado = ?";
-    private static final String CONSULTAR_CICLO ="SELECT estado FROM CICLO WHERE id_ciclo = ?";
-    private static final String CONSULTAR_SECCION ="SELECT id_grado FROM SECCION WHERE id_seccion = ?";
-    private static final String CONSULTAR_CURRICULO ="SELECT id_curriculo FROM CURRICULO WHERE id_grado = ? AND id_ciclo = ?";
-    private static final String CONSULTAR_CURSO_CURRICULO ="SELECT id_curso FROM CURRICULO_CURSO WHERE id_curriculo = ? AND id_curso = ?";
-    private static final String CONSULTAR_ASIGNACION_EXISTENTE ="SELECT id_asignacion FROM ASIGNACION WHERE id_empleado = ? AND id_curso = ? AND id_seccion = ? AND id_ciclo = ?";
+    private static final String INSERTAR = "INSERT INTO ASIGNACION (id_empleado, id_curso, id_seccion, id_ciclo) VALUES (?, ?, ?, ?)";
+    private static final String CONSULTAR = "SELECT id_asignacion, id_empleado, id_curso, id_seccion, id_ciclo FROM ASIGNACION ORDER BY id_asignacion";
+    private static final String CONSULTAR_EMPLEADO = "SELECT puesto, estado FROM EMPLEADO WHERE id_empleado = ?";
+    private static final String CONSULTAR_CICLO = "SELECT estado FROM CICLO WHERE id_ciclo = ?";
+    private static final String CONSULTAR_SECCION = "SELECT id_grado FROM SECCION WHERE id_seccion = ?";
+    private static final String CONSULTAR_CURRICULO = "SELECT id_curriculo FROM CURRICULO WHERE id_grado = ? AND id_ciclo = ?";
+    private static final String CONSULTAR_CURSO_CURRICULO = "SELECT id_curso FROM CURRICULO_CURSO WHERE id_curriculo = ? AND id_curso = ?";
+    private static final String CONSULTAR_ASIGNACION_EXISTENTE = "SELECT id_asignacion FROM ASIGNACION WHERE id_empleado = ? AND id_curso = ? AND id_seccion = ? AND id_ciclo = ?";
 
     public AsignacionDao() {
         this.conexionDB = ConexionDB.getInstance();
     }
 
     public void crearTabla() {
-
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public boolean insertar(Asignacion asignacion) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(asignacion, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean insertar(Asignacion asignacion, Connection conexion) {
         if (asignacion == null) {
             return false;
         }
@@ -89,43 +88,32 @@ public class AsignacionDao {
             return false;
         }
 
-        if (!empleadoEsMaestroActivo(asignacion.getIdEmpleado())) {
+        if (!empleadoEsMaestroActivo(asignacion.getIdEmpleado(), conexion)) {
             return false;
         }
 
-        if (!cicloActivo(asignacion.getIdCiclo())) {
+        if (!cicloActivo(asignacion.getIdCiclo(), conexion)) {
             return false;
         }
 
-        if (!cursoPerteneceCurriculo(
-                asignacion.getIdCurso(),
-                asignacion.getIdSeccion(),
-                asignacion.getIdCiclo())) {
+        if (!cursoPerteneceCurriculo(asignacion.getIdCurso(), asignacion.getIdSeccion(), asignacion.getIdCiclo(), conexion)) {
             return false;
         }
 
-        if (asignacionExiste(
-                asignacion.getIdEmpleado(),
-                asignacion.getIdCurso(),
-                asignacion.getIdSeccion(),
-                asignacion.getIdCiclo())) {
+        if (asignacionExiste(asignacion.getIdEmpleado(), asignacion.getIdCurso(), asignacion.getIdSeccion(), asignacion.getIdCiclo(), conexion)) {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
-
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, asignacion.getIdEmpleado());
             ps.setInt(2, asignacion.getIdCurso());
             ps.setInt(3, asignacion.getIdSeccion());
             ps.setInt(4, asignacion.getIdCiclo());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -135,21 +123,26 @@ public class AsignacionDao {
     }
 
     public Collection<Asignacion> consultar() {
-        Collection<Asignacion> asignaciones = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Asignacion> consultar(Connection conexion) {
+        Collection<Asignacion> asignaciones = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
             ps = conexion.prepareStatement(CONSULTAR);
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 asignaciones.add(construirAsignacion(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -161,68 +154,84 @@ public class AsignacionDao {
     }
 
     private boolean empleadoEsMaestroActivo(int idEmpleado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return empleadoEsMaestroActivo(idEmpleado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    private boolean empleadoEsMaestroActivo(int idEmpleado, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
             ps = conexion.prepareStatement(CONSULTAR_EMPLEADO);
             ps.setInt(1, idEmpleado);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
-
                 String puesto = rs.getString("puesto");
                 String estado = rs.getString("estado");
 
-                return puesto != null && puesto.equalsIgnoreCase("MAESTRO")  && estado != null && estado.equalsIgnoreCase("ACTIVO");
+                return puesto != null && puesto.equalsIgnoreCase("MAESTRO") && estado != null && estado.equalsIgnoreCase("ACTIVO");
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
     private boolean cicloActivo(int idCiclo) {
-        Connection conexion = conexionDB.getConnection();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return cicloActivo(idCiclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean cicloActivo(int idCiclo, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(CONSULTAR_CICLO);
             ps.setInt(1, idCiclo);
-
             rs = ps.executeQuery();
 
             if (rs.next()) {
                 String estado = rs.getString("estado");
-                return estado != null&& estado.equalsIgnoreCase("ACTIVO");
+                return estado != null && estado.equalsIgnoreCase("ACTIVO");
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
-    private boolean cursoPerteneceCurriculo(  int idCurso, int idSeccion, int idCiclo) {
+    private boolean cursoPerteneceCurriculo(int idCurso, int idSeccion, int idCiclo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return cursoPerteneceCurriculo(idCurso, idSeccion, idCiclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
-
+    private boolean cursoPerteneceCurriculo(int idCurso, int idSeccion, int idCiclo, Connection conexion) {
         PreparedStatement psSeccion = null;
         PreparedStatement psCurriculo = null;
         PreparedStatement psCurso = null;
-
         ResultSet rsSeccion = null;
         ResultSet rsCurriculo = null;
         ResultSet rsCurso = null;
@@ -230,7 +239,6 @@ public class AsignacionDao {
         try {
             psSeccion = conexion.prepareStatement(CONSULTAR_SECCION);
             psSeccion.setInt(1, idSeccion);
-
             rsSeccion = psSeccion.executeQuery();
 
             if (!rsSeccion.next()) {
@@ -242,7 +250,6 @@ public class AsignacionDao {
             psCurriculo = conexion.prepareStatement(CONSULTAR_CURRICULO);
             psCurriculo.setInt(1, idGrado);
             psCurriculo.setInt(2, idCiclo);
-
             rsCurriculo = psCurriculo.executeQuery();
 
             if (!rsCurriculo.next()) {
@@ -250,18 +257,16 @@ public class AsignacionDao {
             }
 
             int idCurriculo = rsCurriculo.getInt("id_curriculo");
+
             psCurso = conexion.prepareStatement(CONSULTAR_CURSO_CURRICULO);
             psCurso.setInt(1, idCurriculo);
             psCurso.setInt(2, idCurso);
-
             rsCurso = psCurso.executeQuery();
 
             return rsCurso.next();
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
-
             cerrar(rsCurso);
             cerrar(psCurso);
             cerrar(rsCurriculo);
@@ -269,43 +274,50 @@ public class AsignacionDao {
             cerrar(rsSeccion);
             cerrar(psSeccion);
         }
+
         return false;
     }
 
-    private boolean asignacionExiste(int idEmpleado, int idCurso, int idSeccion,int idCiclo) {
-        Connection conexion = conexionDB.getConnection();
+    private boolean asignacionExiste(int idEmpleado, int idCurso, int idSeccion, int idCiclo) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return asignacionExiste(idEmpleado, idCurso, idSeccion, idCiclo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    private boolean asignacionExiste(int idEmpleado, int idCurso, int idSeccion, int idCiclo, Connection conexion) {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conexion.prepareStatement(CONSULTAR_ASIGNACION_EXISTENTE);
-
             ps.setInt(1, idEmpleado);
             ps.setInt(2, idCurso);
             ps.setInt(3, idSeccion);
             ps.setInt(4, idCiclo);
-
             rs = ps.executeQuery();
 
             return rs.next();
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
         }
+
         return false;
     }
 
-    private Asignacion construirAsignacion(ResultSet rs)throws SQLException {
+    private Asignacion construirAsignacion(ResultSet rs) throws SQLException {
         int idAsignacion = rs.getInt("id_asignacion");
         int idEmpleado = rs.getInt("id_empleado");
         int idCurso = rs.getInt("id_curso");
         int idSeccion = rs.getInt("id_seccion");
         int idCiclo = rs.getInt("id_ciclo");
 
-        return new Asignacion(idAsignacion, idEmpleado,  idCurso, idSeccion, idCiclo);
+        return new Asignacion(idAsignacion, idEmpleado, idCurso, idSeccion, idCiclo);
     }
 
     private void cerrar(Statement statement) {

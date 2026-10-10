@@ -21,7 +21,7 @@ import java.util.Collection;
  * @author wilian
  */
 public class EmpleadoDao {
-    
+
     private ConexionDB conexionDB;
 
     private static final String CREAR_TABLA = """
@@ -36,9 +36,9 @@ public class EmpleadoDao {
             )
             """;
 
-    private static final String INSERTAR ="INSERT INTO EMPLEADO (nombre, apellido, puesto, fecha_contratacion, salario, estado) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String INSERTAR = "INSERT INTO EMPLEADO (nombre, apellido, puesto, fecha_contratacion, salario, estado) VALUES (?, ?, ?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_empleado, nombre, apellido, puesto, fecha_contratacion, salario, estado FROM EMPLEADO ORDER BY apellido, nombre";
-    private static final String ACTUALIZAR ="UPDATE EMPLEADO SET nombre = ?, apellido = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
+    private static final String ACTUALIZAR = "UPDATE EMPLEADO SET nombre = ?, apellido = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
     private static final String DESACTIVAR = "UPDATE EMPLEADO SET estado = 'INACTIVO' WHERE id_empleado = ?";
 
     public EmpleadoDao() {
@@ -46,14 +46,19 @@ public class EmpleadoDao {
     }
 
     public void crearTabla() {
+        try (Connection conexion = conexionDB.getConnection()) {
+            crearTabla(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public void crearTabla(Connection conexion) {
         Statement statement = null;
 
         try {
             statement = conexion.createStatement();
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -62,6 +67,15 @@ public class EmpleadoDao {
     }
 
     public boolean insertar(Empleado empleado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return insertar(empleado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Empleado empleado, Connection conexion) {
 
         if (empleado == null) {
             return false;
@@ -91,7 +105,6 @@ public class EmpleadoDao {
             return false;
         }
 
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
 
         try {
@@ -99,12 +112,10 @@ public class EmpleadoDao {
             ps.setString(1, empleado.getNombre().trim());
             ps.setString(2, empleado.getApellido().trim());
             ps.setString(3, empleado.getPuesto().trim());
-            ps.setDate(4,Date.valueOf(empleado.getFechaContratacion()));
+            ps.setDate(4, Date.valueOf(empleado.getFechaContratacion()));
             ps.setDouble(5, empleado.getSalario());
             ps.setString(6, empleado.getEstado().trim());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -114,9 +125,17 @@ public class EmpleadoDao {
     }
 
     public Collection<Empleado> consultar() {
-        Collection<Empleado> empleados = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
-        Connection conexion = conexionDB.getConnection();
+    public Collection<Empleado> consultar(Connection conexion) {
+
+        Collection<Empleado> empleados = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
@@ -127,7 +146,6 @@ public class EmpleadoDao {
             while (rs.next()) {
                 empleados.add(construirEmpleado(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -139,6 +157,15 @@ public class EmpleadoDao {
     }
 
     public boolean actualizar(Empleado empleado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return actualizar(empleado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean actualizar(Empleado empleado, Connection conexion) {
 
         if (empleado == null) {
             return false;
@@ -148,36 +175,37 @@ public class EmpleadoDao {
             return false;
         }
 
-        if (empleado.getNombre() == null|| empleado.getNombre().trim().isEmpty()) {
+        if (empleado.getNombre() == null || empleado.getNombre().trim().isEmpty()) {
             return false;
         }
+
         if (empleado.getApellido() == null || empleado.getApellido().trim().isEmpty()) {
             return false;
         }
-        if (empleado.getPuesto() == null|| empleado.getPuesto().trim().isEmpty()) {
+
+        if (empleado.getPuesto() == null || empleado.getPuesto().trim().isEmpty()) {
             return false;
         }
+
         if (empleado.getFechaContratacion() == null) {
             return false;
         }
+
         if (empleado.getSalario() < 0) {
             return false;
         }
-        Connection conexion = conexionDB.getConnection();
+
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(ACTUALIZAR);
-
             ps.setString(1, empleado.getNombre().trim());
             ps.setString(2, empleado.getApellido().trim());
             ps.setString(3, empleado.getPuesto().trim());
-            ps.setDate(4, Date.valueOf(empleado.getFechaContratacion()) );
+            ps.setDate(4, Date.valueOf(empleado.getFechaContratacion()));
             ps.setDouble(5, empleado.getSalario());
             ps.setInt(6, empleado.getIdEmpleado());
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -187,19 +215,26 @@ public class EmpleadoDao {
     }
 
     public boolean desactivar(int idEmpleado) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return desactivar(idEmpleado, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean desactivar(int idEmpleado, Connection conexion) {
 
         if (idEmpleado <= 0) {
             return false;
         }
-        Connection conexion = conexionDB.getConnection();
+
         PreparedStatement ps = null;
 
         try {
             ps = conexion.prepareStatement(DESACTIVAR);
             ps.setInt(1, idEmpleado);
-
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
@@ -209,11 +244,7 @@ public class EmpleadoDao {
     }
 
     private Empleado construirEmpleado(ResultSet rs) throws SQLException {
-
-        return new Empleado(rs.getInt("id_empleado"),rs.getString("nombre"),rs.getString("apellido"),rs.getString("puesto"),rs.getDate("fecha_contratacion").toLocalDate(),
-                rs.getDouble("salario"),
-                rs.getString("estado")
-        );
+        return new Empleado(rs.getInt("id_empleado"), rs.getString("nombre"), rs.getString("apellido"), rs.getString("puesto"), rs.getDate("fecha_contratacion").toLocalDate(), rs.getDouble("salario"), rs.getString("estado"));
     }
 
     private void cerrar(Statement statement) {

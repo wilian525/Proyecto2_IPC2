@@ -40,39 +40,34 @@ public class NivelDao {
     }
 
     public void crearTabla() {
-
-        Connection conexion = conexionDB.getConnection();
-        Statement statement = null;
-
-        try {
-
-            statement = conexion.createStatement();
+        try (Connection conexion = conexionDB.getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
         }
     }
 
     public Collection<Nivel> consultar() {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
+    public Collection<Nivel> consultar(Connection conexion) {
         Collection<Nivel> niveles = new ArrayList<>();
-
-        Connection conexion = conexionDB.getConnection();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
             ps = conexion.prepareStatement(CONSULTAR);
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 niveles.add(construirNivel(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
@@ -84,7 +79,6 @@ public class NivelDao {
     }
 
     private Nivel construirNivel(ResultSet rs) throws SQLException {
-
         int idNivel = rs.getInt("id_nivel");
         String nombre = rs.getString("nombre");
 
@@ -92,7 +86,6 @@ public class NivelDao {
     }
 
     private void cerrar(Statement statement) {
-
         if (statement != null) {
             try {
                 statement.close();
@@ -103,7 +96,6 @@ public class NivelDao {
     }
 
     private void cerrar(ResultSet resultSet) {
-
         if (resultSet != null) {
             try {
                 resultSet.close();

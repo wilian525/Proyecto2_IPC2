@@ -60,27 +60,23 @@ public class PrestamoDao {
             = "UPDATE PRESTAMO SET fecha_devolucion = ?, dias_atraso = ?, monto_multa = ? WHERE id_prestamo = ?";
 
     public void crearTabla() {
-
-        Connection conexion = null;
-        Statement statement = null;
-
-        try {
-
-            conexion = ConexionDB.obtenerConexion();
-
-            statement = conexion.createStatement();
+        try (Connection conexion = ConexionDB.getInstance().getConnection(); Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
-
         } catch (SQLException e) {
             daoException.manejarError(e);
-        } finally {
-            cerrar(statement);
-            cerrar(conexion);
         }
     }
 
     public boolean insertar(Prestamo prestamo) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return insertar(prestamo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean insertar(Prestamo prestamo, Connection conexion) {
         if (prestamo == null) {
             return false;
         }
@@ -93,15 +89,10 @@ public class PrestamoDao {
             return false;
         }
 
-        Connection conexion = null;
         PreparedStatement ps = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(INSERTAR);
-
             ps.setInt(1, prestamo.getIdLibro());
             ps.setInt(2, prestamo.getIdUsuario());
             ps.setDate(3, Date.valueOf(prestamo.getFechaPrestamo()));
@@ -117,78 +108,86 @@ public class PrestamoDao {
             ps.setDouble(7, prestamo.getMontoMulta());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
         } finally {
             cerrar(ps);
-            cerrar(conexion);
         }
     }
 
     public Collection<Prestamo> consultar() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
+    public Collection<Prestamo> consultar(Connection conexion) {
         Collection<Prestamo> prestamos = new ArrayList<>();
-
-        Connection conexion = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(CONSULTAR);
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 prestamos.add(construirPrestamo(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
-            cerrar(conexion);
         }
 
         return prestamos;
     }
 
     public Collection<Prestamo> consultarAtrasos() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return consultarAtrasos(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
 
+    public Collection<Prestamo> consultarAtrasos(Connection conexion) {
         Collection<Prestamo> prestamos = new ArrayList<>();
-
-        Connection conexion = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(CONSULTAR_ATRASOS);
             rs = ps.executeQuery();
 
             while (rs.next()) {
                 prestamos.add(construirPrestamo(rs));
             }
-
         } catch (SQLException e) {
             daoException.manejarError(e);
         } finally {
             cerrar(rs);
             cerrar(ps);
-            cerrar(conexion);
         }
 
         return prestamos;
     }
 
     public boolean actualizar(Prestamo prestamo) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return actualizar(prestamo, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
 
+    public boolean actualizar(Prestamo prestamo, Connection conexion) {
         if (prestamo == null) {
             return false;
         }
@@ -197,25 +196,17 @@ public class PrestamoDao {
             return false;
         }
 
-        if (prestamo.getDiasAtraso() < 0
-                || prestamo.getMontoMulta() < 0) {
+        if (prestamo.getDiasAtraso() < 0 || prestamo.getMontoMulta() < 0) {
             return false;
         }
 
-        Connection conexion = null;
         PreparedStatement ps = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(ACTUALIZAR);
 
             if (prestamo.getFechaDevolucion() != null) {
-                ps.setDate(
-                        1,
-                        Date.valueOf(prestamo.getFechaDevolucion())
-                );
+                ps.setDate(1, Date.valueOf(prestamo.getFechaDevolucion()));
             } else {
                 ps.setNull(1, Types.DATE);
             }
@@ -225,19 +216,15 @@ public class PrestamoDao {
             ps.setInt(4, prestamo.getIdPrestamo());
 
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
         } finally {
             cerrar(ps);
-            cerrar(conexion);
         }
     }
 
-    private Prestamo construirPrestamo(ResultSet rs)
-            throws SQLException {
-
+    private Prestamo construirPrestamo(ResultSet rs) throws SQLException {
         Date fechaDevolucion = rs.getDate("fecha_devolucion");
 
         return new Prestamo(
@@ -253,7 +240,6 @@ public class PrestamoDao {
     }
 
     private void cerrar(Statement statement) {
-
         if (statement != null) {
             try {
                 statement.close();
@@ -264,7 +250,6 @@ public class PrestamoDao {
     }
 
     private void cerrar(ResultSet resultSet) {
-
         if (resultSet != null) {
             try {
                 resultSet.close();
@@ -275,7 +260,6 @@ public class PrestamoDao {
     }
 
     private void cerrar(Connection conexion) {
-
         if (conexion != null) {
             try {
                 conexion.close();

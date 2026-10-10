@@ -21,8 +21,8 @@ import java.util.Collection;
  * @author wilian
  */
 public class FacturaDao {
-    
-     private static final String CREAR_TABLA = """
+
+    private static final String CREAR_TABLA = """
             CREATE TABLE IF NOT EXISTS FACTURA (
                 id_factura INT PRIMARY KEY AUTO_INCREMENT,
                 numero_factura VARCHAR(100) NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ public class FacturaDao {
 
         try {
 
-            conexion = ConexionDB.obtenerConexion();
+            conexion = ConexionDB.getInstance().getConnection();
 
             statement = conexion.createStatement();
             statement.execute(CREAR_TABLA);
@@ -60,12 +60,21 @@ public class FacturaDao {
     }
 
     public boolean insertar(Factura factura) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return insertar(factura, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    public boolean insertar(Factura factura, Connection conexion) {
 
         if (factura == null) {
             return false;
         }
 
-        if (factura.getNumeroFactura() == null|| factura.getNumeroFactura().trim().isEmpty()) {
+        if (factura.getNumeroFactura() == null || factura.getNumeroFactura().trim().isEmpty()) {
             return false;
         }
 
@@ -81,18 +90,15 @@ public class FacturaDao {
             return false;
         }
 
-        Connection conexion = null;
         PreparedStatement ps = null;
 
         try {
 
-            conexion = ConexionDB.obtenerConexion();
-
             ps = conexion.prepareStatement(INSERTAR);
-            ps.setString(1,factura.getNumeroFactura().trim());
-            ps.setDate(2,Date.valueOf(factura.getFecha()));
-            ps.setDouble(3,factura.getMontoTotal());
-            ps.setInt(4, factura.getIdPago() );
+            ps.setString(1, factura.getNumeroFactura().trim());
+            ps.setDate(2, Date.valueOf(factura.getFecha()));
+            ps.setDouble(3, factura.getMontoTotal());
+            ps.setInt(4, factura.getIdPago());
 
             return ps.executeUpdate() > 0;
 
@@ -101,21 +107,26 @@ public class FacturaDao {
             return false;
         } finally {
             cerrar(ps);
-            cerrar(conexion);
         }
     }
 
     public Collection<Factura> consultar() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            return consultar(conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return new ArrayList<>();
+        }
+    }
+
+    public Collection<Factura> consultar(Connection conexion) {
 
         Collection<Factura> facturas = new ArrayList<>();
 
-        Connection conexion = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-
-            conexion = ConexionDB.obtenerConexion();
 
             ps = conexion.prepareStatement(CONSULTAR);
 
@@ -130,7 +141,6 @@ public class FacturaDao {
         } finally {
             cerrar(rs);
             cerrar(ps);
-            cerrar(conexion);
         }
 
         return facturas;
