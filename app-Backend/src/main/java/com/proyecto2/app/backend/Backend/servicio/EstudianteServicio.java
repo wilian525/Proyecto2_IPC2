@@ -6,9 +6,12 @@ package com.proyecto2.app.backend.Backend.servicio;
 
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
 import com.proyecto2.app.backend.Backend.Exception.ServicioException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
+import com.proyecto2.app.backend.Backend.Model.Usuario;
+import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -19,20 +22,28 @@ import java.util.Collection;
  */
 public class EstudianteServicio {
 
-    private final EstudianteDao estudianteDAO;
+    private EstudianteDao estudianteDAO;
+    private UsuarioDao usuarioDAO;
+    private SeguridadContrasena seguridadContrasena;
 
     public EstudianteServicio() {
         estudianteDAO = new EstudianteDao();
+        usuarioDAO = new UsuarioDao();
+        seguridadContrasena = new SeguridadContrasena();
     }
 
-    public boolean crearEstudiante(Estudiante estudiante) {
+    public boolean crearEstudiante(Estudiante estudiante, Usuario usuario) {
 
         if (estudiante == null || estudiante.getNombre() == null || estudiante.getNombre().trim().isEmpty() || estudiante.getApellido() == null || estudiante.getApellido().trim().isEmpty()) {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del estudiante no son válidos");
         }
 
-        if (estudiante.getFechaNacimiento() == null || estudiante.getIdUsuario() < 0) {
-            throw new ServicioException("DATOS_INVALIDOS", "La fecha de nacimiento o el usuario relacionado no son válidos");
+        if (estudiante.getFechaNacimiento() == null) {
+            throw new ServicioException("DATOS_INVALIDOS", "La fecha de nacimiento no puede estar vacía");
+        }
+
+        if (usuario == null || usuario.getNombreUsuario() == null || usuario.getNombreUsuario().trim().isEmpty() || usuario.getContrasena() == null || usuario.getContrasena().trim().isEmpty()) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos del usuario del estudiante no son válidos");
         }
 
         Connection conexion = null;
@@ -43,11 +54,29 @@ public class EstudianteServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
+            for (Usuario actual : usuarioDAO.consultar(conexion)) {
+                if (actual.getNombreUsuario().equalsIgnoreCase(usuario.getNombreUsuario().trim())) {
+                    throw new ServicioException("CONFLICTO", "El nombre de usuario ya está registrado");
+                }
+            }
+
+            usuario.setRol("ESTUDIANTE");
+            usuario.setEstado("ACTIVO");
+            usuario.setIdEmpleado(0);
+            usuario.setContrasena(seguridadContrasena.hashear(usuario.getContrasena()));
+
+            boolean usuarioCreado = usuarioDAO.insertar(usuario, conexion);
+
+            if (!usuarioCreado || usuario.getIdUsuario() <= 0) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible crear el usuario del estudiante");
+            }
+
+            estudiante.setIdUsuario(usuario.getIdUsuario());
             estudiante.setEstado("ACTIVO");
 
-            boolean creado = estudianteDAO.insertar(estudiante, conexion);
+            boolean estudianteCreado = estudianteDAO.insertar(estudiante, conexion);
 
-            if (!creado) {
+            if (!estudianteCreado) {
                 throw new ServicioException("OPERACION_ERROR", "No fue posible crear el estudiante");
             }
 

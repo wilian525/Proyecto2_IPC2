@@ -58,6 +58,8 @@ public class InscripcionDao {
     private static final String CONSULTAR_CICLO = "SELECT estado FROM CICLO WHERE id_ciclo = ?";
     private static final String CONSULTAR_SECCION = "SELECT id_grado FROM SECCION WHERE id_seccion = ?";
     private static final String CONSULTAR_INSCRIPCION_EXISTENTE = "SELECT id_inscripcion FROM INSCRIPCION WHERE id_estudiante = ? AND id_ciclo = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM INSCRIPCION";
 
     public InscripcionDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -287,6 +289,48 @@ public class InscripcionDao {
         return new Inscripcion(idInscripcion, idEstudiante, idCiclo, idGrado, idSeccion);
     }
 
+    public Collection<Inscripcion> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Inscripcion> inscripciones = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                inscripciones.add(construirInscripcion(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return inscripciones;
+}
+    
+    public int contar() {
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
     private void cerrar(Statement statement) {
         if (statement != null) {
             try {

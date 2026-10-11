@@ -38,6 +38,8 @@ public class FacturaDao {
 
     private static final String INSERTAR = "INSERT INTO FACTURA (numero_factura, fecha, monto_total, id_pago) VALUES (?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_factura, numero_factura, fecha, monto_total, id_pago FROM FACTURA ORDER BY fecha DESC";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM FACTURA";
 
     public void crearTabla() {
 
@@ -156,6 +158,51 @@ public class FacturaDao {
                 rs.getInt("id_pago")
         );
     }
+    
+    public Collection<Factura> consultar(int pagina, int limite) {
+
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Factura> facturas = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                facturas.add(construirFactura(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return facturas;
+}
+    
+    public int contar() {
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
 

@@ -38,9 +38,12 @@ public class LibroDao {
     private static final String ACTIVAR = "UPDATE LIBRO SET estado = 'ACTIVO' WHERE id_libro = ?";
     private static final String DESACTIVAR = "UPDATE LIBRO SET estado = 'INACTIVO' WHERE id_libro = ?";
     private static final String ELIMINAR = "DELETE FROM LIBRO WHERE id_libro = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM LIBRO";
 
     public void crearTabla() {
-        try (Connection conexion = ConexionDB.getInstance().getConnection(); Statement statement = conexion.createStatement()) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection(); 
+                Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
         } catch (SQLException e) {
             daoException.manejarError(e);
@@ -257,6 +260,49 @@ public class LibroDao {
     private Libro construirLibro(ResultSet rs) throws SQLException {
         return new Libro(rs.getInt("id_libro"), rs.getString("titulo"), rs.getString("autor"), rs.getString("editorial"), rs.getInt("cantidad_disponible"), rs.getString("estado"));
     }
+    
+    public Collection<Libro> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Libro> libros = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                libros.add(construirLibro(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return libros;
+}
+    
+    public int contar() {
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
         if (statement != null) {

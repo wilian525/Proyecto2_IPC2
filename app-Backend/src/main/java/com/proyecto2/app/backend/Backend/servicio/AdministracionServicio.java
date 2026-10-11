@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public class AdministracionServicio {
 
-  private final UsuarioDao usuarioDAO;
+    private final UsuarioDao usuarioDAO;
     private final cicloDao cicloDAO;
     private final GradoDao gradoDAO;
     private final SeguridadContrasena seguridadContrasena;
@@ -384,6 +384,14 @@ public class AdministracionServicio {
             conexion = ConexionDB.getInstance().getConnection();
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
+
+            Collection<Ciclo> ciclos = cicloDAO.consultar(conexion);
+
+            for (Ciclo cicloActual : ciclos) {
+                if ("ACTIVO".equalsIgnoreCase(cicloActual.getEstado())) {
+                    throw new ServicioException("CONFLICTO", "Ya existe un ciclo escolar activo");
+                }
+            }
 
             ciclo.setEstado("ACTIVO");
 

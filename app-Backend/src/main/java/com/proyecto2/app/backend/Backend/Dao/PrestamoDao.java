@@ -44,20 +44,17 @@ public class PrestamoDao {
             )
             """;
 
-    private static final String INSERTAR
-            = "INSERT INTO PRESTAMO (id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa) "
+    private static final String INSERTAR = "INSERT INTO PRESTAMO (id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-    private static final String CONSULTAR
-            = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
+    private static final String CONSULTAR = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
             + "FROM PRESTAMO ORDER BY fecha_prestamo DESC";
-
-    private static final String CONSULTAR_ATRASOS
-            = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
+    private static final String CONSULTAR_ATRASOS = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
             + "FROM PRESTAMO WHERE fecha_devolucion IS NULL AND fecha_devolucion_esperada < CURDATE() ORDER BY fecha_devolucion_esperada";
-
-    private static final String ACTUALIZAR
-            = "UPDATE PRESTAMO SET fecha_devolucion = ?, dias_atraso = ?, monto_multa = ? WHERE id_prestamo = ?";
+    private static final String ACTUALIZAR = "UPDATE PRESTAMO SET fecha_devolucion = ?, dias_atraso = ?, monto_multa = ? WHERE id_prestamo = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM PRESTAMO";
+    private static final String CONSULTAR_ATRASOS_PAGINADO = CONSULTAR_ATRASOS + " LIMIT ? OFFSET ?";
+    private static final String CONTAR_ATRASOS = "SELECT COUNT(*) AS total FROM PRESTAMO WHERE fecha_devolucion IS NULL AND fecha_devolucion_esperada < CURDATE()";
 
     public void crearTabla() {
         try (Connection conexion = ConexionDB.getInstance().getConnection(); Statement statement = conexion.createStatement()) {
@@ -238,6 +235,92 @@ public class PrestamoDao {
                 rs.getDouble("monto_multa")
         );
     }
+    
+    public Collection<Prestamo> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Prestamo> prestamos = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                prestamos.add(construirPrestamo(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return prestamos;
+}
+    
+    public int contar() {
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
+    
+    public Collection<Prestamo> consultarAtrasos(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Prestamo> prestamos = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_ATRASOS_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                prestamos.add(construirPrestamo(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return prestamos;
+}
+    
+    public int contarAtrasos() {
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR_ATRASOS);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
         if (statement != null) {

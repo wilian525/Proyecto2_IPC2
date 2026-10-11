@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -43,9 +44,12 @@ public class PagoDao {
 
     private static final String INSERTAR = "INSERT INTO PAGO (id_estudiante, id_empleado, concepto, monto, fecha) VALUES (?, ?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO ORDER BY fecha DESC";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM PAGO";
 
     public void crearTabla() {
-        try (Connection conexion = ConexionDB.getInstance().getConnection(); Statement statement = conexion.createStatement()) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection(); 
+                Statement statement = conexion.createStatement()) {
             statement.execute(CREAR_TABLA);
         } catch (SQLException e) {
             daoException.manejarError(e);
@@ -135,6 +139,144 @@ public class PagoDao {
     private Pago construirPago(ResultSet rs) throws SQLException {
         return new Pago(rs.getInt("id_pago"), rs.getInt("id_estudiante"), rs.getInt("id_empleado"), rs.getString("concepto"), rs.getDouble("monto"), rs.getDate("fecha").toLocalDate());
     }
+    
+    public Collection<Pago> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Pago> pagos = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                pagos.add(construirPago(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return pagos;
+}
+
+public int contar() {
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
+
+public Collection<Pago> consultarPorEstudiante(int idEstudiante, LocalDate fechaInicio, LocalDate fechaFin, int pagina, int limite) {
+    Collection<Pago> pagos = new ArrayList<>();
+
+    if (idEstudiante <= 0 || pagina <= 0 || limite <= 0) {
+        return pagos;
+    }
+
+    StringBuilder sql = new StringBuilder("SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO WHERE id_estudiante = ?");
+
+    if (fechaInicio != null) {
+        sql.append(" AND fecha >= ?");
+    }
+
+    if (fechaFin != null) {
+        sql.append(" AND fecha <= ?");
+    }
+
+    sql.append(" ORDER BY fecha DESC LIMIT ? OFFSET ?");
+
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(sql.toString())) {
+
+        int indice = 1;
+
+        ps.setInt(indice++, idEstudiante);
+
+        if (fechaInicio != null) {
+            ps.setDate(indice++, Date.valueOf(fechaInicio));
+        }
+
+        if (fechaFin != null) {
+            ps.setDate(indice++, Date.valueOf(fechaFin));
+        }
+
+        ps.setInt(indice++, limite);
+        ps.setInt(indice, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                pagos.add(construirPago(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return pagos;
+}
+
+public int contarPorEstudiante(int idEstudiante, LocalDate fechaInicio, LocalDate fechaFin) {
+    if (idEstudiante <= 0) {
+        return 0;
+    }
+
+    StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM PAGO WHERE id_estudiante = ?");
+
+    if (fechaInicio != null) {
+        sql.append(" AND fecha >= ?");
+    }
+
+    if (fechaFin != null) {
+        sql.append(" AND fecha <= ?");
+    }
+
+    try (Connection conexion = ConexionDB.getInstance().getConnection();
+         PreparedStatement ps = conexion.prepareStatement(sql.toString())) {
+
+        int indice = 1;
+
+        ps.setInt(indice++, idEstudiante);
+
+        if (fechaInicio != null) {
+            ps.setDate(indice++, Date.valueOf(fechaInicio));
+        }
+
+        if (fechaFin != null) {
+            ps.setDate(indice, Date.valueOf(fechaFin));
+        }
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
         if (statement != null) {

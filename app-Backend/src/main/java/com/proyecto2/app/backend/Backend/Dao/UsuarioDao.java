@@ -41,6 +41,8 @@ public class UsuarioDao {
     private static final String ACTUALIZAR = "UPDATE USUARIO SET nombre_usuario = ?, rol = ?, id_empleado = ? WHERE id_usuario = ?";
     private static final String DESACTIVAR = "UPDATE USUARIO SET estado = 'INACTIVO' WHERE id_usuario = ?";
     private static final String CAMBIAR_CONTRASEÑA = "UPDATE USUARIO SET contraseña = ? WHERE id_usuario = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM USUARIO";
 
     public UsuarioDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -99,9 +101,10 @@ public class UsuarioDao {
         }
 
         PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
-            ps = conexion.prepareStatement(INSERTAR);
+            ps = conexion.prepareStatement(INSERTAR, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, usuario.getNombreUsuario().trim());
             ps.setString(2, usuario.getContrasena());
             ps.setString(3, usuario.getRol().trim());
@@ -113,12 +116,24 @@ public class UsuarioDao {
                 ps.setNull(5, Types.INTEGER);
             }
 
-            return ps.executeUpdate() > 0;
+            if (ps.executeUpdate() <= 0) {
+                return false;
+            }
+
+            rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                usuario.setIdUsuario(rs.getInt(1));
+                return true;
+            }
+
+            return false;
 
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
         } finally {
+            cerrar(rs);
             cerrar(ps);
         }
     }
@@ -290,6 +305,51 @@ public class UsuarioDao {
 
         return new Usuario(idUsuario, nombreUsuario, contrasena, rol, estado, idEmpleado);
     }
+    
+    public Collection<Usuario> consultar(int pagina, int limite) {
+
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
+
+    Collection<Usuario> usuarios = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                usuarios.add(construirUsuario(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return usuarios;
+}
+    
+    public int contar() {
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
 

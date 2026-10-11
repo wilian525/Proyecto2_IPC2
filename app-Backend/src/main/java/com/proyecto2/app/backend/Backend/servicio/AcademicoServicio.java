@@ -45,22 +45,22 @@ import java.util.Collection;
  * @author wilian
  */
 public class AcademicoServicio {
-    
-     private  AsignacionDao asignacionDAO;
-    private  AsistenciaDao asistenciaDAO;
-    private  CarreraDao carreraDAO;
+
+    private AsignacionDao asignacionDAO;
+    private AsistenciaDao asistenciaDAO;
+    private CarreraDao carreraDAO;
     private cicloDao cicloDAO;
     private curriculoDao curriculoDAO;
-    private  CurriculoCursoDao curriculoCursoDAO;
-    private  CursoDao cursoDAO;
-    private  EmpleadoDao empleadoDAO;
-    private  EstudianteDao estudianteDAO;
-    private  GradoDao gradoDAO;
-    private  InscripcionDao inscripcionDAO;
-    private  NivelDao nivelDAO;
-    private  NotaDao notaDAO;
-    private  SeccionDao seccionDAO;
-    private  ZonaDao zonaDAO;
+    private CurriculoCursoDao curriculoCursoDAO;
+    private CursoDao cursoDAO;
+    private EmpleadoDao empleadoDAO;
+    private EstudianteDao estudianteDAO;
+    private GradoDao gradoDAO;
+    private InscripcionDao inscripcionDAO;
+    private NivelDao nivelDAO;
+    private NotaDao notaDAO;
+    private SeccionDao seccionDAO;
+    private ZonaDao zonaDAO;
 
     public AcademicoServicio() {
         asignacionDAO = new AsignacionDao();
@@ -1074,8 +1074,8 @@ public class AcademicoServicio {
 
     public boolean modificarNota(Nota nota, int idEmpleado) {
 
-        if (nota == null || idEmpleado <= 0 || nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0 || nota.getValor() < 0) {
-            throw new ServicioException("DATOS_INVALIDOS", "Los datos de la nota no son válidos");
+        if (nota == null || idEmpleado <= 0 || nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0 || nota.getValor() < 0 || nota.getValor() > 100) {
+            throw new ServicioException("DATOS_INVALIDOS", "La nota debe estar entre 0 y 100");
         }
 
         Connection conexion = null;
@@ -1130,6 +1130,18 @@ public class AcademicoServicio {
 
             if (!cicloActivo) {
                 throw new ServicioException("CONFLICTO", "Las notas únicamente pueden ingresarse o modificarse durante el ciclo activo");
+            }
+
+            double porcentajeTotal = 0;
+
+            for (Zona zona : zonas) {
+                if (zona.getIdAsignacion() == asignacionEncontrada.getIdAsignacion()) {
+                    porcentajeTotal += zona.getPorcentaje();
+                }
+            }
+
+            if (Math.abs(porcentajeTotal - 100.0) > 0.01) {
+                throw new ServicioException("CONFLICTO", "La ponderación de la asignación debe sumar 100% antes de registrar notas");
             }
 
             Inscripcion inscripcionEncontrada = null;

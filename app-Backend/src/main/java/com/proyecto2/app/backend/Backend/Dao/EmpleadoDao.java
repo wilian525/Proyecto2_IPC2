@@ -40,6 +40,8 @@ public class EmpleadoDao {
     private static final String CONSULTAR = "SELECT id_empleado, nombre, apellido, puesto, fecha_contratacion, salario, estado FROM EMPLEADO ORDER BY apellido, nombre";
     private static final String ACTUALIZAR = "UPDATE EMPLEADO SET nombre = ?, apellido = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
     private static final String DESACTIVAR = "UPDATE EMPLEADO SET estado = 'INACTIVO' WHERE id_empleado = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM EMPLEADO";
 
     public EmpleadoDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -76,7 +78,6 @@ public class EmpleadoDao {
     }
 
     public boolean insertar(Empleado empleado, Connection conexion) {
-
         if (empleado == null) {
             return false;
         }
@@ -106,20 +107,34 @@ public class EmpleadoDao {
         }
 
         PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
-            ps = conexion.prepareStatement(INSERTAR);
+            ps = conexion.prepareStatement(INSERTAR, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, empleado.getNombre().trim());
             ps.setString(2, empleado.getApellido().trim());
             ps.setString(3, empleado.getPuesto().trim());
             ps.setDate(4, Date.valueOf(empleado.getFechaContratacion()));
             ps.setDouble(5, empleado.getSalario());
             ps.setString(6, empleado.getEstado().trim());
-            return ps.executeUpdate() > 0;
+
+            if (ps.executeUpdate() <= 0) {
+                return false;
+            }
+
+            rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                empleado.setIdEmpleado(rs.getInt(1));
+                return true;
+            }
+
+            return false;
         } catch (SQLException e) {
             daoException.manejarError(e);
             return false;
         } finally {
+            cerrar(rs);
             cerrar(ps);
         }
     }
@@ -245,6 +260,51 @@ public class EmpleadoDao {
 
     private Empleado construirEmpleado(ResultSet rs) throws SQLException {
         return new Empleado(rs.getInt("id_empleado"), rs.getString("nombre"), rs.getString("apellido"), rs.getString("puesto"), rs.getDate("fecha_contratacion").toLocalDate(), rs.getDouble("salario"), rs.getString("estado"));
+    }
+
+    public Collection<Empleado> consultar(int pagina, int limite) {
+
+        if (pagina <= 0 || limite <= 0) {
+            return new ArrayList<>();
+        }
+
+        Collection<Empleado> empleados = new ArrayList<>();
+        int offset = (pagina - 1) * limite;
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+            ps.setInt(1, limite);
+            ps.setInt(2, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    empleados.add(construirEmpleado(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return empleados;
+    }
+
+    public int contar() {
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONTAR); 
+                ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return 0;
     }
 
     private void cerrar(Statement statement) {

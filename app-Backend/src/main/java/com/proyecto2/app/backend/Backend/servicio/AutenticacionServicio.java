@@ -34,21 +34,10 @@ public class AutenticacionServicio {
             throw new ServicioException( "El token de sesión no puede estar vacío");
         }
 
-        /*
-         * JWT es stateless.
-         *
-         * Aquí comprobamos que el token recibido sea válido.
-         * El Servlet posteriormente indicará al frontend que
-         * elimine el token almacenado.
-         *
-         * No eliminamos nada de la base de datos.
-         */
+       
         if (!jwtUtil.validarToken(token)) {
-            throw new ServicioException(
-                    "La sesión no es válida o ya expiró"
-            );
+            throw new ServicioException("La sesión no es válida o ya expiró");
         }
-
         return true;
     }
 

@@ -56,6 +56,8 @@ public class EstudianteDao {
             + "WHERE id_estudiante = ?";
     private static final String CAMBIAR_ESTADO = "UPDATE ESTUDIANTE SET estado = ? WHERE id_estudiante = ?";
     private static final String CONSULTAR_USUARIO = "SELECT id_usuario FROM USUARIO WHERE id_usuario = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM ESTUDIANTE";
 
     public EstudianteDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -332,6 +334,51 @@ public class EstudianteDao {
 
         return new Estudiante(idEstudiante, nombre, apellido, fechaNacimiento.toLocalDate(), direccion, telefono, correo, informacionMedica, datosEncargados, estado, idUsuario);
     }
+
+    public Collection<Estudiante> consultar(int pagina, int limite) {
+
+        if (pagina <= 0 || limite <= 0) {
+            return new ArrayList<>();
+        }
+
+        Collection<Estudiante> estudiantes = new ArrayList<>();
+        int offset = (pagina - 1) * limite;
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+            ps.setInt(1, limite);
+            ps.setInt(2, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    estudiantes.add(construirEstudiante(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return estudiantes;
+    }
+    
+    public int contar() {
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private void cerrar(Statement statement) {
         if (statement != null) {

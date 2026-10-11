@@ -26,10 +26,9 @@ import java.util.Collection;
  * @author wilian
  */
 public class PagoServicio {
-    
-      public static final double PRECIO_INSCRIPCION = 500;
+
+    public static final double PRECIO_INSCRIPCION = 500;
     public static final double PRECIO_MENSUALIDAD = 300;
-    public static final double PRECIO_ACTIVIDAD = 100;
 
     private PagoDao pagoDAO;
     private FacturaDao facturaDAO;
@@ -47,25 +46,22 @@ public class PagoServicio {
 
     public boolean registrarPago(Pago pago) {
 
-        if (pago == null || pago.getIdEstudiante() <= 0 || pago.getIdEmpleado() <= 0 || pago.getConcepto() == null || pago.getConcepto().trim().isEmpty() || pago.getFecha() == null) {
+        if (pago == null || pago.getIdEstudiante() <= 0 || pago.getIdEmpleado() <= 0 || pago.getConcepto() == null || pago.getConcepto().trim().isEmpty() || pago.getFecha() == null || pago.getMonto() <= 0) {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del pago no son válidos");
         }
 
         String concepto = pago.getConcepto().trim().toUpperCase();
-        double montoEsperado;
 
-        if ("INSCRIPCION".equals(concepto)) {
-            montoEsperado = PRECIO_INSCRIPCION;
-        } else if ("MENSUALIDAD".equals(concepto)) {
-            montoEsperado = PRECIO_MENSUALIDAD;
-        } else if ("ACTIVIDAD".equals(concepto)) {
-            montoEsperado = PRECIO_ACTIVIDAD;
-        } else {
+        if (!"INSCRIPCION".equals(concepto) && !"MENSUALIDAD".equals(concepto) && !"ACTIVIDAD".equals(concepto)) {
             throw new ServicioException("DATOS_INVALIDOS", "El concepto debe ser INSCRIPCION, MENSUALIDAD o ACTIVIDAD");
         }
 
-        if (Math.abs(pago.getMonto() - montoEsperado) > 0.01) {
-            throw new ServicioException("DATOS_INVALIDOS", "El monto no corresponde al precio establecido para el concepto");
+        if ("INSCRIPCION".equals(concepto) && Math.abs(pago.getMonto() - PRECIO_INSCRIPCION) > 0.01) {
+            throw new ServicioException("DATOS_INVALIDOS", "El monto de inscripción debe ser Q" + PRECIO_INSCRIPCION);
+        }
+
+        if ("MENSUALIDAD".equals(concepto) && Math.abs(pago.getMonto() - PRECIO_MENSUALIDAD) > 0.01) {
+            throw new ServicioException("DATOS_INVALIDOS", "El monto de mensualidad debe ser Q" + PRECIO_MENSUALIDAD);
         }
 
         Connection conexion = null;

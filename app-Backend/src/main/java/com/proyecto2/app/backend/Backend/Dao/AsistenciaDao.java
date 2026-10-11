@@ -45,6 +45,8 @@ public class AsistenciaDao {
     private static final String INSERTAR = "INSERT INTO ASISTENCIA (id_asignacion, id_inscripcion, fecha, estado) VALUES (?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_asistencia, id_asignacion, id_inscripcion, fecha, estado FROM ASISTENCIA ORDER BY fecha DESC";
     private static final String ACTUALIZAR = "UPDATE ASISTENCIA SET id_asignacion = ?, id_inscripcion = ?, fecha = ?, estado = ? WHERE id_asistencia = ?";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONTAR = "SELECT COUNT(*) AS total FROM ASISTENCIA";
 
     public AsistenciaDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -173,7 +175,50 @@ public class AsistenciaDao {
     private Asistencia construirAsistencia(ResultSet rs) throws SQLException {
         return new Asistencia(rs.getInt("id_asistencia"), rs.getInt("id_asignacion"), rs.getInt("id_inscripcion"), rs.getDate("fecha").toLocalDate(), rs.getString("estado"));
     }
+    
+    public Collection<Asistencia> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        return new ArrayList<>();
+    }
 
+    Collection<Asistencia> asistencias = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                asistencias.add(construirAsistencia(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return asistencias;
+}
+
+    public int contar() {
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            return rs.getInt("total");
+        }
+
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
+    
     private void cerrar(Statement statement) {
         if (statement != null) {
             try {

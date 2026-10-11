@@ -72,7 +72,7 @@ public class NotaDao {
         if (nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0) {
             return false;
         }
-        if (nota.getValor() < 0) {
+        if (nota.getValor() < 0 || nota.getValor() > 100) {
             return false;
         }
 
@@ -139,7 +139,7 @@ public class NotaDao {
         if (nota.getIdNota() <= 0 || nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0) {
             return false;
         }
-        if (nota.getValor() < 0) {
+        if (nota.getValor() < 0 || nota.getValor() > 100) {
             return false;
         }
 

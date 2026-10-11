@@ -11,6 +11,7 @@ import com.proyecto2.app.backend.Backend.Exception.ServicioException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Empleado;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
+import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -20,16 +21,18 @@ import java.util.Collection;
  * @author wilian
  */
 public class EmpleadoServicio {
-    
-     private final EmpleadoDao empleadoDAO;
-    private final UsuarioDao usuarioDAO;
+
+    private EmpleadoDao empleadoDAO;
+    private UsuarioDao usuarioDAO;
+    private SeguridadContrasena seguridadContrasena;
 
     public EmpleadoServicio() {
         empleadoDAO = new EmpleadoDao();
         usuarioDAO = new UsuarioDao();
+        seguridadContrasena = new SeguridadContrasena();
     }
 
-    public boolean crearEmpleado(Empleado empleado) {
+    public boolean crearEmpleado(Empleado empleado, Usuario usuario) {
 
         if (empleado == null || empleado.getNombre() == null || empleado.getNombre().trim().isEmpty() || empleado.getApellido() == null || empleado.getApellido().trim().isEmpty()) {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del empleado no son válidos");
@@ -37,6 +40,14 @@ public class EmpleadoServicio {
 
         if (empleado.getPuesto() == null || empleado.getPuesto().trim().isEmpty() || empleado.getFechaContratacion() == null || empleado.getSalario() < 0) {
             throw new ServicioException("DATOS_INVALIDOS", "El puesto, fecha de contratación o salario no son válidos");
+        }
+
+        if (usuario == null || usuario.getNombreUsuario() == null || usuario.getNombreUsuario().trim().isEmpty() || usuario.getContrasena() == null || usuario.getContrasena().trim().isEmpty()) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos del usuario no son válidos");
+        }
+
+        if (!rolEmpleadoValido(usuario.getRol())) {
+            throw new ServicioException("DATOS_INVALIDOS", "El rol del empleado no es válido");
         }
 
         Connection conexion = null;
@@ -47,12 +58,29 @@ public class EmpleadoServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
+            for (Usuario actual : usuarioDAO.consultar(conexion)) {
+                if (actual.getNombreUsuario().equalsIgnoreCase(usuario.getNombreUsuario().trim())) {
+                    throw new ServicioException("CONFLICTO", "El nombre de usuario ya está registrado");
+                }
+            }
+
             empleado.setEstado("ACTIVO");
 
-            boolean creado = empleadoDAO.insertar(empleado, conexion);
+            boolean empleadoCreado = empleadoDAO.insertar(empleado, conexion);
 
-            if (!creado) {
+            if (!empleadoCreado || empleado.getIdEmpleado() <= 0) {
                 throw new ServicioException("OPERACION_ERROR", "No fue posible crear el empleado");
+            }
+
+            usuario.setIdEmpleado(empleado.getIdEmpleado());
+            usuario.setEstado("ACTIVO");
+            usuario.setRol(usuario.getRol().trim().toUpperCase());
+            usuario.setContrasena(seguridadContrasena.hashear(usuario.getContrasena()));
+
+            boolean usuarioCreado = usuarioDAO.insertar(usuario, conexion);
+
+            if (!usuarioCreado) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible crear el usuario del empleado");
             }
 
             conexion.commit();
@@ -74,6 +102,14 @@ public class EmpleadoServicio {
             restaurarAutoCommit(conexion, autoCommitAnterior);
             cerrarConexion(conexion);
         }
+    }
+
+    private boolean rolEmpleadoValido(String rol) {
+        if (rol == null) {
+            return false;
+        }
+
+        return rol.equalsIgnoreCase("SECRETARIA") || rol.equalsIgnoreCase("MAESTRO") || rol.equalsIgnoreCase("BIBLIOTECARIO") || rol.equalsIgnoreCase("MANTENIMIENTO") || rol.equalsIgnoreCase("LIMPIEZA");
     }
 
     public boolean modificarEmpleado(Empleado empleado) {
