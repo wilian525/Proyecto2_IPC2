@@ -15,7 +15,7 @@ import java.util.Collection;
  * @author wilian
  */
 public class EmpleadoProcesos {
-    
+
     private EmpleadoDao empleadoDAO;
 
     public EmpleadoProcesos() {
@@ -27,6 +27,26 @@ public class EmpleadoProcesos {
             return empleadoDAO.consultar();
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudieron consultar los empleados", e);
+        }
+    }
+
+    public Collection<Empleado> consultarEmpleado(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+        }
+
+        try {
+            return empleadoDAO.consultar(pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar los empleados", e);
+        }
+    }
+
+    public int contarEmpleados() {
+        try {
+            return empleadoDAO.contar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de empleados", e);
         }
     }
 }

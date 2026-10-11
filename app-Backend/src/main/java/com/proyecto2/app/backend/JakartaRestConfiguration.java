@@ -1,13 +1,14 @@
 package com.proyecto2.app.backend;
 
 import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 
-/**
- * Configures Jakarta RESTful Web Services for the application.
- * @author Juneau
- */
-@ApplicationPath("resources")
-public class JakartaRestConfiguration extends Application {
-    
+@ApplicationPath("api/v1")
+public class JakartaRestConfiguration extends ResourceConfig {
+
+    public JakartaRestConfiguration() {
+        packages("com.proyecto2.app.backend.controller")
+                .property(ServerProperties.RESPONSE_SET_STATUS_OVER_SEND_ERROR, true);
+    }
 }

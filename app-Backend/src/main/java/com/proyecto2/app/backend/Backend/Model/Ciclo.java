@@ -15,6 +15,10 @@ public class Ciclo {
     private int anioFin;
     private String estado;
 
+    public Ciclo(){
+    
+    }
+    
     public Ciclo(int idCiclo, int anioInicio, int anioFin, String estado) {
         this.idCiclo = idCiclo;
         this.anioInicio = anioInicio;

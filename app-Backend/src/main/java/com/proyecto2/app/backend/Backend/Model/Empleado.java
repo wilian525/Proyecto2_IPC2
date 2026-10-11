@@ -20,6 +20,11 @@ public class Empleado {
     private double salario;
     private String estado;
 
+    public Empleado(){
+    
+    }
+    
+    
     public Empleado(int idEmpleado, String nombre, String apellido,
             String puesto, LocalDate fechaContratacion,
             double salario, String estado) {

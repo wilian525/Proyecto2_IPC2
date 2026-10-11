@@ -15,6 +15,10 @@ public class Grado {
     private int idNivel;
     private Integer idCarrera;
 
+    public Grado(){
+    
+    }
+    
     public Grado(int idGrado, String nombre, int idNivel, Integer idCarrera) {
         this.idGrado = idGrado;
         this.nombre = nombre;

@@ -24,6 +24,10 @@ public class Estudiante {
     private String estado;
     private int idUsuario;
 
+    public Estudiante(){
+    
+    }
+    
     public Estudiante(int idEstudiante, String nombre, String apellido,
             LocalDate fechaNacimiento, String direccion, String telefono,
             String correo, String informacionMedica, String datosEncargados,

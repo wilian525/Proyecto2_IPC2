@@ -106,4 +106,24 @@ public class EstudianteProcesos {
             throw new ProcesosException("BD_ERROR", "No se pudo consultar el perfil del estudiante", e);
         }
     }
+    
+    public Collection<Estudiante> consultarEstudiantes(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+    }
+
+    try {
+        return estudianteDAO.consultar(pagina, limite);
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar los estudiantes", e);
+    }
+}
+
+public int contarEstudiantes() {
+    try {
+        return estudianteDAO.contar();
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de estudiantes", e);
+    }
+}
 }

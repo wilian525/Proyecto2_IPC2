@@ -17,6 +17,11 @@ public class Usuario {
     private String estado;
     private int idEmpleado;
 
+    public Usuario(){
+    
+    }
+    
+    
     public Usuario(int idUsuario, String nombreUsuario, String contrasena,
             String rol, String estado, int idEmpleado) {
 
