@@ -17,6 +17,10 @@ public class Factura {
     private LocalDate fecha;
     private double montoTotal;
     private int idPago;
+    
+    public Factura(){
+    
+    }
 
     public Factura(int idFactura, String numeroFactura, LocalDate fecha,
             double montoTotal, int idPago) {

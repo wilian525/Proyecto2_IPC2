@@ -14,6 +14,10 @@ public class Curriculo {
     private int idGrado;
     private int idCiclo;
 
+    public Curriculo(){
+    
+    }
+    
     public Curriculo(int idCurriculo, int idGrado, int idCiclo) {
         this.idCurriculo = idCurriculo;
         this.idGrado = idGrado;

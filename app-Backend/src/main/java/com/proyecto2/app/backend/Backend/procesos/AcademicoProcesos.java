@@ -12,6 +12,7 @@ import com.proyecto2.app.backend.Backend.Dao.CursoDao;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
 import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
 import com.proyecto2.app.backend.Backend.Dao.NotaDao;
+import com.proyecto2.app.backend.Backend.Dao.SeccionDao;
 import com.proyecto2.app.backend.Backend.Dao.ZonaDao;
 import com.proyecto2.app.backend.Backend.Dao.curriculoDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
@@ -24,6 +25,7 @@ import com.proyecto2.app.backend.Backend.Model.Curso;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import com.proyecto2.app.backend.Backend.Model.Inscripcion;
 import com.proyecto2.app.backend.Backend.Model.Nota;
+import com.proyecto2.app.backend.Backend.Model.Seccion;
 import com.proyecto2.app.backend.Backend.Model.Zona;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +35,7 @@ import java.util.Collection;
  * @author wilian
  */
 public class AcademicoProcesos {
-    
+
     private AsignacionDao asignacionDAO;
     private AsistenciaDao asistenciaDAO;
     private CarreraDao carreraDAO;
@@ -44,6 +46,7 @@ public class AcademicoProcesos {
     private NotaDao notaDAO;
     private ZonaDao zonaDAO;
     private curriculoDao curriculoDAO;
+    private SeccionDao seccionDAO;
 
     public AcademicoProcesos() {
         asignacionDAO = new AsignacionDao();
@@ -56,6 +59,7 @@ public class AcademicoProcesos {
         notaDAO = new NotaDao();
         zonaDAO = new ZonaDao();
         curriculoDAO = new curriculoDao();
+        seccionDAO = new SeccionDao();
     }
 
     public Collection<Curso> consultarCursos() {
@@ -221,7 +225,64 @@ public class AcademicoProcesos {
                 return true;
             }
         }
-
         return false;
+    }
+
+    public Collection<Seccion> consultarSecciones() {
+        try {
+            return seccionDAO.consultar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las secciones", e);
+        }
+    }
+
+    public Collection<Asignacion> consultarAsignacionesMaestro(int idEmpleado) {
+    if (idEmpleado <= 0) throw new ProcesosException("DATOS_INVALIDOS", "El id del empleado no es válido");
+
+    try {
+        Collection<Asignacion> resultado = new ArrayList<>();
+
+        for (Asignacion asignacion : asignacionDAO.consultar()) {
+            if (asignacion.getIdEmpleado() == idEmpleado) resultado.add(asignacion);
+        }
+        return resultado;
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar las asignaciones", e);
+    }
+}
+
+    public Collection<Zona> consultarZonas(int idAsignacion) {
+    if (idAsignacion <= 0) throw new ProcesosException("DATOS_INVALIDOS", "El id de la asignación no es válido");
+
+    try {
+        Collection<Zona> resultado = new ArrayList<>();
+
+        for (Zona zona : zonaDAO.consultar()) {
+            if (zona.getIdAsignacion() == idAsignacion) resultado.add(zona);
+        }
+        return resultado;
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar las zonas", e);
+    }
+}
+
+    public Collection<Inscripcion> consultarInscripciones(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+        }
+
+        try {
+            return inscripcionDAO.consultar(pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las inscripciones", e);
+        }
+    }
+
+    public int contarInscripciones() {
+        try {
+            return inscripcionDAO.contar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de inscripciones", e);
+        }
     }
 }

@@ -182,4 +182,71 @@ public class BibliotecaProcesos {
 
         return null;
     }
+    
+    public Collection<Libro> consultarLibros(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+    }
+
+    try {
+        return libroDAO.consultar(pagina, limite);
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar los libros", e);
+    }
+}
+
+public int contarLibros() {
+    try {
+        return libroDAO.contar();
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de libros", e);
+    }
+}
+
+public Collection<Prestamo> consultarPrestamos(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+    }
+
+    try {
+        return prestamoDAO.consultar(pagina, limite);
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar los préstamos", e);
+    }
+}
+
+public int contarPrestamos() {
+    try {
+        return prestamoDAO.contar();
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de préstamos", e);
+    }
+}
+
+public Collection<Prestamo> consultarAtrasos(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) {
+        throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+    }
+
+    try {
+        Collection<Prestamo> prestamos = prestamoDAO.consultarAtrasos(pagina, limite);
+
+        for (Prestamo prestamo : prestamos) {
+            controlarAtraso(prestamo);
+        }
+
+        return prestamos;
+
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudieron consultar los préstamos atrasados", e);
+    }
+}
+
+public int contarAtrasos() {
+    try {
+        return prestamoDAO.contarAtrasos();
+    } catch (daoException e) {
+        throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de préstamos atrasados", e);
+    }
+}
 }

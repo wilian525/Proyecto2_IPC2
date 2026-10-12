@@ -13,6 +13,10 @@ public class Curso {
     private int idCurso;
     private String nombre;
     private String descripcion;
+    
+    public Curso(){
+    
+    }
 
     public Curso(int idCurso, String nombre, String descripcion) {
         this.idCurso = idCurso;

@@ -15,6 +15,10 @@ public class Zona {
     private double porcentaje;
     private int idAsignacion;
 
+    public Zona(){
+    
+    }
+    
     public Zona(int idZona, String nombre, double porcentaje, int idAsignacion) {
         this.idZona = idZona;
         this.nombre = nombre;

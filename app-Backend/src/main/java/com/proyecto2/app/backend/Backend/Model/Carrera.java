@@ -15,6 +15,11 @@ public class Carrera {
     private String estado;
     private int idNivel;
 
+    public Carrera(){
+    
+    }
+    
+    
     public Carrera(int idCarrera, String nombre, String estado, int idNivel) {
         this.idCarrera = idCarrera;
         this.nombre = nombre;

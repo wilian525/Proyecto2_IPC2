@@ -16,6 +16,11 @@ public class Inscripcion {
     private int idGrado;
     private int idSeccion;
 
+    public Inscripcion(){
+    
+    }
+    
+    
     public Inscripcion(int idInscripcion, int idEstudiante, int idCiclo,
             int idGrado, int idSeccion) {
 

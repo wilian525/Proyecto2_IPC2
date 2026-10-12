@@ -5,10 +5,12 @@
 package com.proyecto2.app.backend.Backend.procesos;
 
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.FacturaDao;
 import com.proyecto2.app.backend.Backend.Dao.PagoDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
+import com.proyecto2.app.backend.Backend.Model.Factura;
 import com.proyecto2.app.backend.Backend.Model.Pago;
 import com.proyecto2.app.backend.Backend.servicio.PagoServicio;
 import java.util.ArrayList;
@@ -19,13 +21,15 @@ import java.util.Collection;
  * @author wilian
  */
 public class PagoProcesos {
-    
-      private PagoDao pagoDAO;
+
+    private PagoDao pagoDAO;
     private EstudianteDao estudianteDAO;
+    private FacturaDao facturaDAO;
 
     public PagoProcesos() {
         pagoDAO = new PagoDao();
         estudianteDAO = new EstudianteDao();
+        facturaDAO = new FacturaDao();
     }
 
     public double consultarEstadoCuenta(int idEstudiante, int mensualidadesRequeridas) {
@@ -93,7 +97,84 @@ public class PagoProcesos {
                 return true;
             }
         }
-
         return false;
+    }
+
+    public Collection<Pago> consultarPagos(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+        }
+
+        try {
+            return pagoDAO.consultar(pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar los pagos", e);
+        }
+    }
+
+    public int contarPagos() {
+        try {
+            return pagoDAO.contar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de pagos", e);
+        }
+    }
+
+    public Collection<Pago> consultarHistorialPagos(int idEstudiante, int pagina, int limite) {
+        if (idEstudiante <= 0 || pagina <= 0 || limite <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "Los datos para consultar el historial no son válidos");
+        }
+
+        try {
+            if (!existeEstudiante(idEstudiante)) {
+                throw new ProcesosException("NO_ENCONTRADO", "No se encontró el estudiante");
+            }
+
+            return pagoDAO.consultarPorEstudiante(idEstudiante, pagina, limite);
+
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar el historial de pagos", e);
+        }
+    }
+
+    public int contarHistorialPagos(int idEstudiante) {
+        if (idEstudiante <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "El id del estudiante no es válido");
+        }
+
+        try {
+            if (!existeEstudiante(idEstudiante)) {
+                throw new ProcesosException("NO_ENCONTRADO", "No se encontró el estudiante");
+            }
+
+            return pagoDAO.contarPorEstudiante(idEstudiante);
+
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de pagos del estudiante", e);
+        }
+    }
+
+    public boolean consultarSolvencia(int idEstudiante, int mensualidadesRequeridas) {
+        return consultarEstadoCuenta(idEstudiante, mensualidadesRequeridas) <= 0.01;
+    }
+
+    public Collection<Factura> consultarFacturas(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser mayores que cero");
+        }
+
+        try {
+            return facturaDAO.consultar(pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las facturas", e);
+        }
+    }
+
+    public int contarFacturas() {
+        try {
+            return facturaDAO.contar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de facturas", e);
+        }
     }
 }

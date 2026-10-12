@@ -13,6 +13,10 @@ public class Seccion {
      private int idSeccion;
     private String nombre;
     private int idGrado;
+    
+    public Seccion(){
+    
+    }
 
     public Seccion(int idSeccion, String nombre, int idGrado) {
         this.idSeccion = idSeccion;

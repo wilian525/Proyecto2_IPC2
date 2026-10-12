@@ -15,6 +15,10 @@ public class Nota {
     private int idZona;
     private double valor;
 
+    public Nota(){
+    
+    }
+    
     public Nota(int idNota, int idInscripcion, int idZona, double valor) {
         this.idNota = idNota;
         this.idInscripcion = idInscripcion;

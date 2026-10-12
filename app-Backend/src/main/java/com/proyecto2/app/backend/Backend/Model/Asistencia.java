@@ -17,6 +17,10 @@ public class Asistencia {
     private int idInscripcion;
     private LocalDate fecha;
     private String estado;
+    
+    public Asistencia(){
+    
+    }
 
     public Asistencia(int idAsistencia, int idAsignacion, int idInscripcion,
             LocalDate fecha, String estado) {

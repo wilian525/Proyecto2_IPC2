@@ -18,6 +18,10 @@ public class Pago {
     private String concepto;
     private double monto;
     private LocalDate fecha;
+    
+    public Pago(){
+    
+    }
 
     public Pago(int idPago, int idEstudiante, int idEmpleado,
             String concepto, double monto, LocalDate fecha) {

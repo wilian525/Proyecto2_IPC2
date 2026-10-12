@@ -1216,6 +1216,174 @@ public class AcademicoServicio {
         }
     }
 
+    public boolean crearCurso(Curso curso) {
+        if (curso == null || curso.getNombre() == null || curso.getNombre().trim().isEmpty() || curso.getNombre().trim().length() > 100 || curso.getDescripcion() != null && curso.getDescripcion().length() > 255) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos del curso no son válidos");
+        }
+
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
+
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
+
+            if (!cursoDAO.insertar(curso, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible crear el curso");
+            }
+
+            conexion.commit();
+            return true;
+
+        } catch (ServicioException e) {
+            rollback(conexion, e);
+            throw e;
+        } catch (daoException e) {
+            rollback(conexion, e);
+            throw new ServicioException("BD_ERROR", "Error de base de datos al crear el curso", e);
+        } catch (SQLException e) {
+            rollback(conexion, e);
+            throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al crear el curso", e);
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
+        }
+    }
+
+   public boolean modificarCurso(Curso curso) {
+    if (curso == null || curso.getIdCurso() <= 0 || curso.getNombre() == null || curso.getNombre().trim().isEmpty() || curso.getNombre().trim().length() > 100 || curso.getDescripcion() != null && curso.getDescripcion().length() > 255) {
+        throw new ServicioException("DATOS_INVALIDOS", "Los datos del curso no son válidos");
+    }
+
+    Connection conexion = null;
+    boolean autoCommitAnterior = true;
+
+    try {
+        conexion = ConexionDB.getInstance().getConnection();
+        autoCommitAnterior = conexion.getAutoCommit();
+        conexion.setAutoCommit(false);
+
+        boolean existe = false;
+        for (Curso actual : cursoDAO.consultar(conexion)) {
+            if (actual.getIdCurso() == curso.getIdCurso()) {
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe) throw new ServicioException("NO_ENCONTRADO", "El curso no existe");
+        if (!cursoDAO.actualizar(curso, conexion)) throw new ServicioException("OPERACION_ERROR", "No fue posible modificar el curso");
+
+        conexion.commit();
+        return true;
+    } catch (ServicioException e) {
+        rollback(conexion, e);
+        throw e;
+    } catch (daoException e) {
+        rollback(conexion, e);
+        throw new ServicioException("BD_ERROR", "Error de base de datos al modificar el curso", e);
+    } catch (SQLException e) {
+        rollback(conexion, e);
+        throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al modificar el curso", e);
+    } finally {
+        restaurarAutoCommit(conexion, autoCommitAnterior);
+        cerrarConexion(conexion);
+    }
+}
+
+    public boolean crearSeccion(Seccion seccion) {
+    if (seccion == null || seccion.getNombre() == null || seccion.getNombre().trim().isEmpty() || seccion.getNombre().trim().length() > 100 || seccion.getIdGrado() <= 0) {
+        throw new ServicioException("DATOS_INVALIDOS", "Los datos de la sección no son válidos");
+    }
+
+    Connection conexion = null;
+    boolean autoCommitAnterior = true;
+
+    try {
+        conexion = ConexionDB.getInstance().getConnection();
+        autoCommitAnterior = conexion.getAutoCommit();
+        conexion.setAutoCommit(false);
+
+        boolean gradoExiste = false;
+        for (Grado grado : gradoDAO.consultar(conexion)) {
+            if (grado.getIdGrado() == seccion.getIdGrado()) {
+                gradoExiste = true;
+                break;
+            }
+        }
+
+        if (!gradoExiste) throw new ServicioException("NO_ENCONTRADO", "El grado no existe");
+        if (!seccionDAO.insertar(seccion, conexion)) throw new ServicioException("OPERACION_ERROR", "No fue posible crear la sección");
+
+        conexion.commit();
+        return true;
+    } catch (ServicioException e) {
+        rollback(conexion, e);
+        throw e;
+    } catch (daoException e) {
+        rollback(conexion, e);
+        throw new ServicioException("BD_ERROR", "Error de base de datos al crear la sección", e);
+    } catch (SQLException e) {
+        rollback(conexion, e);
+        throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al crear la sección", e);
+    } finally {
+        restaurarAutoCommit(conexion, autoCommitAnterior);
+        cerrarConexion(conexion);
+    }
+}
+
+    public boolean modificarSeccion(Seccion seccion) {
+    if (seccion == null || seccion.getIdSeccion() <= 0 || seccion.getNombre() == null || seccion.getNombre().trim().isEmpty() || seccion.getNombre().trim().length() > 100 || seccion.getIdGrado() <= 0) {
+        throw new ServicioException("DATOS_INVALIDOS", "Los datos de la sección no son válidos");
+    }
+
+    Connection conexion = null;
+    boolean autoCommitAnterior = true;
+
+    try {
+        conexion = ConexionDB.getInstance().getConnection();
+        autoCommitAnterior = conexion.getAutoCommit();
+        conexion.setAutoCommit(false);
+
+        boolean gradoExiste = false;
+        for (Grado grado : gradoDAO.consultar(conexion)) {
+            if (grado.getIdGrado() == seccion.getIdGrado()) {
+                gradoExiste = true;
+                break;
+            }
+        }
+
+        if (!gradoExiste) throw new ServicioException("NO_ENCONTRADO", "El grado no existe");
+
+        boolean existe = false;
+        for (Seccion actual : seccionDAO.consultar(conexion)) {
+            if (actual.getIdSeccion() == seccion.getIdSeccion()) {
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe) throw new ServicioException("NO_ENCONTRADO", "La sección no existe");
+        if (!seccionDAO.actualizar(seccion, conexion)) throw new ServicioException("OPERACION_ERROR", "No fue posible modificar la sección");
+
+        conexion.commit();
+        return true;
+    } catch (ServicioException e) {
+        rollback(conexion, e);
+        throw e;
+    } catch (daoException e) {
+        rollback(conexion, e);
+        throw new ServicioException("BD_ERROR", "Error de base de datos al modificar la sección", e);
+    } catch (SQLException e) {
+        rollback(conexion, e);
+        throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al modificar la sección", e);
+    } finally {
+        restaurarAutoCommit(conexion, autoCommitAnterior);
+        cerrarConexion(conexion);
+    }
+}
+
     private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
         if (conexion != null) {
             try {

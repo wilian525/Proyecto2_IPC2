@@ -15,6 +15,10 @@ public class Asignacion {
     private int idCurso;
     private int idSeccion;
     private int idCiclo;
+    
+    public Asignacion(){
+    
+    }
 
     public Asignacion(int idAsignacion, int idEmpleado, int idCurso,
             int idSeccion, int idCiclo) {
