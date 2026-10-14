@@ -43,6 +43,8 @@ public class UsuarioDao {
     private static final String CAMBIAR_CONTRASEÑA = "UPDATE USUARIO SET contraseña = ? WHERE id_usuario = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM USUARIO";
+    private static final String CONSULTAR_POR_NOMBRE = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE nombre_usuario = ? LIMIT 1";
+    private static final String CONSULTAR_POR_ID = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE id_usuario = ?";
 
     public UsuarioDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -305,51 +307,94 @@ public class UsuarioDao {
 
         return new Usuario(idUsuario, nombreUsuario, contrasena, rol, estado, idEmpleado);
     }
-    
+
     public Collection<Usuario> consultar(int pagina, int limite) {
 
-    if (pagina <= 0 || limite <= 0) {
-        return new ArrayList<>();
-    }
-
-    Collection<Usuario> usuarios = new ArrayList<>();
-    int offset = (pagina - 1) * limite;
-
-    try (Connection conexion = conexionDB.getConnection();
-         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
-
-        ps.setInt(1, limite);
-        ps.setInt(2, offset);
-
-        try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                usuarios.add(construirUsuario(rs));
-            }
+        if (pagina <= 0 || limite <= 0) {
+            return new ArrayList<>();
         }
 
-    } catch (SQLException e) {
-        daoException.manejarError(e);
+        Collection<Usuario> usuarios = new ArrayList<>();
+        int offset = (pagina - 1) * limite;
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+
+            ps.setInt(1, limite);
+            ps.setInt(2, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    usuarios.add(construirUsuario(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return usuarios;
     }
 
-    return usuarios;
-}
-    
     public int contar() {
 
-    try (Connection conexion = conexionDB.getConnection();
-         PreparedStatement ps = conexion.prepareStatement(CONTAR);
-         ResultSet rs = ps.executeQuery()) {
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONTAR); ResultSet rs = ps.executeQuery()) {
 
-        if (rs.next()) {
-            return rs.getInt("total");
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            daoException.manejarError(e);
         }
 
-    } catch (SQLException e) {
-        daoException.manejarError(e);
+        return 0;
     }
 
-    return 0;
-}
+    public Usuario consultarPorNombreUsuario(String nombreUsuario) {
+        if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
+            return null;
+        }
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_NOMBRE)) {
+
+            ps.setString(1, nombreUsuario.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return construirUsuario(rs);
+                }
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return null;
+    }
+
+    public Usuario consultarPorId(int idUsuario) {
+        if (idUsuario <= 0) {
+            return null;
+        }
+
+        try (Connection conexion = conexionDB.getConnection(); 
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
+
+            ps.setInt(1, idUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return construirUsuario(rs);
+                }
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+
+        return null;
+    }
 
     private void cerrar(Statement statement) {
 

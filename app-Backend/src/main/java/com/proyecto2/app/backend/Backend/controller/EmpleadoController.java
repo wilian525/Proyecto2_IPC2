@@ -11,6 +11,7 @@ import com.proyecto2.app.backend.Backend.Model.Empleado;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.procesos.EmpleadoProcesos;
 import com.proyecto2.app.backend.Backend.servicio.EmpleadoServicio;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.DELETE;
@@ -32,9 +33,10 @@ import java.util.Map;
  */
 @Path("empleados")
 @Produces(MediaType.APPLICATION_JSON)
+@RolesAllowed({"ADMIN", "SUPER_ADMIN"})
 public class EmpleadoController {
     
-     private final ObjectMapper objectMapper;
+      private final ObjectMapper objectMapper;
 
     public EmpleadoController() {
         objectMapper = new ObjectMapper();
@@ -105,7 +107,6 @@ public class EmpleadoController {
             Empleado empleado) {
 
         empleado.setIdEmpleado(idEmpleado);
-
         EmpleadoServicio servicio = new EmpleadoServicio();
 
         try {

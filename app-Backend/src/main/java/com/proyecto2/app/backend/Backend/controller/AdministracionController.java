@@ -11,6 +11,7 @@ import com.proyecto2.app.backend.Backend.Model.Grado;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.procesos.AdministracionProcesos;
 import com.proyecto2.app.backend.Backend.servicio.AdministracionServicio;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -30,10 +31,11 @@ import java.util.Map;
 @Path("administracion")
 @Produces(MediaType.APPLICATION_JSON)
 public class AdministracionController {
-    
+
     @POST
     @Path("super-admin")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
     public Response crearSuperAdmin(Usuario usuario) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -52,6 +54,7 @@ public class AdministracionController {
     @PUT
     @Path("super-admin/{idUsuario}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
     public Response modificarSuperAdmin(@PathParam("idUsuario") int idUsuario, Usuario usuario) {
         usuario.setIdUsuario(idUsuario);
         AdministracionServicio servicio = new AdministracionServicio();
@@ -70,6 +73,7 @@ public class AdministracionController {
 
     @DELETE
     @Path("super-admin/{idUsuario}")
+    @RolesAllowed("SUPER_ADMIN")
     public Response desactivarSuperAdmin(@PathParam("idUsuario") int idUsuario) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -77,7 +81,8 @@ public class AdministracionController {
             servicio.desactivarSuperAdmin(idUsuario);
 
             return Response.ok(
-                    Map.of("mensaje", "Super Admin desactivado correctamente")).build();
+                    Map.of("mensaje", "Super Admin desactivado correctamente")
+            ).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -87,6 +92,7 @@ public class AdministracionController {
     @POST
     @Path("admin")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
     public Response crearAdmin(Usuario usuario) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -94,7 +100,8 @@ public class AdministracionController {
             servicio.crearAdmin(usuario);
 
             return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("mensaje", "Admin creado correctamente")).build();
+                    .entity(Map.of("mensaje", "Admin creado correctamente"))
+                    .build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -104,6 +111,7 @@ public class AdministracionController {
     @PUT
     @Path("admin/{idUsuario}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
     public Response modificarAdmin(@PathParam("idUsuario") int idUsuario, Usuario usuario) {
         usuario.setIdUsuario(idUsuario);
         AdministracionServicio servicio = new AdministracionServicio();
@@ -112,7 +120,8 @@ public class AdministracionController {
             servicio.modificarAdmin(usuario);
 
             return Response.ok(
-                    Map.of("mensaje", "Admin modificado correctamente")).build();
+                    Map.of("mensaje", "Admin modificado correctamente")
+            ).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -121,6 +130,7 @@ public class AdministracionController {
 
     @DELETE
     @Path("admin/{idUsuario}")
+    @RolesAllowed("SUPER_ADMIN")
     public Response desactivarAdmin(@PathParam("idUsuario") int idUsuario) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -128,7 +138,8 @@ public class AdministracionController {
             servicio.desactivarAdmin(idUsuario);
 
             return Response.ok(
-                    Map.of("mensaje", "Admin desactivado correctamente") ).build();
+                    Map.of("mensaje", "Admin desactivado correctamente")
+            ).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -137,6 +148,7 @@ public class AdministracionController {
 
     @GET
     @Path("ciclos")
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
     public Response consultarCiclos() {
         AdministracionProcesos procesos = new AdministracionProcesos();
 
@@ -151,6 +163,7 @@ public class AdministracionController {
     @POST
     @Path("ciclos")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
     public Response crearCiclo(Ciclo ciclo) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -158,7 +171,8 @@ public class AdministracionController {
             servicio.crearCiclo(ciclo);
 
             return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("mensaje", "Ciclo creado correctamente")).build();
+                    .entity(Map.of("mensaje", "Ciclo creado correctamente"))
+                    .build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -167,6 +181,7 @@ public class AdministracionController {
 
     @DELETE
     @Path("ciclos/{idCiclo}")
+    @RolesAllowed("SUPER_ADMIN")
     public Response desactivarCiclo(@PathParam("idCiclo") int idCiclo) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -174,7 +189,8 @@ public class AdministracionController {
             servicio.desactivarCiclo(idCiclo);
 
             return Response.ok(
-                    Map.of("mensaje", "Ciclo desactivado correctamente")).build();
+                    Map.of("mensaje", "Ciclo desactivado correctamente")
+            ).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -183,6 +199,7 @@ public class AdministracionController {
 
     @GET
     @Path("grados")
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
     public Response consultarGrados() {
         AdministracionProcesos procesos = new AdministracionProcesos();
 
@@ -197,6 +214,7 @@ public class AdministracionController {
     @POST
     @Path("grados")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
     public Response crearGrado(Grado grado) {
         AdministracionServicio servicio = new AdministracionServicio();
 
@@ -204,7 +222,8 @@ public class AdministracionController {
             servicio.crearGrado(grado);
 
             return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("mensaje", "Grado creado correctamente")) .build();
+                    .entity(Map.of("mensaje", "Grado creado correctamente"))
+                    .build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -214,6 +233,7 @@ public class AdministracionController {
     @PUT
     @Path("grados/{idGrado}")
     @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
     public Response modificarGrado(@PathParam("idGrado") int idGrado, Grado grado) {
         grado.setIdGrado(idGrado);
         AdministracionServicio servicio = new AdministracionServicio();
@@ -222,7 +242,8 @@ public class AdministracionController {
             servicio.modificarGrado(grado);
 
             return Response.ok(
-                    Map.of("mensaje", "Grado modificado correctamente") ).build();
+                    Map.of("mensaje", "Grado modificado correctamente")
+            ).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -230,7 +251,6 @@ public class AdministracionController {
     }
 
     private Response responderError(String codigo, String mensaje) {
-
         if ("DATOS_INVALIDOS".equals(codigo)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
@@ -243,12 +263,12 @@ public class AdministracionController {
 
         if ("CONFLICTO".equals(codigo)) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(Map.of("codigo", codigo, "mensaje", mensaje)) .build();
+                    .entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
         }
 
         if ("NO_AUTORIZADO".equals(codigo)) {
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity(Map.of("codigo", codigo, "mensaje", mensaje)) .build();
+                    .entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
         }
 
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
