@@ -317,8 +317,7 @@ public class UsuarioDao {
         Collection<Usuario> usuarios = new ArrayList<>();
         int offset = (pagina - 1) * limite;
 
-        try (Connection conexion = conexionDB.getConnection(); 
-                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+        try (Connection conexion = conexionDB.getConnection(); PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
 
             ps.setInt(1, limite);
             ps.setInt(2, offset);
@@ -338,8 +337,7 @@ public class UsuarioDao {
 
     public int contar() {
 
-        try (Connection conexion = conexionDB.getConnection(); 
-                PreparedStatement ps = conexion.prepareStatement(CONTAR); ResultSet rs = ps.executeQuery()) {
+        try (Connection conexion = conexionDB.getConnection(); PreparedStatement ps = conexion.prepareStatement(CONTAR); ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
                 return rs.getInt("total");
@@ -353,13 +351,20 @@ public class UsuarioDao {
     }
 
     public Usuario consultarPorNombreUsuario(String nombreUsuario) {
+        try (Connection conexion = conexionDB.getConnection()) {
+            return consultarPorNombreUsuario(nombreUsuario, conexion);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
+    }
+
+    public Usuario consultarPorNombreUsuario(String nombreUsuario, Connection conexion) {
         if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
             return null;
         }
 
-        try (Connection conexion = conexionDB.getConnection(); 
-                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_NOMBRE)) {
-
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_NOMBRE)) {
             ps.setString(1, nombreUsuario.trim());
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -379,8 +384,7 @@ public class UsuarioDao {
             return null;
         }
 
-        try (Connection conexion = conexionDB.getConnection(); 
-                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
+        try (Connection conexion = conexionDB.getConnection(); PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
 
             ps.setInt(1, idUsuario);
 

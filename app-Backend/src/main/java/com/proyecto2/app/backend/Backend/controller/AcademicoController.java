@@ -14,6 +14,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.Map;
+import com.proyecto2.app.backend.Backend.procesos.EstudianteProcesos;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.Context;
+
 
 @Path("academico")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -22,6 +27,7 @@ public class AcademicoController {
     
     @GET
     @Path("cursos")
+    @RolesAllowed("ADMIN")
     public Response consultarCursos() {
         try {
             return Response.ok(new AcademicoProcesos().consultarCursos()).build();
@@ -32,6 +38,7 @@ public class AcademicoController {
 
     @POST
     @Path("cursos")
+    @RolesAllowed("ADMIN")
     public Response crearCurso(Curso curso) {
         try {
             new AcademicoServicio().crearCurso(curso);
@@ -43,9 +50,9 @@ public class AcademicoController {
 
     @PUT
     @Path("cursos/{idCurso}")
+    @RolesAllowed("ADMIN")
     public Response modificarCurso(@PathParam("idCurso") int idCurso, Curso curso) {
         curso.setIdCurso(idCurso);
-
         try {
             new AcademicoServicio().modificarCurso(curso);
             return Response.ok(Map.of("mensaje", "Curso modificado correctamente")).build();
@@ -56,6 +63,7 @@ public class AcademicoController {
 
     @GET
     @Path("secciones")
+    @RolesAllowed({"ADMIN", "SECRETARIA"})
     public Response consultarSecciones() {
         try {
             return Response.ok(new AcademicoProcesos().consultarSecciones()).build();
@@ -66,6 +74,7 @@ public class AcademicoController {
 
     @POST
     @Path("secciones")
+    @RolesAllowed("ADMIN")
     public Response crearSeccion(Seccion seccion) {
         try {
             new AcademicoServicio().crearSeccion(seccion);
@@ -77,9 +86,9 @@ public class AcademicoController {
 
     @PUT
     @Path("secciones/{idSeccion}")
+    @RolesAllowed("ADMIN")
     public Response modificarSeccion(@PathParam("idSeccion") int idSeccion, Seccion seccion) {
         seccion.setIdSeccion(idSeccion);
-
         try {
             new AcademicoServicio().modificarSeccion(seccion);
             return Response.ok(Map.of("mensaje", "Sección modificada correctamente")).build();
@@ -90,6 +99,7 @@ public class AcademicoController {
 
     @POST
     @Path("asignaciones")
+    @RolesAllowed("ADMIN")
     public Response asignarMaestro(Asignacion asignacion) {
         try {
             new AcademicoServicio().asignarMaestroCurso(asignacion);
@@ -101,6 +111,7 @@ public class AcademicoController {
 
     @GET
     @Path("maestros/{idEmpleado}/asignaciones")
+    @RolesAllowed("ADMIN")
     public Response consultarAsignaciones(@PathParam("idEmpleado") int idEmpleado) {
         try {
             return Response.ok(new AcademicoProcesos().consultarAsignacionesMaestro(idEmpleado)).build();
@@ -110,10 +121,22 @@ public class AcademicoController {
     }
 
     @GET
-    @Path("asignaciones/{idAsignacion}/nomina")
-    public Response consultarNomina(@PathParam("idAsignacion") int idAsignacion) {
+    @Path("mis-asignaciones")
+    @RolesAllowed("MAESTRO")
+    public Response consultarMisAsignaciones(@Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarNomina(idAsignacion)).build();
+            return Response.ok(new AcademicoProcesos().consultarAsignacionesMaestro(obtenerId(request, "idEmpleado"))).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    @GET
+    @Path("asignaciones/{idAsignacion}/nomina")
+    @RolesAllowed("MAESTRO")
+    public Response consultarNomina(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
+        try {
+            return Response.ok(new AcademicoProcesos().consultarNomina(idAsignacion, obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -121,6 +144,7 @@ public class AcademicoController {
 
     @GET
     @Path("inscripciones")
+    @RolesAllowed("SECRETARIA")
     public Response consultarInscripciones(@DefaultValue("1") @QueryParam("pagina") int pagina, @DefaultValue("20") @QueryParam("limite") int limite) {
         try {
             AcademicoProcesos procesos = new AcademicoProcesos();
@@ -133,6 +157,7 @@ public class AcademicoController {
 
     @POST
     @Path("inscripciones")
+    @RolesAllowed("SECRETARIA")
     public Response inscribirEstudiante(Inscripcion inscripcion) {
         try {
             new AcademicoServicio().inscribirEstudiante(inscripcion);
@@ -144,22 +169,25 @@ public class AcademicoController {
 
     @GET
     @Path("asignaciones/{idAsignacion}/asistencias")
-    public Response consultarAsistencias(@PathParam("idAsignacion") int idAsignacion) {
+    @RolesAllowed("MAESTRO")
+    public Response consultarAsistencias(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarAsistencia(idAsignacion)).build();
+            return Response.ok(new AcademicoProcesos().consultarAsistencia(idAsignacion, obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
     }
 
     @POST
-    @Path("asignaciones/{idAsignacion}/maestros/{idEmpleado}/asistencias")
-    public Response registrarAsistencia(@PathParam("idAsignacion") int idAsignacion, @PathParam("idEmpleado") int idEmpleado, Asistencia asistencia) {
+    @Path("asignaciones/{idAsignacion}/asistencias")
+    @RolesAllowed("MAESTRO")
+    public Response registrarAsistencia(@PathParam("idAsignacion") int idAsignacion, Asistencia asistencia, @Context HttpServletRequest request) {
         asistencia.setIdAsignacion(idAsignacion);
-
         try {
-            new AcademicoServicio().registrarAsistencia(asistencia, idEmpleado);
+            new AcademicoServicio().registrarAsistencia(asistencia, obtenerId(request, "idEmpleado"));
             return Response.status(Response.Status.CREATED).entity(Map.of("mensaje", "Asistencia registrada correctamente")).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
         } catch (ServicioException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -167,22 +195,25 @@ public class AcademicoController {
 
     @GET
     @Path("asignaciones/{idAsignacion}/zonas")
-    public Response consultarZonas(@PathParam("idAsignacion") int idAsignacion) {
+    @RolesAllowed("MAESTRO")
+    public Response consultarZonas(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarZonas(idAsignacion)).build();
+            return Response.ok(new AcademicoProcesos().consultarZonas(idAsignacion, obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
     }
 
     @POST
-    @Path("asignaciones/{idAsignacion}/maestros/{idEmpleado}/zonas")
-    public Response definirZona(@PathParam("idAsignacion") int idAsignacion, @PathParam("idEmpleado") int idEmpleado, Zona zona) {
+    @Path("asignaciones/{idAsignacion}/zonas")
+    @RolesAllowed("MAESTRO")
+    public Response definirZona(@PathParam("idAsignacion") int idAsignacion, Zona zona, @Context HttpServletRequest request) {
         zona.setIdAsignacion(idAsignacion);
-
         try {
-            new AcademicoServicio().definirZona(zona, idEmpleado);
+            new AcademicoServicio().definirZona(zona, obtenerId(request, "idEmpleado"));
             return Response.status(Response.Status.CREATED).entity(Map.of("mensaje", "Zona definida correctamente")).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
         } catch (ServicioException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -190,30 +221,37 @@ public class AcademicoController {
 
     @GET
     @Path("asignaciones/{idAsignacion}/notas")
-    public Response consultarNotas(@PathParam("idAsignacion") int idAsignacion) {
+    @RolesAllowed("MAESTRO")
+    public Response consultarNotas(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarNotas(idAsignacion)).build();
+            return Response.ok(new AcademicoProcesos().consultarNotas(idAsignacion, obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
     }
 
     @PUT
-    @Path("maestros/{idEmpleado}/notas")
-    public Response modificarNota(@PathParam("idEmpleado") int idEmpleado, Nota nota) {
+    @Path("notas")
+    @RolesAllowed("MAESTRO")
+    public Response modificarNota(Nota nota, @Context HttpServletRequest request) {
         try {
-            new AcademicoServicio().modificarNota(nota, idEmpleado);
+            new AcademicoServicio().modificarNota(nota, obtenerId(request, "idEmpleado"));
             return Response.ok(Map.of("mensaje", "Nota registrada o modificada correctamente")).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
         } catch (ServicioException e) {
             return error(e.getCodigo(), e.getMessage());
         }
     }
 
     @GET
-    @Path("estudiantes/{idEstudiante}/notas")
-    public Response consultarHistorialNotas(@PathParam("idEstudiante") int idEstudiante) {
+    @Path("mis-notas")
+    @RolesAllowed("ESTUDIANTE")
+    public Response consultarMisNotas(@Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarHistorialNotas(idEstudiante)).build();
+            int idUsuario = obtenerId(request, "idUsuario");
+            Estudiante estudiante = new EstudianteProcesos().consultarPerfil(idUsuario);
+            return Response.ok(new AcademicoProcesos().consultarHistorialNotas(estudiante.getIdEstudiante())).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -221,6 +259,7 @@ public class AcademicoController {
 
     @GET
     @Path("carreras")
+    @RolesAllowed("ADMIN")
     public Response consultarCarreras() {
         try {
             return Response.ok(new AcademicoProcesos().consultarCarreras()).build();
@@ -231,6 +270,7 @@ public class AcademicoController {
 
     @POST
     @Path("carreras")
+    @RolesAllowed("ADMIN")
     public Response crearCarrera(Carrera carrera) {
         try {
             new AcademicoServicio().crearCarrera(carrera);
@@ -242,9 +282,9 @@ public class AcademicoController {
 
     @PUT
     @Path("carreras/{idCarrera}")
+    @RolesAllowed("ADMIN")
     public Response modificarCarrera(@PathParam("idCarrera") int idCarrera, Carrera carrera) {
         carrera.setIdCarrera(idCarrera);
-
         try {
             new AcademicoServicio().actualizarCarrera(carrera);
             return Response.ok(Map.of("mensaje", "Carrera modificada correctamente")).build();
@@ -255,6 +295,7 @@ public class AcademicoController {
 
     @DELETE
     @Path("carreras/{idCarrera}")
+    @RolesAllowed("ADMIN")
     public Response desactivarCarrera(@PathParam("idCarrera") int idCarrera) {
         try {
             new AcademicoServicio().desactivarCarrera(idCarrera);
@@ -266,6 +307,7 @@ public class AcademicoController {
 
     @POST
     @Path("curriculos")
+    @RolesAllowed("ADMIN")
     public Response crearCurriculo(Curriculo curriculo) {
         try {
             new AcademicoServicio().crearCurriculo(curriculo);
@@ -277,6 +319,7 @@ public class AcademicoController {
 
     @PUT
     @Path("curriculos/{idCurriculo}/cursos")
+    @RolesAllowed("ADMIN")
     public Response establecerCurriculo(@PathParam("idCurriculo") int idCurriculo, int[] idCursos) {
         try {
             new AcademicoServicio().establecerCurriculo(idCurriculo, idCursos);
@@ -288,6 +331,7 @@ public class AcademicoController {
 
     @GET
     @Path("curriculos")
+    @RolesAllowed("ADMIN")
     public Response consultarCurriculo(@QueryParam("grado") int idGrado, @QueryParam("ciclo") int idCiclo) {
         try {
             return Response.ok(new AcademicoProcesos().consultarCurriculo(idGrado, idCiclo)).build();
@@ -296,13 +340,18 @@ public class AcademicoController {
         }
     }
 
+    private int obtenerId(HttpServletRequest request, String atributo) {
+        Object valor = request.getAttribute(atributo);
+        if (!(valor instanceof Integer) || (Integer) valor <= 0) throw new ProcesosException("NO_AUTORIZADO", "No se pudo identificar al usuario autenticado");
+        return (Integer) valor;
+    }
+
     private Response error(String codigo, String mensaje) {
         Response.Status estado = "DATOS_INVALIDOS".equals(codigo) ? Response.Status.BAD_REQUEST
                 : "NO_ENCONTRADO".equals(codigo) ? Response.Status.NOT_FOUND
                 : "CONFLICTO".equals(codigo) ? Response.Status.CONFLICT
                 : "NO_AUTORIZADO".equals(codigo) ? Response.Status.FORBIDDEN
                 : Response.Status.INTERNAL_SERVER_ERROR;
-
         return Response.status(estado).entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
     }
 }

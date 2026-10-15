@@ -16,6 +16,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 /**
@@ -25,68 +27,61 @@ import java.util.Map;
 @Path("autenticacion")
 public class AutenticacionController {
     
-     @POST
+      @POST
     @Path("login")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response iniciarSesion(Usuario usuario) {
-
-        if (usuario == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("codigo", "DATOS_INVALIDOS","mensaje", "Los datos de inicio de sesión son obligatorios" )).build();
-        }
-
-        AutenticacionProcesos autenticacionProcesos = new AutenticacionProcesos();
+        if (usuario == null) return error("DATOS_INVALIDOS", "Los datos de inicio de sesión son obligatorios");
 
         try {
-            String token = autenticacionProcesos.iniciarSesion(
-                    usuario.getNombreUsuario(),
-                    usuario.getContrasena()
-            );
-
-            return Response.ok(
-                    Map.of("token", token) ).build();
-
+            String token = new AutenticacionProcesos().iniciarSesion(usuario.getNombreUsuario(), usuario.getContrasena());
+            return Response.ok(Map.of("token", token)).build();
         } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
 
-            if ("DATOS_INVALIDOS".equals(e.getCodigo())) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of( "codigo", e.getCodigo(),"mensaje", e.getMessage() )).build();
-            }
+    @POST
+    @Path("recuperar")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response recuperarContrasena(Map<String, String> datos) {
+        if (datos == null) return error("DATOS_INVALIDOS", "Los datos de recuperación son obligatorios");
 
-            if ("NO_AUTORIZADO".equals(e.getCodigo())) {
-                return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(Map.of("codigo", e.getCodigo(), "mensaje", e.getMessage() )).build();
-            }
+        try {
+            String fechaTexto = datos.get("fechaVerificacion");
+            LocalDate fecha = fechaTexto == null || fechaTexto.isBlank() ? null : LocalDate.parse(fechaTexto);
 
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("codigo", e.getCodigo(),"mensaje", e.getMessage() )).build();
+            new AutenticacionServicio().recuperarContraseña(datos.get("nombreUsuario"), datos.get("nombre"), datos.get("apellido"), fecha, datos.get("nuevaContrasena"));
+
+            return Response.ok(Map.of("mensaje", "Contraseña actualizada correctamente")).build();
+        } catch (DateTimeParseException e) {
+            return error("DATOS_INVALIDOS", "La fecha debe tener formato yyyy-MM-dd");
+        } catch (ServicioException e) {
+            return error(e.getCodigo(), e.getMessage());
         }
     }
 
     @POST
     @Path("logout")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response cerrarSesion(@HeaderParam("Authorization") String authorization) {
-
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(Map.of( "codigo", "NO_AUTORIZADO","mensaje", "El token de autorización no es válido")) .build();
+        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            return error("NO_AUTORIZADO", "El token de autorización no es válido");
         }
-
-        String token = authorization.substring(7).trim();
-
-        AutenticacionServicio autenticacionServicio = new AutenticacionServicio();
 
         try {
-            autenticacionServicio.cerrarSesion(token);
-
-            return Response.ok(
-                    Map.of( "codigo", "OK", "mensaje", "Sesión cerrada correctamente" )).build();
-
+            new AutenticacionServicio().cerrarSesion(authorization.substring(7).trim());
+            return Response.ok(Map.of("codigo", "OK", "mensaje", "Sesión cerrada correctamente")).build();
         } catch (ServicioException e) {
-            return Response.status(Response.Status.UNAUTHORIZED) 
-                    .entity(Map.of("codigo", e.getCodigo(),"mensaje", e.getMessage())).build();
+            return error(e.getCodigo(), e.getMessage());
         }
+    }
+
+    private Response error(String codigo, String mensaje) {
+        Response.Status estado = "DATOS_INVALIDOS".equals(codigo) ? Response.Status.BAD_REQUEST
+                : "NO_AUTORIZADO".equals(codigo) ? Response.Status.UNAUTHORIZED
+                : "CONFLICTO".equals(codigo) ? Response.Status.CONFLICT
+                : Response.Status.INTERNAL_SERVER_ERROR;
+
+        return Response.status(estado).entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
     }
 }

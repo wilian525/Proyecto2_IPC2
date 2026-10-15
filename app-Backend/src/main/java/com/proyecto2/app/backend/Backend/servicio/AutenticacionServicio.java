@@ -4,11 +4,20 @@
  */
 package com.proyecto2.app.backend.Backend.servicio;
 
+import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
+import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
+import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
 import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
 import com.proyecto2.app.backend.Backend.Exception.ServicioException;
+import com.proyecto2.app.backend.Backend.Exception.daoException;
+import com.proyecto2.app.backend.Backend.Model.Empleado;
+import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.seguridad.JwtUtil;
 import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
 
 /**
@@ -16,99 +25,132 @@ import java.util.Collection;
  * @author wilian
  */
 public class AutenticacionServicio {
-    
-     private final UsuarioDao usuarioDAO;
-    private final SeguridadContrasena seguridadContrasena;
-    private final JwtUtil jwtUtil;
+
+     private UsuarioDao usuarioDAO;
+    private EmpleadoDao empleadoDAO;
+    private EstudianteDao estudianteDAO;
+    private SeguridadContrasena seguridadContrasena;
+    private JwtUtil jwtUtil;
 
     public AutenticacionServicio() {
-
-        this.usuarioDAO = new UsuarioDao();
-        this.seguridadContrasena = new SeguridadContrasena();
-        this.jwtUtil = new JwtUtil();
+        usuarioDAO = new UsuarioDao();
+        empleadoDAO = new EmpleadoDao();
+        estudianteDAO = new EstudianteDao();
+        seguridadContrasena = new SeguridadContrasena();
+        jwtUtil = new JwtUtil();
     }
 
     public boolean cerrarSesion(String token) {
-
-        if (token == null || token.trim().isEmpty()) {
-            throw new ServicioException( "El token de sesión no puede estar vacío");
-        }
-
-       
-        if (!jwtUtil.validarToken(token)) {
-            throw new ServicioException("La sesión no es válida o ya expiró");
-        }
+        if (token == null || token.trim().isEmpty()) throw new ServicioException("NO_AUTORIZADO", "El token de sesión no puede estar vacío");
+        if (!jwtUtil.validarToken(token)) throw new ServicioException("NO_AUTORIZADO", "La sesión no es válida o ya expiró");
         return true;
     }
 
-    public boolean recuperarContraseña(
-            String nombreUsuario,
-            String nuevaContrasena) {
+    public boolean recuperarContraseña(String nombreUsuario, String nombre, String apellido, LocalDate fechaVerificacion, String nuevaContrasena) {
+        validarDatos(nombreUsuario, nombre, apellido, fechaVerificacion, nuevaContrasena);
 
-        validarNombreUsuario(nombreUsuario);
-        validarContrasena(nuevaContrasena);
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
 
         try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
 
-            Usuario usuario = buscarUsuario(nombreUsuario.trim());
+            Usuario usuario = usuarioDAO.consultarPorNombreUsuario(nombreUsuario.trim(), conexion);
 
-            if (usuario == null) {
-                throw new ServicioException("No existe un usuario con ese nombre" );
+            if (usuario == null || usuario.getEstado() == null || !"ACTIVO".equalsIgnoreCase(usuario.getEstado())) {
+                throw new ServicioException("NO_AUTORIZADO", "No fue posible validar la identidad del usuario");
             }
 
-            if (usuario.getEstado() == null || !usuario.getEstado().equalsIgnoreCase("ACTIVO")) {
-                throw new ServicioException( "El usuario no se encuentra activo");
+            if (!validarIdentidad(usuario, nombre, apellido, fechaVerificacion, conexion)) {
+                throw new ServicioException("NO_AUTORIZADO", "No fue posible validar la identidad del usuario");
             }
 
-            String contrasenaHasheada = seguridadContrasena.hashear(nuevaContrasena);
-
-            boolean actualizado = usuarioDAO.cambiarContraseña(usuario.getIdUsuario(),contrasenaHasheada);
-
-            if (!actualizado) {
-                throw new ServicioException( "No fue posible actualizar la contraseña" );
+            if (seguridadContrasena.verificar(nuevaContrasena, usuario.getContrasena())) {
+                throw new ServicioException("CONFLICTO", "La nueva contraseña debe ser diferente a la actual");
             }
 
+            if (!usuarioDAO.cambiarContraseña(usuario.getIdUsuario(), seguridadContrasena.hashear(nuevaContrasena), conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible actualizar la contraseña");
+            }
+
+            conexion.commit();
             return true;
 
         } catch (ServicioException e) {
+            rollback(conexion, e);
             throw e;
-
-        } catch (Exception e) {
-
-            throw new ServicioException(
-                    "Error al recuperar la contraseña",
-                    e
-            );
+        } catch (daoException e) {
+            ServicioException error = new ServicioException("BD_ERROR", "Error de base de datos al recuperar la contraseña", e);
+            rollback(conexion, error);
+            throw error;
+        } catch (SQLException e) {
+            ServicioException error = new ServicioException("TRANSACCION_ERROR", "Error en la transacción al recuperar la contraseña", e);
+            rollback(conexion, error);
+            throw error;
+        } finally {
+            finalizarConexion(conexion, autoCommitAnterior);
         }
     }
 
-    private Usuario buscarUsuario(String nombreUsuario) {
-        Collection<Usuario> usuarios = usuarioDAO.consultar();
+    private boolean validarIdentidad(Usuario usuario, String nombre, String apellido, LocalDate fecha, Connection conexion) {
+        if ("ESTUDIANTE".equalsIgnoreCase(usuario.getRol())) {
+            for (Estudiante estudiante : estudianteDAO.consultar(conexion)) {
+                if (estudiante.getIdUsuario() == usuario.getIdUsuario() && iguales(estudiante.getNombre(), nombre) && iguales(estudiante.getApellido(), apellido) && fecha.equals(estudiante.getFechaNacimiento())) return true;
+            }
+            return false;
+        }
 
-        for (Usuario usuario : usuarios) {
-
-            if (usuario.getNombreUsuario() != null  && usuario.getNombreUsuario() .equalsIgnoreCase(nombreUsuario)) {
-                return usuario;
+        if (usuario.getIdEmpleado() != null && usuario.getIdEmpleado() > 0) {
+            for (Empleado empleado : empleadoDAO.consultar(conexion)) {
+                if (empleado.getIdEmpleado() == usuario.getIdEmpleado() && iguales(empleado.getNombre(), nombre) && iguales(empleado.getApellido(), apellido) && fecha.equals(empleado.getFechaContratacion())) return true;
             }
         }
-        return null;
+
+        return false;
     }
 
-    private void validarNombreUsuario(String nombreUsuario) {
+    private boolean iguales(String valorBD, String valorIngresado) {
+        return valorBD != null && valorIngresado != null && valorBD.trim().equalsIgnoreCase(valorIngresado.trim());
+    }
 
-        if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
-            throw new ServicioException( "El nombre de usuario no puede estar vacío" );
+    private void validarDatos(String nombreUsuario, String nombre, String apellido, LocalDate fecha, String nuevaContrasena) {
+        if (nombreUsuario == null || nombreUsuario.trim().isEmpty() || nombre == null || nombre.trim().isEmpty() || apellido == null || apellido.trim().isEmpty() || fecha == null) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos de recuperación son obligatorios");
+        }
+        if (nuevaContrasena == null || nuevaContrasena.trim().isEmpty() || nuevaContrasena.length() < 8) {
+            throw new ServicioException("DATOS_INVALIDOS", "La nueva contraseña debe contener al menos 8 caracteres");
         }
     }
 
-    private void validarContrasena(String contrasena) {
+    private void rollback(Connection conexion, Exception causa) {
+        if (conexion == null) return;
+        try {
+            conexion.rollback();
+        } catch (SQLException e) {
+            causa.addSuppressed(e);
+        }
+    }
 
-        if (contrasena == null || contrasena.trim().isEmpty()) {
-            throw new ServicioException( "La nueva contraseña no puede estar vacía");
+    private void finalizarConexion(Connection conexion, boolean autoCommitAnterior) {
+        if (conexion == null) return;
+
+        SQLException error = null;
+
+        try {
+            conexion.setAutoCommit(autoCommitAnterior);
+        } catch (SQLException e) {
+            error = e;
         }
 
-        if (contrasena.length() < 8) {
-            throw new ServicioException("La contraseña debe contener al menos 8 caracteres" );
+        try {
+            conexion.close();
+        } catch (SQLException e) {
+            if (error == null) error = e;
+            else error.addSuppressed(e);
         }
+
+        if (error != null) throw new ServicioException("TRANSACCION_ERROR", "No fue posible finalizar correctamente la conexión", error);
     }
 }

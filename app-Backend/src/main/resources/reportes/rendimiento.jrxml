@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jasperReport name="rendimiento"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              whenNoDataType="AllSectionsNoDetail"
+              uuid="94f259a7-a390-45e5-961e-3e84a7301101">
+
+    <style name="Titulo" fontName="DejaVu Sans" fontSize="18.0" bold="true"/>
+    <style name="Subtitulo" fontName="DejaVu Sans" fontSize="11.0" bold="true"/>
+    <style name="Encabezado" fontName="DejaVu Sans" fontSize="9.0" bold="true" mode="Opaque" backcolor="#E6E6E6"/>
+    <style name="Celda" fontName="DejaVu Sans" fontSize="8.0"/>
+
+    <dataset name="PromediosCursos" uuid="c77c50bc-2050-4e98-b274-b61b84151101">
+        <field name="idCurso" class="java.lang.Integer"/>
+        <field name="curso" class="java.lang.String"/>
+        <field name="idSeccion" class="java.lang.Integer"/>
+        <field name="idCiclo" class="java.lang.Integer"/>
+        <field name="promedio" class="java.lang.Double"/>
+        <field name="estudiantesEvaluados" class="java.lang.Integer"/>
+    </dataset>
+
+    <dataset name="MejoresPromedios" uuid="c77c50bc-2050-4e98-b274-b61b84151102">
+        <field name="idEstudiante" class="java.lang.Integer"/>
+        <field name="estudiante" class="java.lang.String"/>
+        <field name="promedioGeneral" class="java.lang.Double"/>
+    </dataset>
+
+    <field name="idGrado" class="java.lang.Integer"/>
+    <field name="grado" class="java.lang.String"/>
+    <field name="idSeccion" class="java.lang.Integer"/>
+    <field name="seccion" class="java.lang.String"/>
+    <field name="idCiclo" class="java.lang.Integer"/>
+    <field name="promediosCursos" class="java.util.Collection"/>
+    <field name="cursoMayorDificultad" class="com.proyecto2.app.backend.Backend.Model.ReportePromedioCurso"/>
+    <field name="mejoresPromedios" class="java.util.List"/>
+
+    <title height="105">
+
+        <element kind="staticText" x="0" y="0" width="802" height="30" style="Titulo" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[REPORTE DE RENDIMIENTO ACADÉMICO]]></text>
+        </element>
+
+        <element kind="staticText" x="0" y="45" width="100" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[ID Grado]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="100" y="45" width="220" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Grado]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="320" y="45" width="100" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[ID Sección]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="420" y="45" width="220" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Sección]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="640" y="45" width="162" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Ciclo]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="textField" x="0" y="70" width="100" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{idGrado}]]></expression>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="textField" x="100" y="70" width="220" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{grado}]]></expression>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="textField" x="320" y="70" width="100" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{idSeccion}]]></expression>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="textField" x="420" y="70" width="220" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{seccion}]]></expression>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="textField" x="640" y="70" width="162" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{idCiclo}]]></expression>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+    </title>
+
+    <detail>
+
+        <band height="155" splitType="Stretch">
+
+            <element kind="staticText" x="0" y="0" width="802" height="25" style="Subtitulo" hTextAlign="Left" vTextAlign="Middle">
+                <text><![CDATA[PROMEDIO DE NOTAS POR CURSO]]></text>
+            </element>
+
+            <element kind="component" x="0" y="30" width="802" height="110">
+                <component kind="table">
+
+                    <datasetRun subDataset="PromediosCursos">
+                        <dataSourceExpression><![CDATA[
+                            new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource(
+                                $F{promediosCursos} == null ? java.util.Collections.emptyList() : $F{promediosCursos}
+                            )
+                        ]]></dataSourceExpression>
+                    </datasetRun>
+
+                    <column kind="single" width="80">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="80" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[ID Curso]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="80" height="22" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{idCurso}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="270">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="270" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Curso]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="270" height="22" style="Celda" vTextAlign="Middle">
+                                <expression><![CDATA[$F{curso}]]></expression>
+                                <box leftPadding="4"><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="100">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="100" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[ID Sección]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="100" height="22" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{idSeccion}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="90">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="90" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Ciclo]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="90" height="22" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{idCiclo}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="120">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="120" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Promedio]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="120" height="22" style="Celda" pattern="#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{promedio}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="142">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="142" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Evaluados]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="142" height="22" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{estudiantesEvaluados}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                </component>
+            </element>
+
+        </band>
+
+        <band height="100">
+
+            <element kind="staticText" x="0" y="0" width="802" height="25" style="Subtitulo" hTextAlign="Left" vTextAlign="Middle">
+                <text><![CDATA[CURSO CON MAYOR DIFICULTAD]]></text>
+            </element>
+
+            <element kind="staticText" x="0" y="30" width="80" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[ID Curso]]></text>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="staticText" x="80" y="30" width="300" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[Curso]]></text>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="staticText" x="380" y="30" width="140" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[Promedio]]></text>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="staticText" x="520" y="30" width="282" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[Estudiantes Evaluados]]></text>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="0" y="55" width="80" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{cursoMayorDificultad} == null ? "" : String.valueOf($F{cursoMayorDificultad}.getIdCurso())]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="80" y="55" width="300" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{cursoMayorDificultad} == null ? "SIN DATOS" : $F{cursoMayorDificultad}.getCurso()]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="380" y="55" width="140" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{cursoMayorDificultad} == null ? "" : String.format("%.2f", $F{cursoMayorDificultad}.getPromedio())]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="520" y="55" width="282" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{cursoMayorDificultad} == null ? "" : String.valueOf($F{cursoMayorDificultad}.getEstudiantesEvaluados())]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+        </band>
+
+        <band height="155" splitType="Stretch">
+
+            <element kind="staticText" x="0" y="0" width="802" height="25" style="Subtitulo" hTextAlign="Left" vTextAlign="Middle">
+                <text><![CDATA[MEJORES PROMEDIOS]]></text>
+            </element>
+
+            <element kind="component" x="0" y="30" width="802" height="110">
+                <component kind="table">
+
+                    <datasetRun subDataset="MejoresPromedios">
+                        <dataSourceExpression><![CDATA[
+                            new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource(
+                                $F{mejoresPromedios} == null ? java.util.Collections.emptyList() : $F{mejoresPromedios}
+                            )
+                        ]]></dataSourceExpression>
+                    </datasetRun>
+
+                    <column kind="single" width="120">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="120" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[ID Estudiante]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="120" height="22" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{idEstudiante}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="482">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="482" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Estudiante]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="482" height="22" style="Celda" vTextAlign="Middle">
+                                <expression><![CDATA[$F{estudiante}]]></expression>
+                                <box leftPadding="4"><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                    <column kind="single" width="200">
+                        <columnHeader height="25">
+                            <element kind="staticText" width="200" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[Promedio General]]></text>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </columnHeader>
+                        <detailCell height="22">
+                            <element kind="textField" width="200" height="22" style="Celda" pattern="#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+                                <expression><![CDATA[$F{promedioGeneral}]]></expression>
+                                <box><pen lineWidth="0.5"/></box>
+                            </element>
+                        </detailCell>
+                    </column>
+
+                </component>
+            </element>
+
+        </band>
+
+    </detail>
+
+    <pageFooter height="25">
+        <element kind="textField" x="652" y="5" width="150" height="20" fontName="DejaVu Sans" fontSize="8.0" hTextAlign="Right">
+            <expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+        </element>
+    </pageFooter>
+
+    <noData height="45">
+        <element kind="staticText" x="0" y="10" width="802" height="25" fontName="DejaVu Sans" fontSize="11.0" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[No existen datos de rendimiento para los filtros seleccionados.]]></text>
+        </element>
+    </noData>
+
+</jasperReport>

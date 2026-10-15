@@ -240,141 +240,156 @@ public class BibliotecaServicio {
             }
         }
     }
-    
+
     public boolean crearLibro(Libro libro) {
-
-    if (libro == null || libro.getTitulo() == null || libro.getTitulo().trim().isEmpty()
-            || libro.getAutor() == null || libro.getAutor().trim().isEmpty()
-            || libro.getCantidadDisponible() < 0) {
-        throw new ServicioException("DATOS_INVALIDOS", "Los datos del libro no son válidos");
-    }
-
-    try {
-        libro.setEstado("ACTIVO");
-
-        if (!libroDAO.insertar(libro)) {
-            throw new ServicioException("OPERACION_ERROR", "No fue posible crear el libro");
+        if (libro == null || libro.getTitulo() == null || libro.getTitulo().trim().isEmpty() || libro.getAutor() == null || libro.getAutor().trim().isEmpty() || libro.getCantidadDisponible() < 0) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos del libro no son válidos");
         }
 
-        return true;
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
 
-    } catch (daoException e) {
-        throw new ServicioException("BD_ERROR", "Error de base de datos al crear el libro", e);
-    }
-}
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
 
-public boolean modificarLibro(Libro libro) {
+            libro.setEstado("ACTIVO");
 
-    if (libro == null || libro.getIdLibro() <= 0|| libro.getTitulo() == null || libro.getTitulo().trim().isEmpty()
-            || libro.getAutor() == null || libro.getAutor().trim().isEmpty() || libro.getCantidadDisponible() < 0) {
-        throw new ServicioException("DATOS_INVALIDOS", "Los datos del libro no son válidos");
-    }
-
-    Connection conexion = null;
-    boolean autoCommitAnterior = true;
-
-    try {
-        conexion = ConexionDB.getInstance().getConnection();
-        autoCommitAnterior = conexion.getAutoCommit();
-        conexion.setAutoCommit(false);
-
-        Libro encontrado = null;
-
-        for (Libro actual : libroDAO.consultar(conexion)) {
-            if (actual.getIdLibro() == libro.getIdLibro()) {
-                encontrado = actual;
-                break;
+            if (!libroDAO.insertar(libro, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible crear el libro");
             }
+
+            conexion.commit();
+            return true;
+
+        } catch (ServicioException e) {
+            rollback(conexion, e);
+            throw e;
+        } catch (daoException e) {
+            rollback(conexion, e);
+            throw new ServicioException("BD_ERROR", "Error de base de datos al crear el libro", e);
+        } catch (SQLException e) {
+            rollback(conexion, e);
+            throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al crear el libro", e);
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
         }
-
-        if (encontrado == null) {
-            throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
-        }
-
-        libro.setEstado(encontrado.getEstado());
-
-        if (!libroDAO.actualizar(libro, conexion)) {
-            throw new ServicioException("OPERACION_ERROR", "No fue posible modificar el libro");
-        }
-
-        conexion.commit();
-        return true;
-
-    } catch (ServicioException e) {
-        rollback(conexion, e);
-        throw e;
-
-    } catch (daoException e) {
-        rollback(conexion, e);
-        throw new ServicioException("BD_ERROR", "Error de base de datos al modificar el libro", e);
-
-    } catch (SQLException e) {
-        rollback(conexion, e);
-        throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al modificar el libro", e);
-
-    } finally {
-        restaurarAutoCommit(conexion, autoCommitAnterior);
-        cerrarConexion(conexion);
-    }
-}
-
-public boolean eliminarLibro(int idLibro) {
-
-    if (idLibro <= 0) {
-        throw new ServicioException("DATOS_INVALIDOS", "El id del libro no es válido");
     }
 
-    Connection conexion = null;
-    boolean autoCommitAnterior = true;
+    public boolean modificarLibro(Libro libro) {
 
-    try {
-        conexion = ConexionDB.getInstance().getConnection();
-        autoCommitAnterior = conexion.getAutoCommit();
-        conexion.setAutoCommit(false);
+        if (libro == null || libro.getIdLibro() <= 0 || libro.getTitulo() == null || libro.getTitulo().trim().isEmpty()
+                || libro.getAutor() == null || libro.getAutor().trim().isEmpty() || libro.getCantidadDisponible() < 0) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos del libro no son válidos");
+        }
 
-        boolean encontrado = false;
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
 
-        for (Libro libro : libroDAO.consultar(conexion)) {
-            if (libro.getIdLibro() == idLibro) {
-                encontrado = true;
-                break;
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
+
+            Libro encontrado = null;
+
+            for (Libro actual : libroDAO.consultar(conexion)) {
+                if (actual.getIdLibro() == libro.getIdLibro()) {
+                    encontrado = actual;
+                    break;
+                }
             }
-        }
 
-        if (!encontrado) {
-            throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
-        }
-
-        for (Prestamo prestamo : prestamoDAO.consultar(conexion)) {
-            if (prestamo.getIdLibro() == idLibro) {
-                throw new ServicioException("CONFLICTO", "El libro tiene préstamos registrados y no puede eliminarse");
+            if (encontrado == null) {
+                throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
             }
+
+            libro.setEstado(encontrado.getEstado());
+
+            if (!libroDAO.actualizar(libro, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible modificar el libro");
+            }
+
+            conexion.commit();
+            return true;
+
+        } catch (ServicioException e) {
+            rollback(conexion, e);
+            throw e;
+
+        } catch (daoException e) {
+            rollback(conexion, e);
+            throw new ServicioException("BD_ERROR", "Error de base de datos al modificar el libro", e);
+
+        } catch (SQLException e) {
+            rollback(conexion, e);
+            throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al modificar el libro", e);
+
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
         }
-
-        if (!libroDAO.eliminar(idLibro, conexion)) {
-            throw new ServicioException("OPERACION_ERROR", "No fue posible eliminar el libro");
-        }
-
-        conexion.commit();
-        return true;
-
-    } catch (ServicioException e) {
-        rollback(conexion, e);
-        throw e;
-
-    } catch (daoException e) {
-        rollback(conexion, e);
-        throw new ServicioException("BD_ERROR", "Error de base de datos al eliminar el libro", e);
-
-    } catch (SQLException e) {
-        rollback(conexion, e);
-        throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al eliminar el libro", e);
-
-    } finally {
-        restaurarAutoCommit(conexion, autoCommitAnterior);
-        cerrarConexion(conexion);
     }
-}
+
+    public boolean eliminarLibro(int idLibro) {
+
+        if (idLibro <= 0) {
+            throw new ServicioException("DATOS_INVALIDOS", "El id del libro no es válido");
+        }
+
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
+
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
+
+            boolean encontrado = false;
+
+            for (Libro libro : libroDAO.consultar(conexion)) {
+                if (libro.getIdLibro() == idLibro) {
+                    encontrado = true;
+                    break;
+                }
+            }
+
+            if (!encontrado) {
+                throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
+            }
+
+            for (Prestamo prestamo : prestamoDAO.consultar(conexion)) {
+                if (prestamo.getIdLibro() == idLibro) {
+                    throw new ServicioException("CONFLICTO", "El libro tiene préstamos registrados y no puede eliminarse");
+                }
+            }
+
+            if (!libroDAO.eliminar(idLibro, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible eliminar el libro");
+            }
+
+            conexion.commit();
+            return true;
+
+        } catch (ServicioException e) {
+            rollback(conexion, e);
+            throw e;
+
+        } catch (daoException e) {
+            rollback(conexion, e);
+            throw new ServicioException("BD_ERROR", "Error de base de datos al eliminar el libro", e);
+
+        } catch (SQLException e) {
+            rollback(conexion, e);
+            throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al eliminar el libro", e);
+
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
+        }
+    }
 
     private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
         if (conexion != null) {

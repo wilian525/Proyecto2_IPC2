@@ -20,6 +20,10 @@ public class Prestamo {
     private LocalDate fechaDevolucion;
     private int diasAtraso;
     private double montoMulta;
+    
+    public Prestamo(){
+    
+    }
 
     public Prestamo(int idPrestamo, int idLibro, int idUsuario,
             LocalDate fechaPrestamo, LocalDate fechaDevolucionEsperada,

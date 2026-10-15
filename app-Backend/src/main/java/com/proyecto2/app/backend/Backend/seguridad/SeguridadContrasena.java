@@ -19,36 +19,25 @@ public class SeguridadContrasena {
     public String hashear(String contrasena) {
 
         if (contrasena == null || contrasena.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "La contraseña no puede estar vacía"
-            );
+            throw new IllegalArgumentException( "La contraseña no puede estar vacía" );
         }
-
         String salt = BCrypt.gensalt(rondas);
 
         return BCrypt.hashpw(contrasena, salt);
     }
 
-    public boolean verificar(
-            String contrasenaIngresada,
-            String contrasenaHasheada) {
+    public boolean verificar(String contrasenaIngresada,String contrasenaHasheada) {
 
-        if (contrasenaIngresada == null
-                || contrasenaIngresada.isEmpty()) {
+        if (contrasenaIngresada == null|| contrasenaIngresada.isEmpty()) {
             return false;
         }
 
-        if (contrasenaHasheada == null
-                || contrasenaHasheada.isEmpty()) {
+        if (contrasenaHasheada == null || contrasenaHasheada.isEmpty()) {
             return false;
         }
 
         try {
-
-            return BCrypt.checkpw(
-                    contrasenaIngresada,
-                    contrasenaHasheada
-            );
+            return BCrypt.checkpw(contrasenaIngresada,contrasenaHasheada );
 
         } catch (IllegalArgumentException e) {
             return false;

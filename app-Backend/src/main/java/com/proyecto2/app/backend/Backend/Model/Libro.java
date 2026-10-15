@@ -16,6 +16,10 @@ public class Libro {
     private String editorial;
     private int cantidadDisponible;
     private String estado;
+    
+    public Libro(){
+    
+    }
 
     public Libro(int idLibro, String titulo, String autor, String editorial,
             int cantidadDisponible, String estado) {

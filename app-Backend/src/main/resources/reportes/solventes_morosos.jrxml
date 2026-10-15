@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jasperReport name="solventes_morosos"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              whenNoDataType="AllSectionsNoDetail"
+              uuid="b5fd36df-2a72-42fb-b7f4-32de7aae6101">
+
+    <style name="Titulo" fontName="DejaVu Sans" fontSize="18.0" bold="true"/>
+    <style name="Encabezado" fontName="DejaVu Sans" fontSize="9.0" bold="true" mode="Opaque" backcolor="#E6E6E6"/>
+    <style name="Celda" fontName="DejaVu Sans" fontSize="8.0"/>
+
+    <field name="idEstudiante" class="java.lang.Integer"/>
+    <field name="estudiante" class="java.lang.String"/>
+    <field name="idGrado" class="java.lang.Integer"/>
+    <field name="grado" class="java.lang.String"/>
+    <field name="idSeccion" class="java.lang.Integer"/>
+    <field name="seccion" class="java.lang.String"/>
+    <field name="idCiclo" class="java.lang.Integer"/>
+    <field name="saldoPendiente" class="java.lang.Double"/>
+    <field name="estadoCuenta" class="java.lang.String"/>
+
+    <title height="45">
+        <element kind="staticText" x="0" y="5" width="802" height="30" style="Titulo" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[REPORTE DE ALUMNOS SOLVENTES Y MOROSOS]]></text>
+        </element>
+    </title>
+
+    <columnHeader height="30">
+
+        <element kind="staticText" x="0" y="0" width="55" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[ID]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="55" y="0" width="180" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Estudiante]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="235" y="0" width="55" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[ID Grado]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="290" y="0" width="90" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Grado]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="380" y="0" width="55" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[ID Sección]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="435" y="0" width="70" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Sección]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="505" y="0" width="55" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Ciclo]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="560" y="0" width="135" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Saldo Pendiente]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+        <element kind="staticText" x="695" y="0" width="107" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[Estado]]></text>
+            <box><pen lineWidth="0.5"/></box>
+        </element>
+
+    </columnHeader>
+
+    <detail>
+        <band height="24">
+
+            <element kind="textField" x="0" y="0" width="55" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{idEstudiante}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="55" y="0" width="180" height="24" style="Celda" vTextAlign="Middle">
+                <expression><![CDATA[$F{estudiante}]]></expression>
+                <box leftPadding="4"><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="235" y="0" width="55" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{idGrado}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="290" y="0" width="90" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{grado}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="380" y="0" width="55" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{idSeccion}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="435" y="0" width="70" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{seccion}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="505" y="0" width="55" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{idCiclo}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="560" y="0" width="135" height="24" style="Celda" pattern="Q #,##0.00" hTextAlign="Right" vTextAlign="Middle">
+                <expression><![CDATA[$F{saldoPendiente}]]></expression>
+                <box rightPadding="5"><pen lineWidth="0.5"/></box>
+            </element>
+
+            <element kind="textField" x="695" y="0" width="107" height="24" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{estadoCuenta}]]></expression>
+                <box><pen lineWidth="0.5"/></box>
+            </element>
+
+        </band>
+    </detail>
+
+    <pageFooter height="25">
+        <element kind="textField" x="652" y="5" width="150" height="20" fontName="DejaVu Sans" fontSize="8.0" hTextAlign="Right">
+            <expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+        </element>
+    </pageFooter>
+
+    <noData height="45">
+        <element kind="staticText" x="0" y="10" width="802" height="25" fontName="DejaVu Sans" fontSize="11.0" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[No existen registros para los filtros seleccionados.]]></text>
+        </element>
+    </noData>
+
+</jasperReport>

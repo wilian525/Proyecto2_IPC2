@@ -36,15 +36,11 @@ public class JwtAuthFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext request) throws IOException {
         String ruta = request.getUriInfo().getPath();
 
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())
-                || "autenticacion/login".equals(ruta)) {
-            return;
-        }
+       if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || "autenticacion/login".equals(ruta) || "autenticacion/recuperar".equals(ruta)) return;
 
         String authorization = request.getHeaderString(HttpHeaders.AUTHORIZATION);
 
-        if (authorization == null
-                || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
             rechazar(request, "Se requiere un token de autorización");
             return;
         }
@@ -67,14 +63,12 @@ public class JwtAuthFilter implements ContainerRequestFilter {
                 return;
             }
 
-            if (usuario.getEstado() == null
-                    || !usuario.getEstado().equalsIgnoreCase("ACTIVO")) {
+            if (usuario.getEstado() == null || !usuario.getEstado().equalsIgnoreCase("ACTIVO")) {
                 rechazar(request, "El usuario no se encuentra activo");
                 return;
             }
 
-            if (usuario.getRol() == null
-                    || !usuario.getRol().equalsIgnoreCase(rolToken)) {
+            if (usuario.getRol() == null || !usuario.getRol().equalsIgnoreCase(rolToken)) {
                 rechazar(request, "El rol del usuario ha cambiado");
                 return;
             }
@@ -85,13 +79,8 @@ public class JwtAuthFilter implements ContainerRequestFilter {
             establecerSeguridad(request, usuario);
 
         } catch (daoException e) {
-            request.abortWith(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                            .type(MediaType.APPLICATION_JSON)
-                            .entity(Map.of(
-                                    "codigo", "BD_ERROR",
-                                    "mensaje", "No se pudo validar la sesión"
-                            ))
+            request.abortWith( Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .type(MediaType.APPLICATION_JSON).entity(Map.of( "codigo", "BD_ERROR", "mensaje", "No se pudo validar la sesión"))
                             .build()
             );
         }
@@ -140,18 +129,9 @@ public class JwtAuthFilter implements ContainerRequestFilter {
         });
     }
 
-    private void rechazar(
-            ContainerRequestContext request,
-            String mensaje) {
-
-        request.abortWith(
-                Response.status(Response.Status.UNAUTHORIZED)
-                        .type(MediaType.APPLICATION_JSON)
-                        .entity(Map.of(
-                                "codigo", "NO_AUTORIZADO",
-                                "mensaje", mensaje
-                        ))
-                        .build()
-        );
+    private void rechazar(ContainerRequestContext request, String mensaje) {
+        request.abortWith(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.APPLICATION_JSON)
+                        .entity(Map.of("codigo", "NO_AUTORIZADO","mensaje", mensaje))
+                        .build());
     }
 }

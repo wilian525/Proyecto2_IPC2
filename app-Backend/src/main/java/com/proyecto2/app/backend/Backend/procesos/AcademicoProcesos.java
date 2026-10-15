@@ -70,73 +70,63 @@ public class AcademicoProcesos {
         }
     }
 
-    public Collection<Estudiante> consultarNomina(int idAsignacion) {
-        if (idAsignacion <= 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "El id de la asignación no es válido");
-        }
-
+    public Collection<Estudiante> consultarNomina(int idAsignacion, int idEmpleado) {
         try {
-            Asignacion asignacion = buscarAsignacion(idAsignacion);
-
-            if (asignacion == null) {
-                throw new ProcesosException("NO_ENCONTRADO", "No se encontró la asignación");
-            }
-
-            Collection<Estudiante> nomina = new ArrayList<>();
+            Asignacion asignacion = validarAsignacionMaestro(idAsignacion, idEmpleado);
+            Collection<Estudiante> resultado = new ArrayList<>();
             Collection<Estudiante> estudiantes = estudianteDAO.consultar();
 
             for (Inscripcion inscripcion : inscripcionDAO.consultar()) {
                 if (inscripcion.getIdSeccion() == asignacion.getIdSeccion() && inscripcion.getIdCiclo() == asignacion.getIdCiclo()) {
                     Estudiante estudiante = buscarEstudiante(inscripcion.getIdEstudiante(), estudiantes);
-
                     if (estudiante != null) {
-                        nomina.add(estudiante);
+                        resultado.add(estudiante);
                     }
                 }
             }
 
-            return nomina;
+            return resultado;
+        } catch (ProcesosException e) {
+            throw e;
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo consultar la nómina", e);
         }
     }
 
-    public Collection<Asistencia> consultarAsistencia(int idAsignacion) {
-        if (idAsignacion <= 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "El id de la asignación no es válido");
-        }
-
+    public Collection<Asistencia> consultarAsistencia(int idAsignacion, int idEmpleado) {
         try {
-            Collection<Asistencia> asistencias = new ArrayList<>();
+            validarAsignacionMaestro(idAsignacion, idEmpleado);
+            Collection<Asistencia> resultado = new ArrayList<>();
 
             for (Asistencia asistencia : asistenciaDAO.consultar()) {
                 if (asistencia.getIdAsignacion() == idAsignacion) {
-                    asistencias.add(asistencia);
+                    resultado.add(asistencia);
                 }
             }
 
-            return asistencias;
+            return resultado;
+        } catch (ProcesosException e) {
+            throw e;
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo consultar la asistencia", e);
         }
     }
 
-    public Collection<Nota> consultarNotas(int idAsignacion) {
-        if (idAsignacion <= 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "El id de la asignación no es válido");
-        }
-
+    public Collection<Nota> consultarNotas(int idAsignacion, int idEmpleado) {
         try {
-            Collection<Nota> notasAsignacion = new ArrayList<>();
+            validarAsignacionMaestro(idAsignacion, idEmpleado);
+            Collection<Nota> resultado = new ArrayList<>();
             Collection<Zona> zonas = zonaDAO.consultar();
 
             for (Nota nota : notaDAO.consultar()) {
                 if (zonaPerteneceAsignacion(nota.getIdZona(), idAsignacion, zonas)) {
-                    notasAsignacion.add(nota);
+                    resultado.add(nota);
                 }
             }
 
-            return notasAsignacion;
+            return resultado;
+        } catch (ProcesosException e) {
+            throw e;
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudieron consultar las notas", e);
         }
@@ -237,34 +227,42 @@ public class AcademicoProcesos {
     }
 
     public Collection<Asignacion> consultarAsignacionesMaestro(int idEmpleado) {
-    if (idEmpleado <= 0) throw new ProcesosException("DATOS_INVALIDOS", "El id del empleado no es válido");
-
-    try {
-        Collection<Asignacion> resultado = new ArrayList<>();
-
-        for (Asignacion asignacion : asignacionDAO.consultar()) {
-            if (asignacion.getIdEmpleado() == idEmpleado) resultado.add(asignacion);
+        if (idEmpleado <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "El id del empleado no es válido");
         }
-        return resultado;
-    } catch (daoException e) {
-        throw new ProcesosException("BD_ERROR", "No se pudieron consultar las asignaciones", e);
-    }
-}
 
-    public Collection<Zona> consultarZonas(int idAsignacion) {
-    if (idAsignacion <= 0) throw new ProcesosException("DATOS_INVALIDOS", "El id de la asignación no es válido");
+        try {
+            Collection<Asignacion> resultado = new ArrayList<>();
 
-    try {
-        Collection<Zona> resultado = new ArrayList<>();
-
-        for (Zona zona : zonaDAO.consultar()) {
-            if (zona.getIdAsignacion() == idAsignacion) resultado.add(zona);
+            for (Asignacion asignacion : asignacionDAO.consultar()) {
+                if (asignacion.getIdEmpleado() == idEmpleado) {
+                    resultado.add(asignacion);
+                }
+            }
+            return resultado;
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las asignaciones", e);
         }
-        return resultado;
-    } catch (daoException e) {
-        throw new ProcesosException("BD_ERROR", "No se pudieron consultar las zonas", e);
     }
-}
+
+    public Collection<Zona> consultarZonas(int idAsignacion, int idEmpleado) {
+        try {
+            validarAsignacionMaestro(idAsignacion, idEmpleado);
+            Collection<Zona> resultado = new ArrayList<>();
+
+            for (Zona zona : zonaDAO.consultar()) {
+                if (zona.getIdAsignacion() == idAsignacion) {
+                    resultado.add(zona);
+                }
+            }
+
+            return resultado;
+        } catch (ProcesosException e) {
+            throw e;
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las zonas", e);
+        }
+    }
 
     public Collection<Inscripcion> consultarInscripciones(int pagina, int limite) {
         if (pagina <= 0 || limite <= 0) {
@@ -284,5 +282,22 @@ public class AcademicoProcesos {
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo obtener el total de inscripciones", e);
         }
+    }
+
+    private Asignacion validarAsignacionMaestro(int idAsignacion, int idEmpleado) {
+        if (idAsignacion <= 0 || idEmpleado <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La asignación y el empleado deben ser válidos");
+        }
+
+        Asignacion asignacion = buscarAsignacion(idAsignacion);
+
+        if (asignacion == null) {
+            throw new ProcesosException("NO_ENCONTRADO", "No se encontró la asignación");
+        }
+        if (asignacion.getIdEmpleado() != idEmpleado) {
+            throw new ProcesosException("NO_AUTORIZADO", "La asignación no pertenece al maestro autenticado");
+        }
+
+        return asignacion;
     }
 }
