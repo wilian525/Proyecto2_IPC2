@@ -16,7 +16,7 @@ import javax.sql.DataSource;
  */
 public class ConexionDB {
 
-    private static final String JNDI_NAME = "java:comp/env/jdbc/SistemaEscuelaDBPool";
+   private static final String JNDI_NAME = "java:comp/env/jdbc/SistemaEscuelaDBPool";
 
     private static ConexionDB instance;
 
@@ -27,8 +27,7 @@ public class ConexionDB {
             dataSource = (DataSource) new InitialContext().lookup(JNDI_NAME);
         } catch (NamingException e) {
             throw new IllegalStateException(
-                    "No se pudo resolver el DataSource JNDI: " + JNDI_NAME, e
-            );
+                    "No se pudo resolver el DataSource JNDI: " + JNDI_NAME, e);
         }
     }
 
@@ -40,7 +39,6 @@ public class ConexionDB {
         if (instance == null) {
             instance = new ConexionDB();
         }
-
         return instance;
     }
 }

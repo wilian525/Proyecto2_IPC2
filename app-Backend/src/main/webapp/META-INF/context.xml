@@ -1,2 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/app-Backend"/>
+<Context path="/app-Backend">
+    <Resource
+        name="jdbc/SistemaEscuelaDBPool"
+        auth="Container"
+        type="javax.sql.DataSource"
+        factory="org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory"
+        
+        driverClassName="com.mysql.cj.jdbc.Driver"
+        url="jdbc:mysql://localhost:3306/colegio"
+        username="wilian"
+        password="Clasic.Mysql"
+        
+        testWhileIdle="false"
+        testOnBorrow="true"
+        validationQuery="SELECT 1"
+        testOnReturn="false"
+        validationQueryTimeout="30"
+        timeBetweenEvictionRunsMillis="30000"
+        maxTotal="100"
+        initialSize="10"
+        maxWaitMillis="10000"
+        removeAbandonedTimeout="60"
+        minEvictableIdleTimeMillis="30000"
+        minIdle="10"
+        logAbandoned="true"
+        removeAbandonedOnBorrow="true"
+    />
+</Context>

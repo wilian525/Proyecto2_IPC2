@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jasperReport name="ingresos"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              whenNoDataType="AllSectionsNoDetail"
+              uuid="9464c2fe-943e-46f3-9f17-6713947a1101">
+
+    <style name="Titulo" fontName="DejaVu Sans" fontSize="19" bold="true" forecolor="#FFFFFF" backcolor="#1F4E78" mode="Opaque"/>
+    <style name="Subtitulo" fontName="DejaVu Sans" fontSize="11" bold="true" forecolor="#1F4E78"/>
+    <style name="Encabezado" fontName="DejaVu Sans" fontSize="9" bold="true" forecolor="#FFFFFF" backcolor="#2F75B5" mode="Opaque"/>
+    <style name="Celda" fontName="DejaVu Sans" fontSize="9" forecolor="#1F1F1F" backcolor="#F8FAFC" mode="Opaque"/>
+    <style name="Total" fontName="DejaVu Sans" fontSize="11" bold="true" forecolor="#006100" backcolor="#C6EFCE" mode="Opaque"/>
+
+    <dataset name="DetalleIngresos" uuid="9464c2fe-943e-46f3-9f17-6713947a1102">
+        <field name="concepto" class="java.lang.String"/>
+        <field name="total" class="java.lang.Double"/>
+    </dataset>
+
+    <field name="fechaInicio" class="java.time.LocalDate"/>
+    <field name="fechaFin" class="java.time.LocalDate"/>
+    <field name="detalle" class="java.util.Collection"/>
+    <field name="totalIngresos" class="java.lang.Double"/>
+
+    <title height="145">
+
+        <element kind="staticText" x="0" y="0" width="802" height="40" style="Titulo" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[REPORTE DE INGRESOS]]></text>
+        </element>
+
+        <element kind="staticText" x="0" y="43" width="802" height="18" fontName="DejaVu Sans" fontSize="8" forecolor="#666666" hTextAlign="Center">
+            <text><![CDATA[Ingresos percibidos por el colegio desglosados por concepto]]></text>
+        </element>
+
+        <element kind="staticText" x="120" y="75" width="280" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[FECHA INICIO]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText" x="400" y="75" width="280" height="25" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+            <text><![CDATA[FECHA FIN]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="textField" x="120" y="100" width="280" height="28" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{fechaInicio} == null ? "TODOS LOS REGISTROS" : $F{fechaInicio}.toString()]]></expression>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="textField" x="400" y="100" width="280" height="28" style="Celda" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$F{fechaFin} == null ? "TODOS LOS REGISTROS" : $F{fechaFin}.toString()]]></expression>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+    </title>
+
+    <detail>
+
+        <band height="205" splitType="Stretch">
+
+            <element kind="staticText" x="0" y="5" width="802" height="25" style="Subtitulo">
+                <text><![CDATA[INGRESOS POR CONCEPTO]]></text>
+            </element>
+
+            <element kind="component" x="100" y="35" width="602" height="155">
+                <component kind="table">
+
+                    <datasetRun subDataset="DetalleIngresos">
+                        <dataSourceExpression><![CDATA[
+                            new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource(
+                                $F{detalle} == null ? java.util.Collections.emptyList() : $F{detalle}
+                            )
+                        ]]></dataSourceExpression>
+                    </datasetRun>
+
+                    <column kind="single" width="402">
+
+                        <columnHeader height="30">
+                            <element kind="staticText" width="402" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[CONCEPTO]]></text>
+                                <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+                            </element>
+                        </columnHeader>
+
+                        <detailCell height="27">
+                            <element kind="textField" width="402" height="27" style="Celda" vTextAlign="Middle">
+                                <expression><![CDATA[$F{concepto}]]></expression>
+                                <box leftPadding="8"><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+                            </element>
+                        </detailCell>
+
+                    </column>
+
+                    <column kind="single" width="200">
+
+                        <columnHeader height="30">
+                            <element kind="staticText" width="200" height="30" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                                <text><![CDATA[TOTAL]]></text>
+                                <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+                            </element>
+                        </columnHeader>
+
+                        <detailCell height="27">
+                            <element kind="textField" width="200" height="27" style="Celda" pattern="Q #,##0.00" hTextAlign="Right" vTextAlign="Middle">
+                                <expression><![CDATA[$F{total}]]></expression>
+                                <box rightPadding="8"><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+                            </element>
+                        </detailCell>
+
+                    </column>
+
+                </component>
+            </element>
+
+        </band>
+
+        <band height="90">
+
+            <element kind="staticText" x="100" y="10" width="402" height="35" style="Encabezado" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[TOTAL GENERAL DE INGRESOS]]></text>
+                <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField" x="502" y="10" width="200" height="35" style="Total" pattern="Q #,##0.00" hTextAlign="Right" vTextAlign="Middle">
+                <expression><![CDATA[$F{totalIngresos}]]></expression>
+                <box rightPadding="8"><pen lineWidth="0.5" lineColor="#A9D08E"/></box>
+            </element>
+
+        </band>
+
+    </detail>
+
+    <pageFooter height="30">
+
+        <element kind="staticText" x="0" y="8" width="250" height="18" fontName="DejaVu Sans" fontSize="7" forecolor="#777777">
+            <text><![CDATA[Sistema de Administración Escolar]]></text>
+        </element>
+
+        <element kind="textField" x="652" y="8" width="150" height="18" fontName="DejaVu Sans" fontSize="8" forecolor="#555555" hTextAlign="Right">
+            <expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+        </element>
+
+    </pageFooter>
+
+    <noData height="60">
+
+        <element kind="staticText" x="0" y="15" width="802" height="30"
+                 fontName="DejaVu Sans"
+                 fontSize="11"
+                 bold="true"
+                 forecolor="#666666"
+                 backcolor="#F2F2F2"
+                 mode="Opaque"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[No existen ingresos para el período seleccionado.]]></text>
+        </element>
+
+    </noData>
+
+</jasperReport>

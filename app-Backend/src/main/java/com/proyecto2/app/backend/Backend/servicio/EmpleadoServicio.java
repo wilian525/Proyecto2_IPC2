@@ -15,6 +15,8 @@ import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -256,23 +258,23 @@ public class EmpleadoServicio {
         }
     }
 
-    private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
-        if (conexion != null) {
-            try {
-                conexion.setAutoCommit(autoCommitAnterior);
-            } catch (SQLException e) {
-                System.err.println("No fue posible restaurar el autoCommit: " + e.getMessage());
-            }
+  private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
+    if (conexion != null) {
+        try {
+            conexion.setAutoCommit(autoCommitAnterior);
+        } catch (SQLException e) {
+            Logger.getLogger(EmpleadoServicio.class.getName()).log(Level.SEVERE, "No fue posible restaurar el autoCommit", e);
         }
     }
+}
 
-    private void cerrarConexion(Connection conexion) {
-        if (conexion != null) {
-            try {
-                conexion.close();
-            } catch (SQLException e) {
-                System.err.println("No fue posible cerrar la conexión: " + e.getMessage());
-            }
+private void cerrarConexion(Connection conexion) {
+    if (conexion != null) {
+        try {
+            conexion.close();
+        } catch (SQLException e) {
+            Logger.getLogger(EmpleadoServicio.class.getName()).log(Level.SEVERE, "No fue posible cerrar la conexión", e);
         }
     }
+}
 }

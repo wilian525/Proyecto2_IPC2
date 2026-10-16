@@ -15,8 +15,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
-        <jakartaee>11.0.0-M1</jakartaee>
-        <restapi>4.0.0-M4</restapi>
+        <jakartaee>11.0.0</jakartaee>
+        <restapi>4.0.0</restapi>
         <jasperreports>7.0.8</jasperreports>
     </properties>
 
@@ -30,14 +30,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- API REST -->
-        <dependency>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-
-        <!-- Jersey -->
+        <!-- Jersey (trae jakarta.ws.rs-api 4.0.0 por su cuenta) -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
@@ -133,7 +126,6 @@
     </dependencies>
 
     <build>
-
         <plugins>
 
             <plugin>
@@ -152,7 +144,6 @@
             </plugin>
 
         </plugins>
-
     </build>
 
 </project>

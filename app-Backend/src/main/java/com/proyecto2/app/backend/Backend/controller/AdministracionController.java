@@ -148,7 +148,7 @@ public class AdministracionController {
 
     @GET
     @Path("ciclos")
-    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN", "SECRETARIA"})
     public Response consultarCiclos() {
         AdministracionProcesos procesos = new AdministracionProcesos();
 
@@ -199,7 +199,7 @@ public class AdministracionController {
 
     @GET
     @Path("grados")
-    @RolesAllowed({"ADMIN", "SUPER_ADMIN"})
+    @RolesAllowed({"ADMIN", "SUPER_ADMIN", "SECRETARIA"})
     public Response consultarGrados() {
         AdministracionProcesos procesos = new AdministracionProcesos();
 

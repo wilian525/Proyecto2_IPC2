@@ -113,7 +113,7 @@ public class PagoController {
     @RolesAllowed("SECRETARIA")
     public Response consultarEstadoCuenta(
             @PathParam("idEstudiante") int idEstudiante,
-            @DefaultValue("-1") @QueryParam("mensualidades") int mensualidades) {
+            @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
 
         PagoProcesos procesos = new PagoProcesos();
 
@@ -133,7 +133,7 @@ public class PagoController {
     @RolesAllowed("SECRETARIA")
     public Response consultarSolvencia(
             @PathParam("idEstudiante") int idEstudiante,
-            @DefaultValue("-1") @QueryParam("mensualidades") int mensualidades) {
+            @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
 
         PagoProcesos procesos = new PagoProcesos();
 
@@ -191,7 +191,7 @@ public class PagoController {
     @RolesAllowed("ESTUDIANTE")
     public Response consultarMiEstadoCuenta(
             @Context SecurityContext securityContext,
-            @DefaultValue("-1") @QueryParam("mensualidades") int mensualidades) {
+            @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
 
         int idUsuario = obtenerIdUsuario(securityContext);
 

@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.proyecto2.app.backend.Backend.Model;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  *
  * @author wilian
@@ -12,7 +12,10 @@ public class Usuario {
 
     private int idUsuario;
     private String nombreUsuario;
+    
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String contrasena;
+    
     private String rol;
     private String estado;
     private int idEmpleado;

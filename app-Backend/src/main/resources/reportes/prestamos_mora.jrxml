@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jasperReport name="prestamos_mora"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="802"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              whenNoDataType="AllSectionsNoDetail"
+              uuid="126920df-ff28-44e2-a38a-866705f61101">
+
+    <style name="Titulo" fontName="DejaVu Sans" fontSize="19" bold="true"
+           forecolor="#FFFFFF" backcolor="#1F4E78" mode="Opaque"/>
+
+    <style name="Encabezado" fontName="DejaVu Sans" fontSize="8" bold="true"
+           forecolor="#FFFFFF" backcolor="#2F75B5" mode="Opaque"/>
+
+    <style name="Celda" fontName="DejaVu Sans" fontSize="8"
+           forecolor="#1F1F1F" backcolor="#F8FAFC" mode="Opaque"/>
+
+    <style name="Atraso" fontName="DejaVu Sans" fontSize="8" bold="true"
+           forecolor="#9C0006" backcolor="#FFC7CE" mode="Opaque"/>
+
+    <style name="Multa" fontName="DejaVu Sans" fontSize="8" bold="true"
+           forecolor="#9C0006" backcolor="#FCE4D6" mode="Opaque"/>
+
+    <field name="idPrestamo" class="java.lang.Integer"/>
+    <field name="idEstudiante" class="java.lang.Integer"/>
+    <field name="estudiante" class="java.lang.String"/>
+    <field name="idLibro" class="java.lang.Integer"/>
+    <field name="libro" class="java.lang.String"/>
+    <field name="fechaPrestamo" class="java.time.LocalDate"/>
+    <field name="fechaDevolucionEsperada" class="java.time.LocalDate"/>
+    <field name="diasAtraso" class="java.lang.Integer"/>
+    <field name="montoMulta" class="java.lang.Double"/>
+
+    <title height="65">
+
+        <element kind="staticText"
+                 x="0" y="0" width="802" height="40"
+                 style="Titulo"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[REPORTE DE PRÉSTAMOS DE BIBLIOTECA EN MORA]]></text>
+        </element>
+
+        <element kind="staticText"
+                 x="0" y="43" width="802" height="18"
+                 fontName="DejaVu Sans"
+                 fontSize="8"
+                 forecolor="#666666"
+                 hTextAlign="Center">
+            <text><![CDATA[Préstamos vencidos, días exactos de atraso y recargo financiero]]></text>
+        </element>
+
+    </title>
+
+    <columnHeader height="34">
+
+        <element kind="staticText"
+                 x="0" y="0" width="60" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[ID PRÉSTAMO]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="60" y="0" width="65" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[ID EST.]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="125" y="0" width="170" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[ESTUDIANTE]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="295" y="0" width="55" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[ID LIBRO]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="350" y="0" width="160" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[LIBRO]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="510" y="0" width="90" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[FECHA PRÉSTAMO]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="600" y="0" width="95" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[DEVOLUCIÓN ESPERADA]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="695" y="0" width="50" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[DÍAS]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+        <element kind="staticText"
+                 x="745" y="0" width="57" height="34"
+                 style="Encabezado"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[MULTA]]></text>
+            <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
+        </element>
+
+    </columnHeader>
+
+    <detail>
+
+        <band height="28">
+
+            <element kind="textField"
+                     x="0" y="0" width="60" height="28"
+                     style="Celda"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{idPrestamo}]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="60" y="0" width="65" height="28"
+                     style="Celda"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{idEstudiante}]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="125" y="0" width="170" height="28"
+                     style="Celda"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{estudiante}]]></expression>
+                <box leftPadding="5">
+                    <pen lineWidth="0.4" lineColor="#D9E2F3"/>
+                </box>
+            </element>
+
+            <element kind="textField"
+                     x="295" y="0" width="55" height="28"
+                     style="Celda"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{idLibro}]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="350" y="0" width="160" height="28"
+                     style="Celda"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{libro}]]></expression>
+                <box leftPadding="5">
+                    <pen lineWidth="0.4" lineColor="#D9E2F3"/>
+                </box>
+            </element>
+
+            <element kind="textField"
+                     x="510" y="0" width="90" height="28"
+                     style="Celda"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{fechaPrestamo} == null ? "" : $F{fechaPrestamo}.toString()]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="600" y="0" width="95" height="28"
+                     style="Celda"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{fechaDevolucionEsperada} == null ? "" : $F{fechaDevolucionEsperada}.toString()]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="695" y="0" width="50" height="28"
+                     style="Atraso"
+                     hTextAlign="Center"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{diasAtraso}]]></expression>
+                <box><pen lineWidth="0.4" lineColor="#F4B6B6"/></box>
+            </element>
+
+            <element kind="textField"
+                     x="745" y="0" width="57" height="28"
+                     style="Multa"
+                     pattern="Q #,##0.00"
+                     hTextAlign="Right"
+                     vTextAlign="Middle">
+                <expression><![CDATA[$F{montoMulta}]]></expression>
+                <box rightPadding="4">
+                    <pen lineWidth="0.4" lineColor="#F4B6B6"/>
+                </box>
+            </element>
+
+        </band>
+
+    </detail>
+
+    <pageFooter height="30">
+
+        <element kind="staticText"
+                 x="0" y="8" width="250" height="18"
+                 fontName="DejaVu Sans"
+                 fontSize="7"
+                 forecolor="#777777">
+            <text><![CDATA[Sistema de Administración Escolar]]></text>
+        </element>
+
+        <element kind="textField"
+                 x="652" y="8" width="150" height="18"
+                 fontName="DejaVu Sans"
+                 fontSize="8"
+                 forecolor="#555555"
+                 hTextAlign="Right">
+            <expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+        </element>
+
+    </pageFooter>
+
+    <noData height="60">
+
+        <element kind="staticText"
+                 x="0" y="15" width="802" height="30"
+                 fontName="DejaVu Sans"
+                 fontSize="11"
+                 bold="true"
+                 forecolor="#666666"
+                 backcolor="#F2F2F2"
+                 mode="Opaque"
+                 hTextAlign="Center"
+                 vTextAlign="Middle">
+            <text><![CDATA[No existen préstamos en mora actualmente.]]></text>
+        </element>
+
+    </noData>
+
+</jasperReport>
