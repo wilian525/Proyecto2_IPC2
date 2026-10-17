@@ -33,6 +33,8 @@ public class CursoDao {
 
     private static final String INSERTAR = "INSERT INTO CURSO (nombre, descripcion) VALUES (?, ?)";
     private static final String CONSULTAR = "SELECT id_curso, nombre, descripcion FROM CURSO ORDER BY nombre";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+private static final String CONTAR = "SELECT COUNT(*) AS total FROM CURSO";
     private static final String ACTUALIZAR = "UPDATE CURSO SET nombre = ?, descripcion = ? WHERE id_curso = ?";
     private static final String EXISTE_CURSO = "SELECT COUNT(*) FROM CURSO WHERE id_curso = ?";
 
@@ -119,6 +121,39 @@ public class CursoDao {
 
         return cursos;
     }
+    
+    public Collection<Curso> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) return new ArrayList<>();
+
+    Collection<Curso> cursos = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) cursos.add(construirCurso(rs));
+        }
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return cursos;
+}
+
+public int contar() {
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) return rs.getInt("total");
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     public boolean actualizar(Curso curso) {
         try (Connection conexion = conexionDB.getConnection()) {

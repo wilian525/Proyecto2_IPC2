@@ -44,8 +44,12 @@ public class EstudianteServicio {
             throw new ServicioException("DATOS_INVALIDOS", "La fecha de nacimiento no puede estar vacía");
         }
 
-        if (usuario == null || usuario.getNombreUsuario() == null || usuario.getNombreUsuario().trim().isEmpty() || usuario.getContrasena() == null || usuario.getContrasena().trim().isEmpty()) {
+        if (usuario == null || usuario.getNombreUsuario() == null || usuario.getNombreUsuario().trim().isEmpty()) {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del usuario del estudiante no son válidos");
+        }
+
+        if (usuario.getContrasena() == null || usuario.getContrasena().length() < 8) {
+            throw new ServicioException("DATOS_INVALIDOS", "La contraseña debe contener al menos 8 caracteres");
         }
 
         Connection conexion = null;
@@ -235,22 +239,22 @@ public class EstudianteServicio {
     }
 
     private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
-    if (conexion != null) {
-        try {
-            conexion.setAutoCommit(autoCommitAnterior);
-        } catch (SQLException e) {
-            Logger.getLogger(EstudianteServicio.class.getName()).log(Level.SEVERE, "No fue posible restaurar el autoCommit", e);
+        if (conexion != null) {
+            try {
+                conexion.setAutoCommit(autoCommitAnterior);
+            } catch (SQLException e) {
+                Logger.getLogger(EstudianteServicio.class.getName()).log(Level.SEVERE, "No fue posible restaurar el autoCommit", e);
+            }
         }
     }
-}
 
-private void cerrarConexion(Connection conexion) {
-    if (conexion != null) {
-        try {
-            conexion.close();
-        } catch (SQLException e) {
-            Logger.getLogger(EstudianteServicio.class.getName()).log(Level.SEVERE, "No fue posible cerrar la conexión", e);
+    private void cerrarConexion(Connection conexion) {
+        if (conexion != null) {
+            try {
+                conexion.close();
+            } catch (SQLException e) {
+                Logger.getLogger(EstudianteServicio.class.getName()).log(Level.SEVERE, "No fue posible cerrar la conexión", e);
+            }
         }
     }
-}
 }

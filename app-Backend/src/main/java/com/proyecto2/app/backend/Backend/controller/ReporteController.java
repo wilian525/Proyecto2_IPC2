@@ -38,7 +38,7 @@ public class ReporteController {
 
     @GET
     @Path("solventes-morosos/pdf")
-    @Produces("application/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed({"ADMIN", "SECRETARIA"})
     public Response solventesMorososPdf(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
         try {
@@ -63,7 +63,7 @@ public class ReporteController {
 
     @GET
     @Path("rendimiento/pdf")
-    @Produces("application/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed("ADMIN")
     public Response rendimientoPdf(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo) {
         try {
@@ -90,7 +90,7 @@ public class ReporteController {
 
     @GET
     @Path("historial-pagos/{idEstudiante}/pdf")
-    @Produces("application/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed({"ADMIN", "SECRETARIA"})
     public Response historialPagosPdf(@PathParam("idEstudiante") int idEstudiante, @QueryParam("fechaInicio") String fechaInicio, @QueryParam("fechaFin") String fechaFin, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
         try {
@@ -121,7 +121,7 @@ public class ReporteController {
 
     @GET
     @Path("ingresos/pdf")
-    @Produces("application/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed("ADMIN")
     public Response ingresosPdf(@QueryParam("fechaInicio") String fechaInicio, @QueryParam("fechaFin") String fechaFin) {
         try {
@@ -150,7 +150,7 @@ public class ReporteController {
 
     @GET
     @Path("prestamos-mora/pdf")
-    @Produces("application/pdf")
+   @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed({"ADMIN", "BIBLIOTECARIO"})
     public Response prestamosMoraPdf() {
         try {
@@ -171,11 +171,15 @@ public class ReporteController {
     }
 
     private Response error(String codigo, String mensaje) {
-        Response.Status estado = "DATOS_INVALIDOS".equals(codigo) ? Response.Status.BAD_REQUEST
-                : "NO_ENCONTRADO".equals(codigo) ? Response.Status.NOT_FOUND
-                : "CONFLICTO".equals(codigo) ? Response.Status.CONFLICT
-                : "NO_AUTORIZADO".equals(codigo) ? Response.Status.FORBIDDEN
-                : Response.Status.INTERNAL_SERVER_ERROR;
-        return Response.status(estado).entity(Map.of("codigo", codigo, "mensaje", mensaje)).build();
-    }
+    Response.Status estado = "DATOS_INVALIDOS".equals(codigo) ? Response.Status.BAD_REQUEST
+            : "NO_ENCONTRADO".equals(codigo) ? Response.Status.NOT_FOUND
+            : "CONFLICTO".equals(codigo) ? Response.Status.CONFLICT
+            : "NO_AUTORIZADO".equals(codigo) ? Response.Status.FORBIDDEN
+            : Response.Status.INTERNAL_SERVER_ERROR;
+
+    return Response.status(estado)
+            .type(MediaType.APPLICATION_JSON)
+            .entity(Map.of("codigo", codigo, "mensaje", mensaje))
+            .build();
+}
 }

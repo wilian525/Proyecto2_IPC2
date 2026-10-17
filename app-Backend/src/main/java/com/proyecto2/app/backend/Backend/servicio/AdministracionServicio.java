@@ -26,10 +26,10 @@ import java.util.logging.Logger;
  */
 public class AdministracionServicio {
 
-    private final UsuarioDao usuarioDAO;
-    private final cicloDao cicloDAO;
-    private final GradoDao gradoDAO;
-    private final SeguridadContrasena seguridadContrasena;
+    private  UsuarioDao usuarioDAO;
+    private  cicloDao cicloDAO;
+    private  GradoDao gradoDAO;
+    private  SeguridadContrasena seguridadContrasena;
 
     public AdministracionServicio() {
         usuarioDAO = new UsuarioDao();
@@ -44,9 +44,9 @@ public class AdministracionServicio {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del Super Admin no son válidos");
         }
 
-        if (usuario.getContrasena() == null || usuario.getContrasena().trim().isEmpty()) {
-            throw new ServicioException("DATOS_INVALIDOS", "La contraseña no puede estar vacía");
-        }
+        if (usuario.getContrasena() == null || usuario.getContrasena().length() < 8) {
+    throw new ServicioException("DATOS_INVALIDOS", "La contraseña debe contener al menos 8 caracteres");
+}
 
         Connection conexion = null;
         boolean autoCommitAnterior = true;
@@ -216,9 +216,9 @@ public class AdministracionServicio {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos del Admin no son válidos");
         }
 
-        if (usuario.getContrasena() == null || usuario.getContrasena().trim().isEmpty()) {
-            throw new ServicioException("DATOS_INVALIDOS", "La contraseña no puede estar vacía");
-        }
+        if (usuario.getContrasena() == null || usuario.getContrasena().length() < 8) {
+    throw new ServicioException("DATOS_INVALIDOS", "La contraseña debe contener al menos 8 caracteres");
+}
 
         Connection conexion = null;
         boolean autoCommitAnterior = true;

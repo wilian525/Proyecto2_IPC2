@@ -51,6 +51,8 @@ public class AsignacionDao {
 
     private static final String INSERTAR = "INSERT INTO ASIGNACION (id_empleado, id_curso, id_seccion, id_ciclo) VALUES (?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_asignacion, id_empleado, id_curso, id_seccion, id_ciclo FROM ASIGNACION ORDER BY id_asignacion";
+    private static final String CONSULTAR_EMPLEADO_PAGINADO = "SELECT id_asignacion, id_empleado, id_curso, id_seccion, id_ciclo FROM ASIGNACION WHERE id_empleado = ? ORDER BY id_asignacion DESC LIMIT ? OFFSET ?";
+private static final String CONTAR_EMPLEADO = "SELECT COUNT(*) AS total FROM ASIGNACION WHERE id_empleado = ?";
     private static final String CONSULTAR_EMPLEADO = "SELECT puesto, estado FROM EMPLEADO WHERE id_empleado = ?";
     private static final String CONSULTAR_CICLO = "SELECT estado FROM CICLO WHERE id_ciclo = ?";
     private static final String CONSULTAR_SECCION = "SELECT id_grado FROM SECCION WHERE id_seccion = ?";
@@ -152,6 +154,45 @@ public class AsignacionDao {
 
         return asignaciones;
     }
+    
+    public Collection<Asignacion> consultarPorEmpleado(int idEmpleado, int pagina, int limite) {
+    if (idEmpleado <= 0 || pagina <= 0 || limite <= 0) return new ArrayList<>();
+
+    Collection<Asignacion> asignaciones = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_EMPLEADO_PAGINADO)) {
+        ps.setInt(1, idEmpleado);
+        ps.setInt(2, limite);
+        ps.setInt(3, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) asignaciones.add(construirAsignacion(rs));
+        }
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return asignaciones;
+}
+
+public int contarPorEmpleado(int idEmpleado) {
+    if (idEmpleado <= 0) return 0;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR_EMPLEADO)) {
+        ps.setInt(1, idEmpleado);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt("total");
+        }
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     private boolean empleadoEsMaestroActivo(int idEmpleado) {
         try (Connection conexion = conexionDB.getConnection()) {

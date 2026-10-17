@@ -38,6 +38,8 @@ public class CarreraDao {
 
     private static final String INSERTAR = "INSERT INTO CARRERA (nombre, estado, id_nivel) VALUES (?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_carrera, nombre, estado, id_nivel FROM CARRERA ORDER BY nombre";
+    private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+private static final String CONTAR = "SELECT COUNT(*) AS total FROM CARRERA";
     private static final String ACTUALIZAR = "UPDATE CARRERA SET nombre = ?, id_nivel = ? WHERE id_carrera = ?";
     private static final String ACTIVAR = "UPDATE CARRERA SET estado = 'ACTIVO' WHERE id_carrera = ?";
     private static final String DESACTIVAR = "UPDATE CARRERA SET estado = 'INACTIVO' WHERE id_carrera = ?";
@@ -134,6 +136,39 @@ public class CarreraDao {
 
         return carreras;
     }
+    
+    public Collection<Carrera> consultar(int pagina, int limite) {
+    if (pagina <= 0 || limite <= 0) return new ArrayList<>();
+
+    Collection<Carrera> carreras = new ArrayList<>();
+    int offset = (pagina - 1) * limite;
+
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PAGINADO)) {
+        ps.setInt(1, limite);
+        ps.setInt(2, offset);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) carreras.add(construirCarrera(rs));
+        }
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return carreras;
+}
+
+public int contar() {
+    try (Connection conexion = conexionDB.getConnection();
+         PreparedStatement ps = conexion.prepareStatement(CONTAR);
+         ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) return rs.getInt("total");
+    } catch (SQLException e) {
+        daoException.manejarError(e);
+    }
+
+    return 0;
+}
 
     public boolean actualizar(Carrera carrera) {
         try (Connection conexion = conexionDB.getConnection()) {

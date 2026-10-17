@@ -18,7 +18,8 @@ import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -90,7 +91,8 @@ public class AutenticacionServicio {
             rollback(conexion, error);
             throw error;
         } finally {
-            finalizarConexion(conexion, autoCommitAnterior);
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
         }
     }
 
@@ -133,24 +135,23 @@ public class AutenticacionServicio {
         }
     }
 
-    private void finalizarConexion(Connection conexion, boolean autoCommitAnterior) {
-        if (conexion == null) return;
-
-        SQLException error = null;
-
+    private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
+    if (conexion != null) {
         try {
             conexion.setAutoCommit(autoCommitAnterior);
         } catch (SQLException e) {
-            error = e;
+            Logger.getLogger(AutenticacionServicio.class.getName()).log(Level.SEVERE, "No fue posible restaurar el autoCommit", e);
         }
+    }
+}
 
+private void cerrarConexion(Connection conexion) {
+    if (conexion != null) {
         try {
             conexion.close();
         } catch (SQLException e) {
-            if (error == null) error = e;
-            else error.addSuppressed(e);
+            Logger.getLogger(AutenticacionServicio.class.getName()).log(Level.SEVERE, "No fue posible cerrar la conexión", e);
         }
-
-        if (error != null) throw new ServicioException("TRANSACCION_ERROR", "No fue posible finalizar correctamente la conexión", error);
     }
+}
 }
