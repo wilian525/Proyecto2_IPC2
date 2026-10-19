@@ -1,0 +1,18 @@
+.login-card { max-width: 1060px; min-height: 610px; background: #202a44; border: 1px solid #38435e; border-radius: 1.4rem; overflow: hidden; box-shadow: 0 25px 100px #050a1c70; }
+.login-presentacion { background: radial-gradient(circle at 10% 10%, #35536d 0, transparent 35%), linear-gradient(155deg, #172744 0%, #16203d 70%, #34243e 100%); }
+.marca-icono { display: grid; place-items: center; width: 52px; height: 52px; background: #f48eb620; color: #ff95c4; border: 1px solid #f48eb650; border-radius: 14px; font-size: 1.6rem; }
+.marca-titulo { display: block; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: .07em; line-height: 1; }
+.marca-subtitulo { font-size: .75rem; color: #bccbe2; margin-top: .3rem; }
+.etiqueta { border: 1px solid #5cbfb47e; background: #5cbfb416; color: #93e4d2; padding: .55rem .8rem; border-radius: 100px; font-size: .8rem; }
+.mensaje-bienvenida h1 { font-weight: 800; font-size: clamp(2.1rem, 4vw, 3.1rem); letter-spacing: -.03em; line-height: 1.12; }
+.mensaje-bienvenida h1 span { color: #ff9ac3; }
+.mensaje-bienvenida p { max-width: 360px; color: #c4cde3; font-size: 1rem; margin-top: 1.4rem; line-height: 1.7; }
+.nota-seguridad { color: #bcd6d1; font-size: .78rem; }
+.login-formulario { background: #202a44; }
+.formulario-contenido { max-width: 520px; margin-inline: auto; }
+.icono-acceso { display: grid; place-items: center; width: 60px; height: 60px; background: #ef87b120; color: #ff9fc8; font-size: 1.6rem; border-radius: 18px; }
+h2 { color: #f4f6fd; font-weight: 800; font-size: 2rem; }
+.descripcion, .texto-pie { color: #b3bed4; }
+.texto-pie { font-size: .8rem; }
+@media (max-width: 991px) { .login-card { max-width: 570px; } .login-presentacion { min-height: 310px; } .mensaje-bienvenida { margin-block: 1.5rem !important; } }
+

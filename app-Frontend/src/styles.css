@@ -1,1 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+body { margin: 0; background: #0e172b; color: #f4f6fe; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+* { box-sizing: border-box; }
+.auth-layout { min-height: 100dvh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at top left, #233c59 0%, transparent 43%), radial-gradient(ellipse at bottom right, #32223e 0%, transparent 40%), #0e172b; }
+

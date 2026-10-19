@@ -1,0 +1,43 @@
+<form #loginForm="ngForm" (ngSubmit)="enviar()" novalidate>
+  <div class="mb-4">
+    <label for="nombreUsuario" class="form-label">Nombre de usuario</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-person"></i></span>
+      <input id="nombreUsuario" name="nombreUsuario" type="text" class="form-control"
+             placeholder="Ingresa tu usuario" autocomplete="username"
+             [(ngModel)]="nombreUsuario" required autofocus />
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label for="contrasena" class="form-label">Contraseña</label>
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-lock"></i></span>
+      <input id="contrasena" name="contrasena" [type]="mostrarContrasena ? 'text' : 'password'"
+             class="form-control" placeholder="Ingresa tu contraseña"
+             autocomplete="current-password" [(ngModel)]="contrasena" required />
+      <button class="btn btn-mostrar" type="button"
+              [attr.aria-label]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="mostrarContrasena = !mostrarContrasena">
+        <i [class]="mostrarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+      </button>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-danger py-2" role="alert">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ mensajeError }}
+    </div>
+  }
+
+  <button class="btn btn-ingresar w-100" type="submit"
+          [disabled]="loginForm.invalid || cargando">
+    @if (cargando) {
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      Verificando...
+    } @else {
+      Ingresar al sistema <i class="bi bi-arrow-right ms-2"></i>
+    }
+  </button>
+</form>
+
