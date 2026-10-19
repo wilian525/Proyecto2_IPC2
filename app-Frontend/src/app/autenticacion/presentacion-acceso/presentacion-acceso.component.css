@@ -1,0 +1,11 @@
+:host { display: block; height: 100%; }
+.marca-icono { display: grid; place-items: center; width: 52px; height: 52px; background: #f48eb620; color: #ff95c4; border: 1px solid #f48eb650; border-radius: 14px; font-size: 1.6rem; }
+.marca-titulo { display: block; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: .07em; line-height: 1; }
+.marca-subtitulo { font-size: .75rem; color: #bccbe2; margin-top: .3rem; }
+.etiqueta { display: inline-block; border: 1px solid #5cbfb47e; background: #5cbfb416; color: #93e4d2; padding: .55rem .8rem; border-radius: 100px; font-size: .8rem; }
+.mensaje-bienvenida h1 { font-weight: 800; font-size: clamp(2.1rem, 4vw, 3.1rem); letter-spacing: -.03em; line-height: 1.12; }
+.mensaje-bienvenida h1 span { color: #ff9ac3; }
+.mensaje-bienvenida p { max-width: 360px; color: #c4cde3; font-size: 1rem; margin-top: 1.4rem; line-height: 1.7; }
+.nota-seguridad { color: #bcd6d1; font-size: .78rem; }
+@media (max-width: 991px) { .mensaje-bienvenida { margin-block: 1.5rem !important; } }
+

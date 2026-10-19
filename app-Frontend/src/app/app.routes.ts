@@ -1,25 +1,30 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
-import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { EstructuraAccesoComponent } from './autenticacion/estructura-acceso/estructura-acceso.component';
+import { protegerAcceso } from './seguridad/proteger-acceso.guard';
 
-export const routes: Routes = [
+export const rutas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
-    path: 'login',
-    component: AuthLayoutComponent,
+    path: '',
+    component: EstructuraAccesoComponent,
     children: [
       {
-        path: '',
-        loadComponent: () => import('./features/autenticacion/pages/login/login.component')
-          .then(m => m.LoginComponent)
+        path: 'login',
+        loadComponent: () => import('./autenticacion/ingresar/ ingresar.component')
+          .then(componente => componente.IngresarComponent)
+      },
+      {
+        path: 'recuperar-contrasena',
+        loadComponent: () => import('./autenticacion/recuperar-contrasena/recuperar-contrasena.component')
+          .then(componente => componente.RecuperarContrasenaComponent)
       }
     ]
   },
   {
     path: 'inicio',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/dashboard/pages/dashboard-page/dashboard-page.component')
-      .then(m => m.DashboardPageComponent)
+    canActivate: [protegerAcceso],
+    loadComponent: () => import('./inicio/inicio.component')
+      .then(componente => componente.InicioComponent)
   },
   { path: '**', redirectTo: 'login' }
 ];

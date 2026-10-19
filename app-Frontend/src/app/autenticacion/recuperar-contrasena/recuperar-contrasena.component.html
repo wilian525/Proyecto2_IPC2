@@ -1,0 +1,120 @@
+<section class="tarjeta-acceso tarjeta-recuperacion container-fluid p-0">
+  <div class="row g-0">
+    <div class="col-lg-6 panel-presentacion p-4 p-lg-5">
+      <app-presentacion-acceso />
+    </div>
+    <div class="col-lg-6 panel-formulario d-flex align-items-center">
+      <div class="w-100 formulario-contenido p-4 p-lg-5">
+        <div class="icono-acceso mb-3"><i class="bi bi-shield-lock"></i></div>
+        <h2>Recuperar contraseña</h2>
+        <p class="descripcion mb-4">Confirma tus datos para establecer una nueva contraseña.</p>
+
+        @if (completado) {
+          <div class="alert alert-success aviso-exito" role="status" aria-live="polite">
+            <i class="bi bi-check-circle-fill me-2"></i>{{ mensajeExito }}
+          </div>
+          <p class="texto-ayuda">Ahora puedes ingresar con tu nueva contraseña.</p>
+          <a class="btn btn-ingresar w-100 mt-2" routerLink="/login">
+            Volver a iniciar sesión <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        } @else {
+          <form #formulario="ngForm" (ngSubmit)="recuperar()" novalidate>
+            <div class="mb-3">
+              <label for="nombreUsuarioRec" class="form-label">Nombre de usuario</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input id="nombreUsuarioRec" name="nombreUsuario" class="form-control" type="text"
+                       [(ngModel)]="nombreUsuario" autocomplete="username"
+                       placeholder="Tu usuario registrado" required autofocus />
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label for="nombreRec" class="form-label">Nombre</label>
+                <input id="nombreRec" name="nombre" class="form-control" type="text"
+                       [(ngModel)]="nombre" placeholder="Nombre registrado" required />
+              </div>
+              <div class="col-sm-6">
+                <label for="apellidoRec" class="form-label">Apellido</label>
+                <input id="apellidoRec" name="apellido" class="form-control" type="text"
+                       [(ngModel)]="apellido" placeholder="Apellido registrado" required />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="fechaRec" class="form-label">Fecha de verificación</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                <input id="fechaRec" name="fechaVerificacion" class="form-control" type="date"
+                       [(ngModel)]="fechaVerificacion" required />
+              </div>
+              <div class="texto-ayuda mt-2">
+                <i class="bi bi-info-circle me-1"></i>
+                Estudiante: fecha de nacimiento. Personal: fecha de contratación.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="nuevaContrasena" class="form-label">Nueva contraseña</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input id="nuevaContrasena" name="nuevaContrasena" class="form-control"
+                       [type]="mostrarContrasena ? 'text' : 'password'"
+                       [(ngModel)]="nuevaContrasena" autocomplete="new-password"
+                       placeholder="Mínimo 8 caracteres" minlength="8" required />
+                <button class="btn btn-mostrar" type="button"
+                        [attr.aria-label]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                        (click)="mostrarContrasena = !mostrarContrasena">
+                  <i [class]="mostrarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="confirmarContrasena" class="form-label">Confirmar nueva contraseña</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                <input id="confirmarContrasena" name="confirmarContrasena" class="form-control"
+                       [type]="mostrarConfirmacion ? 'text' : 'password'"
+                       [(ngModel)]="confirmarContrasena" autocomplete="new-password"
+                       placeholder="Repite la contraseña" required />
+                <button class="btn btn-mostrar" type="button"
+                        [attr.aria-label]="mostrarConfirmacion ? 'Ocultar confirmación' : 'Mostrar confirmación'"
+                        (click)="mostrarConfirmacion = !mostrarConfirmacion">
+                  <i [class]="mostrarConfirmacion ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              @if (confirmarContrasena && nuevaContrasena !== confirmarContrasena) {
+                <div class="texto-error mt-2">Las contraseñas no coinciden.</div>
+              }
+            </div>
+
+            @if (mensajeError) {
+              <div class="alert alert-danger py-2" role="alert" aria-live="polite">
+                <i class="bi bi-exclamation-circle me-2"></i>{{ mensajeError }}
+              </div>
+            }
+
+            <button type="submit" class="btn btn-ingresar w-100 mt-2"
+                    [disabled]="formulario.invalid || nuevaContrasena !== confirmarContrasena || cargando">
+              @if (cargando) {
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                Actualizando...
+              } @else {
+                Cambiar contraseña <i class="bi bi-arrow-right ms-2"></i>
+              }
+            </button>
+          </form>
+          <div class="text-center mt-4">
+            <a class="enlace-volver" routerLink="/login">
+              <i class="bi bi-arrow-left me-2"></i>Volver al inicio de sesión
+            </a>
+          </div>
+        }
+        <p class="texto-pie mt-4 mb-0 text-center">RES · Gestión escolar</p>
+      </div>
+    </div>
+  </div>
+</section>
+

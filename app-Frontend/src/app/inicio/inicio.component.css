@@ -1,0 +1,4 @@
+.inicio { background: #0e172b; color: #f3f6fe; }
+.inicio-tarjeta { max-width: 560px; background: #202b45; border: 1px solid #384763; border-radius: 1.25rem; }
+.inicio-tarjeta p { color: #b9c5da; }
+.icono-check { color: #6bdfbd; font-size: 2.8rem; }

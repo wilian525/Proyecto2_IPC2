@@ -1,0 +1,43 @@
+
+<div class="d-flex justify-content-center align-items-center min-vh-100 px-3 py-4">
+
+  <section class="tarjeta-acceso container-fluid p-0 mx-auto"
+           style="max-width: 1060px; min-height: 610px; border-radius: 22px; overflow: hidden; border: 1px solid #38435e; box-shadow: 0 25px 80px rgba(0,0,0,.25); background: #202a44;">
+
+    <div class="row g-0 h-100">
+
+      <div class="col-lg-6 panel-presentacion p-4 p-lg-5">
+        <app-presentacion-acceso />
+      </div>
+
+      <div class="col-lg-6 panel-formulario d-flex align-items-center">
+
+        <div class="formulario-contenido w-100 p-4 p-lg-5 mx-auto"
+             style="max-width: 520px;">
+
+          <div class="icono-acceso mb-4">
+            <i class="bi bi-person-lock"></i>
+          </div>
+
+          <h2>Bienvenido</h2>
+
+          <p class="descripcion mb-4">
+            Ingresa tus credenciales para continuar.
+          </p>
+
+          <app-formulario-ingreso
+            [cargando]="cargando"
+            [mensajeError]="mensajeError"
+            (ingresar)="iniciarSesion($event)" />
+
+          <p class="texto-pie mt-4 mb-0 text-center">
+            RES · Gestión escolar
+          </p>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>

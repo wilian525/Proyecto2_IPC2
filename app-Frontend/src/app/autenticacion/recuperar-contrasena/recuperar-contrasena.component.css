@@ -1,0 +1,8 @@
+.tarjeta-recuperacion { max-width: 1120px; }
+.tarjeta-recuperacion .formulario-contenido { max-width: 540px; }
+.texto-ayuda { color: #b9cadc; font-size: .79rem; line-height: 1.5; }
+.texto-error { color: #ffb6c8; font-size: .83rem; }
+.enlace-volver { color: #9ce0d2; text-decoration: none; font-weight: 600; font-size: .9rem; }
+.enlace-volver:hover { color: #c4fff0; text-decoration: underline; }
+.aviso-exito { background: #173f3a; border-color: #3a907e; color: #c7f9e9; }
+
