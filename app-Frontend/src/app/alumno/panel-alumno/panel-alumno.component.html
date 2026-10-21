@@ -1,0 +1,38 @@
+<div class="d-flex align-items-center flex-wrap justify-content-between gap-2 mb-4">
+  <div>
+    <div class="etiqueta mb-2"><i class="bi bi-stars me-2"></i>Espacio personal</div>
+    <h1 class="titulo mb-2">¡Bienvenido{{ perfil() ? ', ' + perfil()!.nombre : '' }}!</h1>
+    <p class="subtitulo mb-0">Consulta tu información académica, pagos y biblioteca desde un solo lugar.</p>
+  </div>
+  <span class="rol-alumno"><i class="bi bi-person-badge me-2"></i>Estudiante</span>
+</div>
+
+<section class="resumen-perfil mb-4">
+  <div class="icono-perfil"><i class="bi bi-mortarboard-fill"></i></div>
+  <div class="flex-grow-1">
+    <p class="mini-titulo mb-1">MI INFORMACIÓN</p>
+    @if (cargando()) { <p class="mb-0 texto-claro">Cargando perfil...</p> }
+    @else if (error()) {
+      <p class="mb-2 texto-claro" role="alert">{{ error() }}</p>
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="cargarPerfil()">Reintentar</button>
+    } @else if (perfil(); as alumno) {
+      <h2 class="h5 mb-2">{{ alumno.nombre }} {{ alumno.apellido }}</h2>
+      <p class="texto-claro mb-0">Registro #{{ alumno.idEstudiante }} · Estado: {{ alumno.estado }}</p>
+    }
+  </div>
+  <a class="btn btn-ver-perfil" routerLink="/inicio/perfil">Ver mi perfil <i class="bi bi-arrow-right ms-2"></i></a>
+</section>
+
+<div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+  <h2 class="h5 fw-bold mb-0">Mis consultas</h2>
+  <span class="texto-claro pequeno">Acceso rápido</span>
+</div>
+<div class="row g-3">
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Mi perfil" descripcion="Datos personales y de contacto" ruta="/inicio/perfil" icono="bi-person-lines-fill" color="rosa" /></div>
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Mis notas" descripcion="Historial de calificaciones registradas" ruta="/inicio/notas" icono="bi-journal-check" color="verde" /></div>
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Estado de cuenta" descripcion="Pagos realizados y saldo pendiente" ruta="/inicio/cuenta" icono="bi-wallet2" color="violeta" /></div>
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Catálogo de libros" descripcion="Consulta los libros disponibles" ruta="/inicio/catalogo" icono="bi-book" color="verde" /></div>
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Mis préstamos" descripcion="Libros pendientes de devolución" ruta="/inicio/prestamos" icono="bi-bookmark-check" color="rosa" /></div>
+  <div class="col-12 col-md-6 col-xl-4"><app-tarjeta-consulta titulo="Mis multas" descripcion="Consulta recargos por devolución tardía" ruta="/inicio/multas" icono="bi-receipt" color="violeta" /></div>
+</div>
+

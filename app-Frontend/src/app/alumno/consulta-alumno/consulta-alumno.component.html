@@ -1,0 +1,105 @@
+<div class="cabecera-consulta mb-4">
+  <a routerLink="/inicio" class="regresar"><i class="bi bi-arrow-left me-2"></i>Volver al panel</a>
+  <h1 class="fw-bold mt-3 mb-2">{{ titulos[seccion] }}</h1>
+  <p class="subtitulo mb-0">Información registrada en el sistema RES.</p>
+</div>
+
+<section class="caja-consulta">
+  @if (cargando()) {
+    <div class="d-flex align-items-center gap-3 py-4" role="status">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      <span>Consultando el servidor...</span>
+    </div>
+  } @else {
+    @if (mensajeError()) {
+      <div class="aviso-error mb-3" role="alert"><i class="bi bi-exclamation-circle me-2"></i>{{ mensajeError() }}</div>
+    }
+    @if (seccion === 'perfil') {
+      @if (perfil(); as alumno) {
+        <div class="row g-3">
+          <div class="col-md-6"><div class="campo"><small>Nombre completo</small><strong>{{ alumno.nombre }} {{ alumno.apellido }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Estado</small><strong>{{ alumno.estado }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Fecha de nacimiento</small><strong>{{ alumno.fechaNacimiento }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Correo electrónico</small><strong>{{ alumno.correo || 'Sin registrar' }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Teléfono</small><strong>{{ alumno.telefono || 'Sin registrar' }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Dirección</small><strong>{{ alumno.direccion || 'Sin registrar' }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Datos de encargados</small><strong>{{ alumno.datosEncargados || 'Sin registrar' }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Información médica</small><strong>{{ alumno.informacionMedica || 'Sin registrar' }}</strong></div></div>
+        </div>
+      }
+    }
+
+    @if (seccion === 'notas') {
+      @if (notas().length === 0) { <p class="sin-datos">Todavía no hay notas registradas.</p> }
+      @else {
+        <div class="table-responsive"><table class="tabla-res table mb-0">
+          <thead><tr><th>Registro</th><th>Inscripción</th><th>Zona</th><th>Nota</th></tr></thead>
+          <tbody>@for (nota of notas(); track nota.idNota) {
+            <tr><td>#{{ nota.idNota }}</td><td>#{{ nota.idInscripcion }}</td><td>#{{ nota.idZona }}</td><td><span class="valor-destacado">{{ nota.valor | number:'1.2-2' }}</span></td></tr>
+          }</tbody>
+        </table></div>
+        <p class="nota-ayuda mt-3 mb-0">El backend devuelve las notas por inscripción y zona. Los nombres de cursos se agregarán cuando exista una consulta estudiantil que los relacione.</p>
+      }
+    }
+
+    @if (seccion === 'cuenta') {
+      @if (estadoCuenta(); as cuenta) {
+        <div class="saldo-cuenta mb-4"><small>Saldo pendiente informado por RES</small><strong>Q {{ cuenta.saldoPendiente | number:'1.2-2' }}</strong><span>Estudiante #{{ cuenta.idEstudiante }}</span></div>
+      }
+      <h2 class="h6 fw-bold mb-3">Mis últimos pagos</h2>
+      @if (historial(); as historialPagos) {
+        @if (historialPagos.datos.length === 0) { <p class="sin-datos">No tienes pagos registrados.</p> }
+        @else {
+          <div class="table-responsive"><table class="tabla-res table mb-0">
+            <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th></tr></thead>
+            <tbody>@for (pago of historialPagos.datos; track pago.idPago) {
+              <tr><td>{{ pago.fecha }}</td><td>{{ pago.concepto }}</td><td>Q {{ pago.monto | number:'1.2-2' }}</td></tr>
+            }</tbody>
+          </table></div>
+          <p class="nota-ayuda mt-3 mb-0">Mostrando hasta {{ historialPagos.limite }} pagos de {{ historialPagos.total }} registrados.</p>
+        }
+      } @else { <p class="sin-datos">No hay historial de pagos disponible.</p> }
+    }
+
+    @if (seccion === 'catalogo') {
+      @if (libros().length === 0) { <p class="sin-datos">No hay libros disponibles por el momento.</p> }
+      @else {
+        <div class="row g-3">@for (libro of libros(); track libro.idLibro) {
+          <div class="col-md-6 col-xl-4"><div class="libro-card h-100">
+            <div class="simbolo-libro"><i class="bi bi-book-half"></i></div>
+            <h3 class="h6 fw-bold mt-3">{{ libro.titulo }}</h3>
+            <p class="subtitulo mb-2">{{ libro.autor }}</p>
+            <small>Editorial: {{ libro.editorial }}</small>
+            <div class="disponibilidad mt-3">{{ libro.cantidadDisponible }} disponible(s)</div>
+          </div></div>
+        }</div>
+      }
+    }
+
+    @if (seccion === 'prestamos') {
+      @if (prestamos().length === 0) { <p class="sin-datos">No tienes libros pendientes de devolución.</p> }
+      @else {
+        <div class="table-responsive"><table class="tabla-res table mb-0">
+          <thead><tr><th>Préstamo</th><th>Libro</th><th>Fecha préstamo</th><th>Devolver antes de</th><th>Días de atraso</th></tr></thead>
+          <tbody>@for (prestamo of prestamos(); track prestamo.idPrestamo) {
+            <tr><td>#{{ prestamo.idPrestamo }}</td><td>Libro #{{ prestamo.idLibro }}</td><td>{{ prestamo.fechaPrestamo }}</td><td>{{ prestamo.fechaDevolucionEsperada }}</td><td>{{ prestamo.diasAtraso }}</td></tr>
+          }</tbody>
+        </table></div>
+      }
+    }
+
+    @if (seccion === 'multas') {
+      @if (multas().length === 0) { <p class="sin-datos">No tienes multas registradas.</p> }
+      @else {
+        <div class="table-responsive"><table class="tabla-res table mb-0">
+          <thead><tr><th>Préstamo</th><th>Libro</th><th>Días de atraso</th><th>Multa</th></tr></thead>
+          <tbody>@for (multa of multas(); track multa.idPrestamo) {
+            <tr><td>#{{ multa.idPrestamo }}</td><td>Libro #{{ multa.idLibro }}</td><td>{{ multa.diasAtraso }}</td><td class="texto-rosa">Q {{ multa.montoMulta | number:'1.2-2' }}</td></tr>
+          }</tbody>
+        </table></div>
+      }
+    }
+    <div class="mt-4"><button type="button" class="btn btn-actualizar" (click)="cargar()"><i class="bi bi-arrow-clockwise me-2"></i>Actualizar datos</button></div>
+  }
+</section>
+

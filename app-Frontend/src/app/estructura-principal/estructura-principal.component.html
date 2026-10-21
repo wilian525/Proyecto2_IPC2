@@ -1,0 +1,52 @@
+<div class="estructura-general">
+  <button type="button" class="fondo-menu" [class.visible]="menuAbierto()"
+    (click)="cerrarMenu()" aria-label="Cerrar menú"></button>
+
+  <aside class="menu-lateral" [class.mostrar-menu]="menuAbierto()" aria-label="Navegación principal">
+    <a class="marca d-flex align-items-center gap-3 text-decoration-none" routerLink="/inicio" (click)="cerrarMenu()">
+      <span class="marca-icono"><i class="bi bi-mortarboard-fill"></i></span>
+      <span><strong>RES</strong><small>Sistema de gestión escolar</small></span>
+    </a>
+    <div class="linea-menu"></div>
+    <div class="seccion-menu">ÁREA PERSONAL</div>
+    <nav class="d-grid gap-1" aria-label="Opciones del estudiante">
+      @if (esAlumno) {
+        @for (opcion of opcionesAlumno; track opcion.ruta) {
+          <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"
+             [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarMenu()">
+            <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
+          </a>
+        }
+      } @else {
+        <a class="enlace-menu" routerLink="/inicio" routerLinkActive="activo" (click)="cerrarMenu()">
+          <i class="bi bi-house-door"></i><span>Inicio</span>
+        </a>
+      }
+    </nav>
+    <div class="menu-final mt-auto">
+      <div class="usuario-lateral">
+        <span class="avatar"><i class="bi bi-person"></i></span>
+        <span><strong>Sesión activa</strong><small>{{ rol.replace('_', ' ') }}</small></span>
+      </div>
+      <button type="button" class="btn btn-salir w-100" (click)="salir()">
+        <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <div class="zona-principal">
+    <header class="cabecera">
+      <div class="d-flex align-items-center gap-3">
+        <button type="button" class="btn btn-menu" (click)="alternarMenu()" aria-label="Abrir menú">
+          <i class="bi bi-list"></i>
+        </button>
+        <span class="cabecera-titulo">Portal escolar <span class="d-none d-sm-inline">/ {{ esAlumno ? 'Estudiante' : rol.replace('_', ' ') }}</span></span>
+      </div>
+      <span class="insignia-rol"><i class="bi bi-shield-check me-2"></i>{{ rol.replace('_', ' ') }}</span>
+    </header>
+    <main class="contenido-principal" id="contenido-principal">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+

@@ -1,0 +1,38 @@
+:host { display: block; min-height: 100dvh; color: #edf2fd; }
+.estructura-general { min-height: 100dvh; background: radial-gradient(ellipse at 90% 0%, #243250 0, transparent 42%), #10182c; }
+.menu-lateral { position: fixed; inset: 0 auto 0 0; z-index: 20; width: 262px; display: flex; flex-direction: column; padding: 28px 17px 18px; background: #19233a; border-right: 1px solid #35435f; }
+.marca { color: #f1f5fc; padding: 3px 13px 18px; }
+.marca-icono { width: 48px; height: 48px; display: grid; place-items: center; flex-shrink: 0; background: #f28bb724; border: 1px solid #f28bb74a; border-radius: 14px; color: #ff92bf; font-size: 23px; }
+.marca strong { display: block; font-size: 23px; letter-spacing: .03em; line-height: 1.1; }
+.marca small { display: block; font-size: 10px; color: #adbcd4; margin-top: 4px; }
+.linea-menu { height: 1px; background: #34415b; margin: 4px 12px 27px; }
+.seccion-menu { color: #98a7c1; font-size: 11px; font-weight: 750; letter-spacing: .13em; margin: 0 13px 13px; }
+.enlace-menu { display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-decoration: none; color: #bac6de; border-radius: 11px; font-size: 13.5px; transition: background .2s; }
+.enlace-menu i { font-size: 18px; color: #99aac8; }
+.enlace-menu:hover { background: #293552; color: #fff; }
+.enlace-menu.activo { background: linear-gradient(95deg, #f18bb62c, #8a75dc18); color: #ffb4d0; font-weight: 650; border: 1px solid #f18bb62d; }
+.enlace-menu.activo i { color: #ff9ec4; }
+.usuario-lateral { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding: 12px 4px; border-top: 1px solid #35415b; }
+.avatar { width: 37px; height: 37px; display: grid; place-items: center; border-radius: 50%; background: #8bdeca22; color: #93e4d2; }
+.usuario-lateral strong, .usuario-lateral small { display: block; }
+.usuario-lateral strong { font-size: 12px; }
+.usuario-lateral small { font-size: 11px; color: #a4b5cc; }
+.btn-salir { border: 1px solid #6c7690; color: #e6ecf7; border-radius: 9px; padding: 10px; }
+.btn-salir:hover { color: #fff; background: #353f5b; }
+.zona-principal { margin-left: 262px; min-height: 100dvh; }
+.cabecera { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 34px; background: #18233bde; border-bottom: 1px solid #34415b; }
+.cabecera-titulo { font-size: 14px; color: #d8e0ee; font-weight: 600; }
+.insignia-rol { border-radius: 999px; padding: 8px 13px; background: #8ce5cb16; border: 1px solid #8ce5cb47; color: #9be6d3; font-size: 11px; letter-spacing: .04em; }
+.contenido-principal { max-width: 1440px; margin: 0 auto; padding: 34px; }
+.btn-menu { display: none; border: 1px solid #485577; color: #e9f0fc; }
+.fondo-menu { display: none; }
+@media (max-width: 991px) {
+  .menu-lateral { transform: translateX(-100%); transition: transform .24s ease; }
+  .menu-lateral.mostrar-menu { transform: translateX(0); }
+  .fondo-menu.visible { display: block; position: fixed; inset: 0; background: #050814b8; border: 0; width: 100%; z-index: 19; }
+  .zona-principal { margin-left: 0; }
+  .btn-menu { display: inline-flex; align-items: center; }
+  .cabecera { padding: 0 20px; }
+  .contenido-principal { padding: 24px 16px; }
+}
+
