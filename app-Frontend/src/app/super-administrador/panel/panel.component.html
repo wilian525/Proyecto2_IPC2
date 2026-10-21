@@ -1,0 +1,20 @@
+<section>
+  <span class="etiqueta"><i class="bi bi-shield-check"></i> Control institucional</span>
+  <h1 class="titulo-seccion">Panel de Super Administrador</h1>
+  <p class="subtitulo mb-4">Gestiona los responsables del colegio, los años lectivos y los grados por defecto.</p>
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="panel-res"><div class="texto-suave">Super Admin</div><div class="dato-principal">{{ superAdministradores() ?? '—' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="panel-res"><div class="texto-suave">Administradores</div><div class="dato-principal">{{ administradores() ?? '—' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="panel-res"><div class="texto-suave">Años lectivos</div><div class="dato-principal">{{ ciclos() ?? '—' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="panel-res"><div class="texto-suave">Grados</div><div class="dato-principal">{{ grados() ?? '—' }}</div></div></div>
+  </div>
+  <h2 class="h5 mb-3">Opciones de administración</h2>
+  <div class="row g-3">
+    <div class="col-md-6 col-xl-3"><a class="tarjeta-accion" routerLink="/inicio/super-administradores"><i class="bi bi-shield-lock"></i><div><strong>Super Administradores</strong><p>Crear, modificar y desactivar cuentas con máxima autorización.</p></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="tarjeta-accion" routerLink="/inicio/administradores"><i class="bi bi-people"></i><div><strong>Administradores</strong><p>Gestionar las cuentas administrativas y sus datos personales.</p></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="tarjeta-accion" routerLink="/inicio/ciclos"><i class="bi bi-calendar3"></i><div><strong>Años lectivos</strong><p>Consultar, registrar y desactivar ciclos escolares.</p></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="tarjeta-accion" routerLink="/inicio/grados"><i class="bi bi-mortarboard"></i><div><strong>Grados por defecto</strong><p>Registrar y actualizar los grados para cada nivel.</p></div></a></div>
+  </div>
+  <div class="mt-4"><button class="btn btn-menta" type="button" (click)="cargarResumen()"><i class="bi bi-arrow-clockwise me-2"></i>Actualizar resumen</button></div>
+</section>

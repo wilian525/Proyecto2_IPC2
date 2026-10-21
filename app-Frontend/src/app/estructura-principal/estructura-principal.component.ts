@@ -16,6 +16,7 @@ export class EstructuraPrincipalComponent {
 
   readonly rol = this.sesion.obtenerRol() ?? 'USUARIO';
   readonly esAlumno = this.rol === 'ESTUDIANTE';
+  readonly esSuperAdministrador = this.rol === 'SUPER_ADMIN';
   readonly menuAbierto = signal(false);
 
   readonly opcionesAlumno = [
@@ -26,6 +27,15 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/catalogo', titulo: 'Catálogo de libros', icono: 'bi-book' },
     { ruta: '/inicio/prestamos', titulo: 'Préstamos pendientes', icono: 'bi-bookmark-check' },
     { ruta: '/inicio/multas', titulo: 'Multas de biblioteca', icono: 'bi-receipt' }
+  ];
+
+  readonly opcionesSuperAdministrador = [
+    { ruta: '/inicio', titulo: 'Resumen', icono: 'bi-grid-1x2' },
+    { ruta: '/inicio/super-admin', titulo: 'Panel de gestión', icono: 'bi-speedometer2' },
+    { ruta: '/inicio/super-administradores', titulo: 'Super Administradores', icono: 'bi-shield-lock' },
+    { ruta: '/inicio/administradores', titulo: 'Administradores', icono: 'bi-people' },
+    { ruta: '/inicio/ciclos', titulo: 'Años lectivos', icono: 'bi-calendar3' },
+    { ruta: '/inicio/grados', titulo: 'Grados por defecto', icono: 'bi-mortarboard' }
   ];
 
   alternarMenu(): void { this.menuAbierto.update(actual => !actual); }

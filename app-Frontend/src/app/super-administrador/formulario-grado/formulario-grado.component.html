@@ -1,0 +1,34 @@
+<form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  <h2 class="titulo-tarjeta">{{ grado ? 'Modificar grado' : 'Crear grado por defecto' }}</h2>
+  <div class="mb-3">
+    <label class="form-label" for="grado-nombre">Nombre del grado</label>
+    <input id="grado-nombre" class="form-control" maxlength="100" formControlName="nombre" placeholder="Ejemplo: Primero primaria" />
+    @if (intentado && formulario.controls.nombre.invalid) { <div class="campo-ayuda">Nombre obligatorio.</div> }
+  </div>
+  <div class="mb-3">
+    <label for="grado-nivel" class="form-label">Nivel académico</label>
+    <select id="grado-nivel" class="form-select" formControlName="idNivel">
+      <option value="0">Selecciona un nivel</option>
+      @for (nivel of niveles; track nivel.idNivel) {
+        <option [value]="nivel.idNivel">{{ nivel.nombre }}</option>
+      }
+    </select>
+    @if (intentado && formulario.controls.idNivel.invalid) { <div class="campo-ayuda">Debes seleccionar un nivel.</div> }
+    @if (!niveles.length) { <p class="campo-ayuda">No hay niveles para seleccionar; verifica el backend.</p> }
+  </div>
+  <div class="mb-3">
+    <label for="grado-carrera" class="form-label">ID de carrera (opcional)</label>
+    <input id="grado-carrera" type="text" inputmode="numeric" pattern="[0-9]*" class="form-control" formControlName="idCarrera" placeholder="Solo si pertenece a diversificado" />
+    <div class="texto-suave mt-1">Usa el identificador real de una carrera existente, cuando corresponda.</div>
+    @if (intentado && formulario.controls.idCarrera.value.trim() !== '' && (+formulario.controls.idCarrera.value <= 0)) {
+      <div class="campo-ayuda">El ID de carrera debe ser un entero positivo.</div>
+    }
+  </div>
+  <div class="d-flex justify-content-end flex-wrap gap-2">
+    <button type="button" class="btn btn-menta" (click)="cancelar.emit()" [disabled]="procesando">Limpiar / Cancelar</button>
+    <button type="submit" class="btn btn-rosa" [disabled]="procesando || niveles.length === 0">
+      @if (procesando) { <span class="spinner-border spinner-border-sm me-2"></span> }
+      {{ grado ? 'Guardar cambios' : 'Registrar grado' }}
+    </button>
+  </div>
+</form>

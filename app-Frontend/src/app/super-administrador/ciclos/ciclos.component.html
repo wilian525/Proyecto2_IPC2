@@ -1,0 +1,48 @@
+<section>
+  <a routerLink="/inicio/super-admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Años lectivos</h1>
+  <p class="subtitulo mb-4">Crear, consultar, activar y desactivar ciclos escolares (CU-009 y CU-010).</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4">
+    <div class="col-xl-7"><div class="panel-res">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="titulo-tarjeta mb-0">Ciclos registrados</h2>
+        <button class="btn btn-menta btn-sm" type="button" (click)="cargar()" [disabled]="cargando() || procesando()">
+          <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+        </button>
+      </div>
+      @if (tieneCicloActivo()) {
+        <p class="texto-suave">Solo se permite un año lectivo activo. Desactívalo antes de activar otro.</p>
+      }
+      @if (cargando()) { <p class="texto-suave">Cargando años lectivos...</p> }
+      @else if (ciclos().length === 0) { <p class="texto-suave">Todavía no existen ciclos.</p> }
+      @else {
+        <div class="table-responsive"><table class="table tabla-res">
+          <thead><tr><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody>@for (ciclo of visibles(); track ciclo.idCiclo) {
+            <tr>
+              <td>{{ ciclo.anioInicio }}</td>
+              <td>{{ ciclo.anioFin }}</td>
+              <td><span class="estado" [class.inactivo]="ciclo.estado !== 'ACTIVO'">{{ ciclo.estado }}</span></td>
+              <td>
+                @if (ciclo.estado === 'ACTIVO') {
+                  <button type="button" class="btn btn-peligro btn-sm" (click)="desactivar(ciclo)" [disabled]="procesando() || cargando()">Desactivar</button>
+                } @else if (ciclo.estado === 'INACTIVO') {
+                  <button type="button" class="btn btn-menta btn-sm" (click)="activar(ciclo)"
+                    [disabled]="procesando() || cargando() || tieneCicloActivo()"
+                    [title]="tieneCicloActivo() ? 'Desactiva el ciclo actual antes de activar este' : 'Activar año lectivo'">Activar</button>
+                } @else { <span class="texto-suave">Estado no disponible</span> }
+              </td>
+            </tr>
+          }</tbody>
+        </table></div>
+        <div class="paginador"><span>{{ ciclos().length }} registros · {{ pagina() }}/{{ totalPaginas() }}</span>
+          <div class="d-flex gap-2"><button type="button" class="btn btn-menta btn-sm" (click)="pagina.set(pagina()-1)" [disabled]="pagina() === 1">Anterior</button>
+            <button type="button" class="btn btn-menta btn-sm" (click)="pagina.set(pagina()+1)" [disabled]="pagina() === totalPaginas()">Siguiente</button></div>
+        </div>
+      }
+    </div></div>
+    <div class="col-xl-5"><div class="panel-res"><app-formulario-ciclo [procesando]="procesando()" (crear)="crear($event)" /></div></div>
+  </div>
+</section>

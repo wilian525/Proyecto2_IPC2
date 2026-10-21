@@ -9,9 +9,16 @@
     </a>
     <div class="linea-menu"></div>
     <div class="seccion-menu">ÁREA PERSONAL</div>
-    <nav class="d-grid gap-1" aria-label="Opciones del estudiante">
+    <nav class="d-grid gap-1" aria-label="Navegación por rol">
       @if (esAlumno) {
         @for (opcion of opcionesAlumno; track opcion.ruta) {
+          <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"
+             [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarMenu()">
+            <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
+          </a>
+        }
+      } @else if (esSuperAdministrador) {
+        @for (opcion of opcionesSuperAdministrador; track opcion.ruta) {
           <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"
              [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarMenu()">
             <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>

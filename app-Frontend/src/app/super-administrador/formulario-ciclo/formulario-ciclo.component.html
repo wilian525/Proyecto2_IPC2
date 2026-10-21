@@ -1,0 +1,19 @@
+<form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
+  <h2 class="titulo-tarjeta">Crear año lectivo</h2>
+  <p class="texto-suave">Solo puede existir un ciclo activo. Desactiva el anterior antes de crear otro.</p>
+  <div class="row g-3">
+    <div class="col-sm-6"><label for="ciclo-inicio" class="form-label">Año inicial</label>
+      <input id="ciclo-inicio" type="number" class="form-control" formControlName="anioInicio" min="2000" max="2100" />
+    </div>
+    <div class="col-sm-6"><label for="ciclo-fin" class="form-label">Año final</label>
+      <input id="ciclo-fin" type="number" class="form-control" formControlName="anioFin" min="2000" max="2101" />
+    </div>
+  </div>
+  @if (intentado && (formulario.invalid || formulario.controls.anioFin.value < formulario.controls.anioInicio.value)) {
+    <p class="campo-ayuda" role="alert">Ingresa años válidos. El año final debe ser igual o posterior al inicial.</p>
+  }
+  <button type="submit" class="btn btn-rosa mt-3" [disabled]="procesando">
+    @if (procesando) { <span class="spinner-border spinner-border-sm me-2"></span> }
+    <i class="bi bi-plus-circle me-1"></i>Registrar año lectivo
+  </button>
+</form>

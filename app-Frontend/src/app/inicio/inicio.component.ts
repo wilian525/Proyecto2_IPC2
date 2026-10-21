@@ -3,10 +3,11 @@ import { Router } from '@angular/router';
 import { AutenticacionServicio } from '../servicios/autenticacion.servicio';
 import { SesionServicio } from '../servicios/sesion.servicio';
 import { PanelAlumnoComponent } from '../alumno/panel-alumno/panel-alumno.component';
+import { PanelSuperAdministradorComponent } from '../super-administrador/panel/panel.component';
 
 @Component({
   selector: 'app-inicio',
-  imports: [PanelAlumnoComponent],
+  imports: [PanelAlumnoComponent, PanelSuperAdministradorComponent],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })

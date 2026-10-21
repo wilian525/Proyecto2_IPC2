@@ -1,5 +1,7 @@
 @if (rol === 'ESTUDIANTE') {
   <app-panel-alumno />
+} @else if (rol === 'SUPER_ADMIN') {
+  <app-panel-super-administrador />
 } @else {
   <section class="inicio-tarjeta text-center p-4 p-md-5 mx-auto">
     <div class="icono-check mb-3"><i class="bi bi-check-circle-fill"></i></div>

@@ -1,0 +1,26 @@
+<section>
+  <a routerLink="/inicio/super-admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+  <h1 class="titulo-seccion">{{ titulo }}</h1>
+  <p class="subtitulo mb-4">Administra usuarios y datos personales. La última cuenta Super Admin activa no se puede desactivar.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="panel-res mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+      <h2 class="titulo-tarjeta mb-0">Usuarios registrados</h2>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-menta btn-sm" (click)="cargar()"><i class="bi bi-arrow-clockwise me-1"></i>Actualizar</button>
+        <button type="button" class="btn btn-rosa btn-sm" (click)="nuevaCuenta()"><i class="bi bi-person-plus me-1"></i>Nuevo usuario</button>
+      </div>
+    </div>
+    <app-lista-administradores [datos]="usuarios()" [pagina]="pagina()" [limite]="limite"
+      [total]="total()" [cargando]="cargando()" (editar)="editar($event)"
+      (desactivar)="desactivar($event)" (activar)="activar($event)"
+      [procesando]="procesando()" (cambiarPagina)="cambiarPagina($event)" />
+  </div>
+  @if (formularioVisible()) {
+    <div class="panel-res" id="formulario-administrador">
+      <app-formulario-administrativo [rol]="rol" [usuario]="seleccionado()" [procesando]="procesando()"
+        (guardar)="guardar($event)" (cancelar)="cancelar()" />
+    </div>
+  }
+</section>

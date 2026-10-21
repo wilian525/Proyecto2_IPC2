@@ -1,0 +1,37 @@
+@if (cargando) {
+  <p class="texto-suave" role="status"><span class="spinner-border spinner-border-sm me-2"></span>Cargando registros...</p>
+} @else if (datos.length === 0) {
+  <p class="texto-suave mb-0">No hay usuarios registrados con este rol.</p>
+} @else {
+  <div class="table-responsive">
+    <table class="table tabla-res align-middle mb-0">
+      <thead><tr><th>Usuario</th><th>Nombre completo</th><th>Fecha ingreso</th><th>Salario</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        @for (usuario of datos; track usuario.idUsuario) {
+          <tr>
+            <td><strong>{{ usuario.nombreUsuario }}</strong><div class="texto-suave">#{{ usuario.idUsuario }}</div></td>
+            <td>{{ usuario.nombre || 'Sin empleado' }} {{ usuario.apellido || '' }}</td>
+            <td>{{ usuario.fechaContratacion || '—' }}</td>
+            <td>{{ usuario.salario === null ? '—' : 'Q ' + (usuario.salario | number:'1.2-2') }}</td>
+            <td><span class="estado" [class.inactivo]="usuario.estado !== 'ACTIVO'">{{ usuario.estado }}</span></td>
+            <td><div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-menta btn-sm boton-icono" (click)="editar.emit(usuario)" [disabled]="usuario.idEmpleado === null || procesando || cargando"><i class="bi bi-pencil"></i>Editar</button>
+              @if (usuario.estado === 'ACTIVO') {
+                <button type="button" class="btn btn-peligro btn-sm boton-icono" (click)="desactivar.emit(usuario)" [disabled]="procesando || cargando"><i class="bi bi-person-x"></i>Desactivar</button>
+              } @else if (usuario.estado === 'INACTIVO') {
+                <button type="button" class="btn btn-menta btn-sm boton-icono" (click)="activar.emit(usuario)" [disabled]="procesando || cargando"><i class="bi bi-person-check"></i>Activar</button>
+              }
+            </div></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+<div class="paginador">
+  <span>{{ total }} usuarios · Página {{ pagina }} de {{ ultimaPagina }}</span>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-menta btn-sm" (click)="cambiarPagina.emit(pagina-1)" [disabled]="cargando || pagina <= 1">Anterior</button>
+    <button type="button" class="btn btn-menta btn-sm" (click)="cambiarPagina.emit(pagina+1)" [disabled]="cargando || pagina >= ultimaPagina">Siguiente</button>
+  </div>
+</div>
