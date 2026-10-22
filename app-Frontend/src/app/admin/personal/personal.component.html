@@ -1,0 +1,37 @@
+<section>
+  <a routerLink="/inicio/admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Personal del colegio</h1>
+  <p class="subtitulo mb-4">Registrar secretarias, maestros, bibliotecarios y personal de mantenimiento o limpieza con cuenta propia.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4"><div class="col-xl-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta">Empleados registrados</h2><button type="button" class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button></div>
+    @if (cargando()) { <p class="texto-suave">Consultando empleados...</p> }
+    @else if (!empleados().length) { <p class="texto-suave">No hay empleados registrados.</p> }
+    @else {<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Nombre</th><th>Puesto</th><th>Salario</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      @for (empleado of empleados(); track empleado.idEmpleado) {
+        <tr><td>{{ empleado.nombre }} {{ empleado.apellido }}<div class="texto-suave">#{{ empleado.idEmpleado }}</div></td><td>{{ empleado.puesto }}</td><td>Q {{ empleado.salario }}</td>
+          <td><span class="estado" [class.inactivo]="empleado.estado !== 'ACTIVO'">{{ empleado.estado }}</span></td>
+          <td><div class="d-flex gap-1"><button type="button" class="btn btn-menta btn-sm" (click)="editar(empleado)">Editar</button>
+          @if (empleado.estado === 'ACTIVO') { <button type="button" class="btn btn-peligro btn-sm" [disabled]="procesando()" (click)="desactivar(empleado)">Desactivar</button> }</div></td></tr>
+      }
+    </tbody></table></div><div class="paginador"><span>{{ total() }} empleados · Página {{ pagina() }}</span><div class="d-flex gap-2"><button type="button" class="btn btn-menta btn-sm" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button type="button" class="btn btn-menta btn-sm" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>}
+  </div></div><div class="col-xl-5"><div class="panel-res">
+    <h2 class="titulo-tarjeta">{{ seleccionado() ? 'Modificar empleado' : 'Registrar empleado' }}</h2>
+    <p class="texto-suave">Al crear se registra EMPLEADO y USUARIO en una transacción. Al editar solo se modifican los datos del empleado.</p>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="row g-3"><div class="col-md-6"><label for="nombreEmpleado" class="form-label">Nombre</label><input id="nombreEmpleado" class="form-control" formControlName="nombre" maxlength="100"></div>
+      <div class="col-md-6"><label for="apellidoEmpleado" class="form-label">Apellido</label><input id="apellidoEmpleado" class="form-control" formControlName="apellido" maxlength="100"></div>
+      <div class="col-md-6"><label for="puestoEmpleado" class="form-label">Puesto / rol de la cuenta</label><select id="puestoEmpleado" class="form-select" formControlName="puesto">@for (rol of roles; track rol) { <option [value]="rol">{{ rol }}</option> }</select></div>
+      <div class="col-md-6"><label for="fechaEmpleado" class="form-label">Fecha de contratación</label><input id="fechaEmpleado" type="date" class="form-control" formControlName="fechaContratacion"></div>
+      <div class="col-md-6"><label for="salarioEmpleado" class="form-label">Salario (Q)</label><input id="salarioEmpleado" type="number" min="0" step="0.01" class="form-control" formControlName="salario"></div>
+      @if (!seleccionado()) {
+        <div class="col-md-6"><label for="usuarioEmpleado" class="form-label">Usuario de acceso</label><input id="usuarioEmpleado" class="form-control" formControlName="nombreUsuario" autocomplete="off"></div>
+        <div class="col-12"><label for="claveEmpleado" class="form-label">Contraseña inicial</label><input id="claveEmpleado" type="password" class="form-control" formControlName="contrasena" autocomplete="new-password"><p class="texto-suave mt-2">Mínimo 8 caracteres. El backend la guardará con BCrypt.</p></div>
+      }
+      </div>
+      @if (formulario.invalid && formulario.touched) { <p class="campo-ayuda mt-3">Completa los campos obligatorios y revisa el salario, fecha y contraseña.</p> }
+      <div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-menta" (click)="limpiar()">Cancelar / Limpiar</button><button type="submit" class="btn btn-rosa" [disabled]="procesando()">{{ procesando() ? 'Guardando...' : seleccionado() ? 'Guardar cambios' : 'Crear empleado' }}</button></div>
+    </form>
+  </div></div></div>
+</section>

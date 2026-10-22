@@ -4,6 +4,7 @@ import { EstructuraPrincipalComponent } from './estructura-principal/estructura-
 import { protegerAcceso } from './seguridad/proteger-acceso.guard';
 import { soloAlumno } from './seguridad/solo-alumno.guard';
 import { soloSuperAdministrador } from './seguridad/solo-super-administrador.guard';
+import { soloAdministrador } from './seguridad/solo-administrador.guard';
 
 export const rutas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -13,7 +14,7 @@ export const rutas: Routes = [
     children: [
       {
         path: 'login',
-        loadComponent: () => import('./autenticacion/ingresar/ ingresar.component')
+        loadComponent: () => import('./autenticacion/ingresar/ingresar.component')
           .then(componente => componente.IngresarComponent)
       },
       {
@@ -30,63 +31,103 @@ export const rutas: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./inicio/inicio.component')
+        loadComponent: () => import('./compartidos/inicio/inicio.component')
           .then(componente => componente.InicioComponent)
       },
 
       {
         path: 'super-admin', canActivate: [soloSuperAdministrador],
-        loadComponent: () => import('./super-administrador/panel/panel.component')
+        loadComponent: () => import('./super-admin/panel/panel.component')
           .then(m => m.PanelSuperAdministradorComponent)
       },
       {
         path: 'super-administradores', canActivate: [soloSuperAdministrador], data: { rol: 'SUPER_ADMIN' },
-        loadComponent: () => import('./super-administrador/usuarios/usuarios.component')
+        loadComponent: () => import('./super-admin/usuarios/usuarios.component')
           .then(m => m.UsuariosAdministrativosComponent)
       },
       {
         path: 'administradores', canActivate: [soloSuperAdministrador], data: { rol: 'ADMIN' },
-        loadComponent: () => import('./super-administrador/usuarios/usuarios.component')
+        loadComponent: () => import('./super-admin/usuarios/usuarios.component')
           .then(m => m.UsuariosAdministrativosComponent)
       },
       {
         path: 'ciclos', canActivate: [soloSuperAdministrador],
-        loadComponent: () => import('./super-administrador/ciclos/ciclos.component')
+        loadComponent: () => import('./super-admin/ciclos/ciclos.component')
           .then(m => m.CiclosComponent)
       },
       {
         path: 'grados', canActivate: [soloSuperAdministrador],
-        loadComponent: () => import('./super-administrador/grados/grados.component')
+        loadComponent: () => import('./super-admin/grados/grados.component')
+          .then(m => m.GradosComponent)
+      },
+      { path: 'admin', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/panel/panel.component')
+          .then(m => m.PanelAdministradorComponent)
+      },
+      { path: 'admin/personal', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/personal/personal.component')
+          .then(m => m.PersonalAdministradorComponent)
+      },
+      { path: 'admin/estudiantes', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/estudiantes/estudiantes.component')
+          .then(m => m.EstudiantesAdministradorComponent)
+      },
+      { path: 'admin/carreras', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/carreras/carreras.component')
+          .then(m => m.CarrerasAdministradorComponent)
+      },
+      { path: 'admin/cursos', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/cursos/cursos.component')
+          .then(m => m.CursosAdministradorComponent)
+      },
+      { path: 'admin/secciones', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/secciones/secciones.component')
+          .then(m => m.SeccionesAdministradorComponent)
+      },
+      { path: 'admin/curriculos', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/curriculos/curriculos.component')
+          .then(m => m.CurriculosAdministradorComponent)
+      },
+      { path: 'admin/asignaciones', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/asignaciones/asignaciones.component')
+          .then(m => m.AsignacionesAdministradorComponent)
+      },
+      { path: 'admin/reportes', canActivate: [soloAdministrador],
+        loadComponent: () => import('./admin/reportes/reportes.component')
+          .then(m => m.ReportesAdministradorComponent)
+      },
+      { path: 'admin/grados', canActivate: [soloAdministrador],
+        loadComponent: () => import('./super-admin/grados/grados.component')
           .then(m => m.GradosComponent)
       },
       {
         path: 'perfil', canActivate: [soloAlumno], data: { seccion: 'perfil' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       },
       {
         path: 'notas', canActivate: [soloAlumno], data: { seccion: 'notas' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       },
       {
         path: 'cuenta', canActivate: [soloAlumno], data: { seccion: 'cuenta' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       },
       {
         path: 'catalogo', canActivate: [soloAlumno], data: { seccion: 'catalogo' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       },
       {
         path: 'prestamos', canActivate: [soloAlumno], data: { seccion: 'prestamos' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       },
       {
         path: 'multas', canActivate: [soloAlumno], data: { seccion: 'multas' },
-        loadComponent: () => import('./alumno/consulta-alumno/consulta-alumno.component')
+        loadComponent: () => import('./estudiante/consulta-alumno/consulta-alumno.component')
           .then(componente => componente.ConsultaAlumnoComponent)
       }
     ]

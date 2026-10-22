@@ -17,6 +17,7 @@ export class EstructuraPrincipalComponent {
   readonly rol = this.sesion.obtenerRol() ?? 'USUARIO';
   readonly esAlumno = this.rol === 'ESTUDIANTE';
   readonly esSuperAdministrador = this.rol === 'SUPER_ADMIN';
+  readonly esAdministrador = this.rol === 'ADMIN';
   readonly menuAbierto = signal(false);
 
   readonly opcionesAlumno = [
@@ -36,6 +37,20 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/administradores', titulo: 'Administradores', icono: 'bi-people' },
     { ruta: '/inicio/ciclos', titulo: 'Años lectivos', icono: 'bi-calendar3' },
     { ruta: '/inicio/grados', titulo: 'Grados por defecto', icono: 'bi-mortarboard' }
+  ];
+
+  readonly opcionesAdministrador = [
+    { ruta: '/inicio', titulo: 'Resumen', icono: 'bi-grid-1x2' },
+    { ruta: '/inicio/admin', titulo: 'Panel de gestión', icono: 'bi-speedometer2' },
+    { ruta: '/inicio/admin/personal', titulo: 'Personal', icono: 'bi-people' },
+    { ruta: '/inicio/admin/estudiantes', titulo: 'Estudiantes', icono: 'bi-person-vcard' },
+    { ruta: '/inicio/admin/carreras', titulo: 'Carreras', icono: 'bi-mortarboard' },
+    { ruta: '/inicio/admin/cursos', titulo: 'Cursos', icono: 'bi-journals' },
+    { ruta: '/inicio/admin/grados', titulo: 'Grados', icono: 'bi-diagram-3' },
+    { ruta: '/inicio/admin/secciones', titulo: 'Secciones', icono: 'bi-grid' },
+    { ruta: '/inicio/admin/curriculos', titulo: 'Currículos', icono: 'bi-journal-bookmark' },
+    { ruta: '/inicio/admin/asignaciones', titulo: 'Asignaciones', icono: 'bi-person-video3' },
+    { ruta: '/inicio/admin/reportes', titulo: 'Ingresos', icono: 'bi-file-earmark-pdf' }
   ];
 
   alternarMenu(): void { this.menuAbierto.update(actual => !actual); }

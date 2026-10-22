@@ -1,0 +1,26 @@
+<section>
+  <a routerLink="/inicio/admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Secciones</h1><p class="subtitulo mb-4">Registrar secciones asociadas a un grado.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4"><div class="col-lg-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta">Secciones registrados</h2><button type="button" class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button></div>
+    @if (cargando()) { <p class="texto-suave">Consultando registros...</p> }
+    @else if (!registros().length) { <p class="texto-suave">No hay registros todavía.</p> }
+    @else { <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>ID</th><th>Nombre</th><th>Grado</th><th>Acción</th></tr></thead><tbody>
+      @for (registro of visibles(); track registro.idSeccion) {
+        <tr><td>#{{ registro.idSeccion }}</td><td>{{ registro.nombre }}</td><td>{{ gradoNombre(registro.idGrado) }}</td>
+          <td><button type="button" class="btn btn-menta btn-sm" (click)="editar(registro)">Editar</button></td></tr>
+      }
+    </tbody></table></div><div class="paginador"><span>{{ registros().length }} registros · Página {{ pagina() }} de {{ paginas() }}</span>
+    <div class="d-flex gap-2"><button type="button" class="btn btn-menta btn-sm" [disabled]="pagina()<=1" (click)="pagina.set(pagina()-1)">Anterior</button><button type="button" class="btn btn-menta btn-sm" [disabled]="pagina()>=paginas()" (click)="pagina.set(pagina()+1)">Siguiente</button></div></div> }
+  </div></div><div class="col-lg-5"><div class="panel-res">
+    <h2 class="titulo-tarjeta">{{ seleccionado() ? 'Modificar' : 'Registrar' }} seccion</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="mb-3"><label for="nombre" class="form-label">Nombre</label><input id="nombre" formControlName="nombre" class="form-control" placeholder="A" maxlength="100">
+      @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) { <p class="campo-ayuda">El nombre es obligatorio (máximo 100 caracteres).</p> }</div>
+      <div class="mb-3"><label for="segundo" class="form-label">Grado</label><select id="segundo" class="form-select" formControlName="idGrado"><option [ngValue]="0">Selecciona un grado</option>@for (grado of grados(); track grado.idGrado) {<option [ngValue]="grado.idGrado">{{ grado.nombre }}</option>}</select></div>
+      <div class="d-flex justify-content-end gap-2"><button type="button" class="btn btn-menta" (click)="limpiar()">Limpiar</button><button type="submit" class="btn btn-rosa" [disabled]="procesando()">{{ procesando() ? 'Guardando...' : seleccionado() ? 'Guardar cambios' : 'Registrar' }}</button></div>
+    </form>
+  </div></div></div>
+</section>

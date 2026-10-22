@@ -1,4 +1,33 @@
-body { margin: 0; background: #0e172b; color: #f4f6fe; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+:root {
+  color-scheme: dark;
+  --fondo: #0e172b;
+  --superficie: #202a44;
+  --borde: #38435e;
+  --rosa: #ff9ac3;
+  --verde: #93e4d2;
+}
 * { box-sizing: border-box; }
-.auth-layout { min-height: 100dvh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at top left, #233c59 0%, transparent 43%), radial-gradient(ellipse at bottom right, #32223e 0%, transparent 40%), #0e172b; }
-
+body { margin: 0; background: var(--fondo); color: #f4f6fe; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.estructura-acceso { min-height: 100dvh; padding: 2rem 1rem; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at top left, #233c59 0%, transparent 43%), radial-gradient(ellipse at bottom right, #32223e 0%, transparent 40%), var(--fondo); }
+.tarjeta-acceso { max-width: 1060px; min-height: 610px; background: var(--superficie); border: 1px solid var(--borde); border-radius: 1.4rem; overflow: hidden; box-shadow: 0 25px 100px #050a1c70; }
+.panel-presentacion { background: radial-gradient(circle at 10% 10%, #35536d 0, transparent 35%), linear-gradient(155deg, #172744 0%, #16203d 70%, #34243e 100%); }
+.panel-formulario { background: var(--superficie); }
+.formulario-contenido { max-width: 520px; margin-inline: auto; }
+.icono-acceso { display: grid; place-items: center; width: 60px; height: 60px; background: #ef87b120; color: #ff9fc8; font-size: 1.6rem; border-radius: 18px; }
+.tarjeta-acceso h2 { color: #f4f6fd; font-weight: 800; font-size: 2rem; }
+.descripcion, .texto-pie { color: #b3bed4; }
+.texto-pie { font-size: .8rem; }
+.tarjeta-acceso .form-label { color: #e7edf9; font-weight: 600; font-size: .9rem; }
+.tarjeta-acceso .input-group-text,
+.tarjeta-acceso .form-control,
+.tarjeta-acceso .btn-mostrar { background: #151e38; color: #edf2ff; border: 1px solid #374363; }
+.tarjeta-acceso .input-group-text { color: #ff8fbc; }
+.tarjeta-acceso .form-control { padding: .85rem .9rem; color-scheme: dark; }
+.tarjeta-acceso .form-control::placeholder { color: #8995b0; }
+.tarjeta-acceso .form-control:focus { box-shadow: 0 0 0 .18rem #f18bb226; border-color: #ec8fba; }
+.tarjeta-acceso .btn-mostrar:hover { background: #242e4b; color: #fff; }
+.tarjeta-acceso .btn-ingresar { background: linear-gradient(100deg, #ed77aa, #aa77ed); color: #11182b; border: 0; padding: .9rem; font-weight: 700; border-radius: .65rem; }
+.tarjeta-acceso .btn-ingresar:hover:not(:disabled) { filter: brightness(1.07); color: #11182b; }
+.tarjeta-acceso .btn-ingresar:disabled { opacity: .55; }
+@media (max-width: 991px) { .tarjeta-acceso { max-width: 570px; } .panel-presentacion { min-height: 310px; } }
+@media (max-width: 575px) { .estructura-acceso { padding: 1rem .6rem; } .tarjeta-acceso { border-radius: 1rem; } .tarjeta-acceso h2 { font-size: 1.65rem; } }

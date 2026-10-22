@@ -1,0 +1,13 @@
+<section>
+  <span class="etiqueta"><i class="bi bi-speedometer2"></i> Gestión académica y administrativa</span>
+  <h1 class="titulo-seccion">Panel del Administrador</h1>
+  <p class="subtitulo mb-4">Personal, estudiantes, carreras, cursos y organización escolar.</p>
+  <div class="row g-3">
+    @for (modulo of modulos; track modulo.ruta) {
+      <div class="col-md-6 col-xl-4">
+        <app-tarjeta-modulo [ruta]="modulo.ruta" [titulo]="modulo.titulo"
+          [descripcion]="modulo.descripcion" [icono]="modulo.icono" />
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,35 @@
+<section>
+  <a routerLink="/inicio" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Grados por defecto</h1>
+  <p class="subtitulo mb-4">Crear, visualizar y modificar grados de la institución (CU-011 y CU-012).</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4">
+    <div class="col-xl-7"><div class="panel-res">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="titulo-tarjeta mb-0">Grados registrados</h2>
+        <button type="button" class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button>
+      </div>
+      @if (cargando()) { <p class="texto-suave">Consultando grados...</p> }
+      @else if (grados().length === 0) { <p class="texto-suave">No hay grados registrados.</p> }
+      @else {
+        <div class="table-responsive"><table class="table tabla-res">
+          <thead><tr><th>ID</th><th>Grado</th><th>Nivel</th><th>Carrera</th><th>Acción</th></tr></thead>
+          <tbody>@for (grado of visibles(); track grado.idGrado) {
+            <tr><td>#{{ grado.idGrado }}</td><td>{{ grado.nombre }}</td><td>{{ nombreNivel(grado.idNivel) }}</td>
+              <td>{{ grado.idCarrera ?? '—' }}</td>
+              <td><button class="btn btn-menta btn-sm" type="button" (click)="seleccionar(grado)"><i class="bi bi-pencil me-1"></i>Editar</button></td></tr>
+          }</tbody>
+        </table></div>
+        <div class="paginador"><span>{{ grados().length }} grados · {{ pagina() }}/{{ totalPaginas() }}</span>
+          <div class="d-flex gap-2"><button class="btn btn-menta btn-sm" (click)="pagina.set(pagina()-1)" [disabled]="pagina() === 1">Anterior</button>
+          <button class="btn btn-menta btn-sm" (click)="pagina.set(pagina()+1)" [disabled]="pagina() === totalPaginas()">Siguiente</button></div>
+        </div>
+      }
+    </div></div>
+    <div class="col-xl-5"><div class="panel-res">
+      <app-formulario-grado [grado]="seleccionado()" [niveles]="niveles()" [procesando]="procesando()"
+        (guardar)="guardar($event)" (cancelar)="cancelar()" />
+    </div></div>
+  </div>
+</section>

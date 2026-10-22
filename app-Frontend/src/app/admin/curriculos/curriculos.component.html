@@ -1,0 +1,33 @@
+<section>
+  <a routerLink="/inicio/admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Currículos por grado</h1>
+  <p class="subtitulo mb-4">Cada grado y ciclo escolar necesita un currículo que indique los cursos exactos que se imparten.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4"><div class="col-lg-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta">Currículos registrados</h2><button class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button></div>
+    @if (cargando()) { <p class="texto-suave">Consultando currículos...</p> }
+    @else if (!curriculos().length) { <p class="texto-suave">Aún no hay currículos. Crea uno para un grado y ciclo.</p> }
+    @else {<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>ID</th><th>Grado</th><th>Ciclo</th><th>Acción</th></tr></thead><tbody>
+      @for (curriculo of visibles(); track curriculo.idCurriculo) { <tr><td>#{{ curriculo.idCurriculo }}</td><td>{{ nombreGrado(curriculo.idGrado) }}</td><td>{{ nombreCiclo(curriculo.idCiclo) }}</td><td><button type="button" class="btn btn-menta btn-sm" (click)="seleccionar(curriculo)">Ver / Asignar cursos</button></td></tr> }
+    </tbody></table></div><div class="paginador"><span>{{ curriculos().length }} currículos · Página {{ pagina() }} de {{ paginas() }}</span>
+    <div class="d-flex gap-2"><button class="btn btn-menta btn-sm" [disabled]="pagina()<=1" (click)="pagina.set(pagina()-1)">Anterior</button><button class="btn btn-menta btn-sm" [disabled]="pagina()>=paginas()" (click)="pagina.set(pagina()+1)">Siguiente</button></div></div>}
+  </div></div><div class="col-lg-5"><div class="panel-res">
+    <h2 class="titulo-tarjeta">{{ seleccionado() ? 'Cursos del currículo' : 'Crear currículo' }}</h2>
+    @if (!seleccionado()) {
+      <form [formGroup]="formulario" (ngSubmit)="crear()" novalidate>
+        <div class="mb-3"><label class="form-label" for="gradoCurriculo">Grado</label><select id="gradoCurriculo" class="form-select" formControlName="idGrado"><option [ngValue]="0">Selecciona un grado</option>@for (g of grados(); track g.idGrado) { <option [ngValue]="g.idGrado">{{ g.nombre }}</option> }</select></div>
+        <div class="mb-3"><label class="form-label" for="cicloCurriculo">Año lectivo</label><select id="cicloCurriculo" class="form-select" formControlName="idCiclo"><option [ngValue]="0">Selecciona un ciclo</option>@for (c of ciclos(); track c.idCiclo) { <option [ngValue]="c.idCiclo">{{ c.anioInicio }}–{{ c.anioFin }} ({{ c.estado }})</option> }</select></div>
+        @if (formulario.touched && formulario.invalid) { <p class="campo-ayuda">Selecciona un grado y un ciclo válidos.</p> }
+        <button type="submit" class="btn btn-rosa" [disabled]="procesando()">Crear currículo</button>
+      </form>
+    } @else {
+      <p class="texto-suave">{{ nombreGrado(seleccionado()!.idGrado) }} · {{ nombreCiclo(seleccionado()!.idCiclo) }}</p>
+      @if (!cursos().length) { <p class="texto-suave">Primero registra los cursos del colegio.</p> }
+      @for (curso of cursos(); track curso.idCurso) {
+        <label class="d-flex align-items-center gap-2 mb-2"><input type="checkbox" class="form-check-input" [checked]="asignados().includes(curso.idCurso)" (change)="alternarCurso(curso.idCurso, $any($event.target).checked)"><span>{{ curso.nombre }}</span></label>
+      }
+      <div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-menta" (click)="limpiar()">Volver</button><button type="button" class="btn btn-rosa" (click)="guardarCursos()" [disabled]="procesando() || !cursos().length">Guardar cursos</button></div>
+    }
+  </div></div></div>
+</section>

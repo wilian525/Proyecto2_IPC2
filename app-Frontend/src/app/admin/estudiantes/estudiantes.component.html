@@ -1,0 +1,41 @@
+<section>
+  <a routerLink="/inicio/admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Estudiantes</h1><p class="subtitulo mb-4">Registro académico, datos médicos básicos y encargados. No se eliminan estudiantes: se actualiza su estado.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4"><div class="col-xl-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta">Alumnos registrados</h2><button class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button></div>
+    @if (cargando()) { <p class="texto-suave">Consultando alumnos...</p> }
+    @else if (!registros().length) { <p class="texto-suave">No hay estudiantes registrados.</p> }
+    @else {<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      @for (e of registros(); track e.idEstudiante) {
+        <tr><td>{{ e.nombre }} {{ e.apellido }}<div class="texto-suave">#{{ e.idEstudiante }}</div></td><td>{{ e.correo }}</td>
+        <td><span class="estado" [class.inactivo]="e.estado !== 'ACTIVO'">{{ e.estado }}</span></td>
+        <td><div class="d-flex flex-wrap gap-1"><button type="button" class="btn btn-menta btn-sm" (click)="editar(e)">Editar</button>
+          @if (e.estado !== 'ACTIVO') { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'ACTIVO')">Activar</button> }
+          @if (e.estado === 'ACTIVO') { <button type="button" class="btn btn-peligro btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'INACTIVO')">Inactivar</button> }
+          @if (e.estado !== 'GRADUADO') { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'GRADUADO')">Graduar</button> }
+        </div></td></tr>
+      }
+    </tbody></table></div><div class="paginador"><span>{{ total() }} alumnos · Página {{ pagina() }}</span><div class="d-flex gap-2"><button class="btn btn-menta btn-sm" [disabled]="pagina()<=1" (click)="anterior()">Anterior</button><button class="btn btn-menta btn-sm" [disabled]="pagina()*10>=total()" (click)="siguiente()">Siguiente</button></div></div> }
+  </div></div><div class="col-xl-5"><div class="panel-res">
+    <h2 class="titulo-tarjeta">{{ seleccionado() ? 'Editar estudiante' : 'Registrar estudiante' }}</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate><div class="row g-3">
+      <div class="col-sm-6"><label for="nombreAlumno" class="form-label">Nombre</label><input id="nombreAlumno" class="form-control" formControlName="nombre"></div>
+      <div class="col-sm-6"><label for="apellidoAlumno" class="form-label">Apellido</label><input id="apellidoAlumno" class="form-control" formControlName="apellido"></div>
+      <div class="col-sm-6"><label for="nacimientoAlumno" class="form-label">Fecha de nacimiento</label><input id="nacimientoAlumno" type="date" class="form-control" formControlName="fechaNacimiento"></div>
+      <div class="col-sm-6"><label for="telefonoAlumno" class="form-label">Teléfono</label><input id="telefonoAlumno" class="form-control" formControlName="telefono"></div>
+      <div class="col-12"><label for="direccionAlumno" class="form-label">Dirección</label><input id="direccionAlumno" class="form-control" formControlName="direccion"></div>
+      <div class="col-12"><label for="correoAlumno" class="form-label">Correo electrónico</label><input id="correoAlumno" type="email" class="form-control" formControlName="correo"></div>
+      <div class="col-12"><label for="encargadosAlumno" class="form-label">Datos de los encargados</label><textarea id="encargadosAlumno" rows="2" class="form-control" formControlName="datosEncargados"></textarea></div>
+      <div class="col-12"><label for="medicaAlumno" class="form-label">Información médica básica</label><textarea id="medicaAlumno" rows="2" class="form-control" formControlName="informacionMedica"></textarea></div>
+      @if (!seleccionado()) {
+        <div class="col-sm-6"><label for="usuarioAlumno" class="form-label">Nombre de usuario</label><input id="usuarioAlumno" class="form-control" formControlName="nombreUsuario" autocomplete="off"></div>
+        <div class="col-sm-6"><label for="claveAlumno" class="form-label">Contraseña inicial</label><input id="claveAlumno" type="password" class="form-control" formControlName="contrasena" autocomplete="new-password"></div>
+      }
+    </div>
+    @if (formulario.invalid && formulario.touched) { <p class="campo-ayuda mt-3">Revisa los campos obligatorios, la fecha y el correo electrónico.</p> }
+    <div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-menta" (click)="limpiar()">Limpiar</button><button type="submit" class="btn btn-rosa" [disabled]="procesando()">{{ procesando() ? 'Guardando...' : seleccionado() ? 'Guardar cambios' : 'Registrar' }}</button></div>
+    </form>
+  </div></div></div>
+</section>

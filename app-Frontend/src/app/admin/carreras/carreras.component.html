@@ -1,0 +1,27 @@
+<section>
+  <a routerLink="/inicio/admin" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i>Volver al panel</a>
+  <h1 class="titulo-seccion">Carreras de Diversificado</h1>
+  <p class="subtitulo mb-4">Crear, consultar, modificar, activar y desactivar carreras sin borrar su historial.</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4"><div class="col-lg-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta">Carreras registradas</h2><button type="button" class="btn btn-menta btn-sm" (click)="cargar()">Actualizar</button></div>
+    @if (cargando()) { <p class="texto-suave">Consultando carreras...</p> }
+    @else if (!carreras().length) { <p class="texto-suave">Aún no existen carreras. Registra la primera para habilitar grados de Diversificado.</p> }
+    @else { <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>ID</th><th>Carrera</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+      @for (carrera of visibles(); track carrera.idCarrera) {
+        <tr><td>#{{ carrera.idCarrera }}</td><td>{{ carrera.nombre }}</td><td><span class="estado" [class.inactivo]="carrera.estado !== 'ACTIVO'">{{ carrera.estado }}</span></td>
+          <td><div class="d-flex gap-2"><button class="btn btn-menta btn-sm" type="button" (click)="editar(carrera)">Editar</button>
+          <button class="btn btn-sm" [class.btn-peligro]="carrera.estado === 'ACTIVO'" [class.btn-menta]="carrera.estado !== 'ACTIVO'" [disabled]="procesando()" (click)="cambiarEstado(carrera)">{{ carrera.estado === 'ACTIVO' ? 'Desactivar' : 'Activar' }}</button></div></td></tr>
+      }
+    </tbody></table></div><div class="paginador"><span>{{ carreras().length }} carreras · Página {{ pagina() }} de {{ paginas() }}</span><div class="d-flex gap-2"><button class="btn btn-menta btn-sm" (click)="pagina.set(pagina()-1)" [disabled]="pagina()<=1">Anterior</button><button class="btn btn-menta btn-sm" (click)="pagina.set(pagina()+1)" [disabled]="pagina()>=paginas()">Siguiente</button></div></div> }
+  </div></div><div class="col-lg-5"><div class="panel-res">
+    <h2 class="titulo-tarjeta">{{ seleccionada() ? 'Modificar carrera' : 'Registrar carrera' }}</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <label class="form-label" for="nombreCarrera">Nombre de carrera</label><input id="nombreCarrera" class="form-control mb-2" formControlName="nombre" placeholder="Bachillerato en Ciencias y Letras" maxlength="100">
+      @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) { <p class="campo-ayuda">Indica un nombre de hasta 100 caracteres.</p> }
+      <p class="texto-suave mt-2">Nivel: Diversificado. Se identifica usando la lista real de niveles del backend.</p>
+      <div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-menta" (click)="limpiar()">Cancelar / Limpiar</button><button type="submit" class="btn btn-rosa" [disabled]="procesando() || !nivelDiversificado()">{{ procesando() ? 'Guardando...' : seleccionada() ? 'Guardar cambios' : 'Registrar carrera' }}</button></div>
+    </form>
+  </div></div></div>
+</section>
