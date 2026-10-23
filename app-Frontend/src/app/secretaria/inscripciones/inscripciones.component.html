@@ -1,0 +1,22 @@
+<section>
+  <a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+  <h1 class="titulo-seccion">Inscripción de estudiantes</h1><p class="subtitulo mb-4">Inscribir estudiantes activos en un grado, sección y ciclo activo (CU-052).</p>
+  @if (mensaje()) { <p class="mensaje-exito" role="status">{{ mensaje() }}</p> }
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  <div class="row g-4">
+    <div class="col-xl-7"><div class="panel-res"><div class="d-flex justify-content-between gap-2 align-items-center mb-3"><h2 class="titulo-tarjeta mb-0">Inscripciones registradas</h2><button class="btn btn-menta" type="button" (click)="cargar()" [disabled]="cargando()">Actualizar</button></div>
+      <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>#</th><th>Estudiante</th><th>Grado / Sección</th><th>Ciclo</th></tr></thead><tbody>
+        @for (i of inscripciones(); track i.idInscripcion) {<tr><td>{{i.idInscripcion}}</td><td>{{descripcion(i.idEstudiante)}}</td><td>{{grado(i.idGrado)}} / {{seccion(i.idSeccion)}}</td><td>{{ciclo(i.idCiclo)}}</td></tr>} @empty {<tr><td colspan="4">No hay inscripciones registradas.</td></tr>}
+      </tbody></table></div>
+      <div class="paginador"><span>{{total()}} registros · Página {{pagina()}}</span><div class="d-flex gap-2"><button class="btn btn-menta" type="button" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button class="btn btn-menta" type="button" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>
+    </div></div>
+    <div class="col-xl-5"><div class="panel-res"><h2 class="titulo-tarjeta">Nueva inscripción</h2><form [formGroup]="formulario" (ngSubmit)="registrar()" class="d-grid gap-3">
+      <div><label for="insAlumno" class="form-label">Estudiante activo</label><select id="insAlumno" class="form-select" formControlName="idEstudiante"><option [ngValue]="0">Selecciona un estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(e.estado==='ACTIVO'){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}} (#{{e.idEstudiante}})</option>}}</select></div>
+      <div><label for="insCiclo" class="form-label">Ciclo activo</label><select id="insCiclo" class="form-select" formControlName="idCiclo"><option [ngValue]="0">Selecciona un ciclo</option>@for(c of ciclos();track c.idCiclo){@if(c.estado==='ACTIVO'){<option [ngValue]="c.idCiclo">{{c.anioInicio}} - {{c.anioFin}} (ACTIVO)</option>}}</select></div>
+      <div><label for="insGrado" class="form-label">Grado</label><select id="insGrado" class="form-select" formControlName="idGrado" (change)="cambiarGrado()"><option [ngValue]="0">Selecciona un grado</option>@for(g of grados();track g.idGrado){<option [ngValue]="g.idGrado">{{g.nombre}}</option>}</select></div>
+      <div><label for="insSeccion" class="form-label">Sección del grado</label><select id="insSeccion" class="form-select" formControlName="idSeccion"><option [ngValue]="0">Selecciona una sección</option>@for(s of seccionesDelGrado();track s.idSeccion){<option [ngValue]="s.idSeccion">{{s.nombre}} (#{{s.idSeccion}})</option>}</select></div>
+      <p class="texto-suave mb-0">El backend comprueba estudiante activo, ciclo activo, relación grado/sección, currículo y duplicados.</p>
+      <button type="submit" class="btn btn-rosa" [disabled]="procesando()||formulario.invalid">{{procesando()?'Registrando...':'Registrar inscripción'}}</button>
+    </form></div></div>
+  </div>
+</section>

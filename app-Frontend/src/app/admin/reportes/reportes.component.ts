@@ -60,6 +60,9 @@ export class ReportesAdministradorComponent {
   tipo(): TipoReporte { return this.formulario.controls.tipo.value; }
   private parametros(): { ruta: string; parametros: Record<string,string|number> } | null {
     const d = this.formulario.getRawValue();
+    if (!Number.isInteger(d.mensualidades) || d.mensualidades < 0 || d.mensualidades > 12) {
+      this.error.set('Las mensualidades a evaluar deben estar entre 0 y 12.'); return null;
+    }
     if (d.fechaInicio && d.fechaFin && d.fechaInicio > d.fechaFin) {
       this.error.set('La fecha inicial no puede ser posterior a la fecha final.'); return null;
     }

@@ -29,6 +29,10 @@ export class GestionColegioServicio {
     return this.http.delete<RespuestaAccion>(`${this.api}/empleados/${id}`);
   }
 
+  activarEmpleado(id: number): Observable<RespuestaAccion> {
+    return this.http.put<RespuestaAccion>(`${this.api}/empleados/${id}/activar`, {});
+  }
+
   estudiantes(pagina: number, limite = 10): Observable<RespuestaPagina<EstudianteColegio>> {
     return this.http.get<RespuestaPagina<EstudianteColegio>>(`${this.api}/estudiantes`, { params: this.pagina(pagina, limite) });
   }

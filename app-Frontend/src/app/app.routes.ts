@@ -5,6 +5,7 @@ import { protegerAcceso } from './seguridad/proteger-acceso.guard';
 import { soloAlumno } from './seguridad/solo-alumno.guard';
 import { soloSuperAdministrador } from './seguridad/solo-super-administrador.guard';
 import { soloAdministrador } from './seguridad/solo-administrador.guard';
+import { soloSecretaria } from './seguridad/solo-secretaria.guard';
 
 export const rutas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -59,6 +60,28 @@ export const rutas: Routes = [
         path: 'grados', canActivate: [soloSuperAdministrador],
         loadComponent: () => import('./super-admin/grados/grados.component')
           .then(m => m.GradosComponent)
+      },
+
+      { path: 'secretaria', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/panel/panel.component').then(m => m.PanelSecretariaComponent)
+      },
+      { path: 'secretaria/inscripciones', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/inscripciones/inscripciones.component').then(m => m.InscripcionesSecretariaComponent)
+      },
+      { path: 'secretaria/pagos', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/pagos/pagos.component').then(m => m.PagosSecretariaComponent)
+      },
+      { path: 'secretaria/facturas', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/facturas/facturas.component').then(m => m.FacturasSecretariaComponent)
+      },
+      { path: 'secretaria/expedientes', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/expedientes/expedientes.component').then(m => m.ExpedientesSecretariaComponent)
+      },
+      { path: 'secretaria/solvencias', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/solvencias/solvencias.component').then(m => m.SolvenciasSecretariaComponent)
+      },
+      { path: 'secretaria/reportes', canActivate: [soloSecretaria],
+        loadComponent: () => import('./secretaria/reportes/reportes.component').then(m => m.ReportesSecretariaComponent)
       },
       { path: 'admin', canActivate: [soloAdministrador],
         loadComponent: () => import('./admin/panel/panel.component')

@@ -83,6 +83,7 @@ export class EstudiantesAdministradorComponent {
   }
   cambiarEstado(e: EstudianteColegio, estado: 'ACTIVO' | 'INACTIVO' | 'GRADUADO'): void {
     if (this.procesando() || estado === e.estado) return;
+    if (e.estado === 'GRADUADO') { this.error.set('No es posible reactivar a un estudiante graduado.'); return; }
     if (!window.confirm(`¿Cambiar a ${estado} el estado de ${e.nombre} ${e.apellido}?`)) return;
     this.procesando.set(true); this.mensaje.set(''); this.error.set('');
     this.servicio.cambiarEstadoEstudiante(e.idEstudiante, estado).pipe(takeUntilDestroyed(this.destruir)).subscribe({

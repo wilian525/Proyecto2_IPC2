@@ -64,6 +64,8 @@ export class CurriculosAdministradorComponent {
   crear(): void {
     this.formulario.markAllAsTouched();
     if (this.procesando() || this.formulario.invalid) return;
+    const ciclo = this.ciclos().find(c => c.idCiclo === this.formulario.getRawValue().idCiclo);
+    if (!ciclo || ciclo.estado !== 'ACTIVO') { this.error.set('Solo puedes crear currículos para un año lectivo activo.'); return; }
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');
     this.servicio.crearCurriculo(this.formulario.getRawValue()).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje + '. Ahora selecciona el currículo y establece sus cursos.'); this.limpiar(); this.cargar(); },
@@ -76,6 +78,9 @@ export class CurriculosAdministradorComponent {
   guardarCursos(): void {
     const actual = this.seleccionado();
     if (!actual || this.procesando()) return;
+    if (this.ciclos().find(c => c.idCiclo === actual.idCiclo)?.estado !== 'ACTIVO') {
+      this.error.set('Este currículo pertenece a un ciclo inactivo. Solo puede consultarse.'); return;
+    }
     if (!this.asignados().length) { this.error.set('Selecciona al menos un curso para el currículo.'); return; }
     if (!window.confirm(`¿Guardar ${this.asignados().length} cursos en el currículo de ${this.nombreGrado(actual.idGrado)}?`)) return;
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');

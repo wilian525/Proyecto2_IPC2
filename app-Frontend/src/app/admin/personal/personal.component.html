@@ -13,7 +13,7 @@
         <tr><td>{{ empleado.nombre }} {{ empleado.apellido }}<div class="texto-suave">#{{ empleado.idEmpleado }}</div></td><td>{{ empleado.puesto }}</td><td>Q {{ empleado.salario }}</td>
           <td><span class="estado" [class.inactivo]="empleado.estado !== 'ACTIVO'">{{ empleado.estado }}</span></td>
           <td><div class="d-flex gap-1"><button type="button" class="btn btn-menta btn-sm" (click)="editar(empleado)">Editar</button>
-          @if (empleado.estado === 'ACTIVO') { <button type="button" class="btn btn-peligro btn-sm" [disabled]="procesando()" (click)="desactivar(empleado)">Desactivar</button> }</div></td></tr>
+          @if (empleado.estado === 'ACTIVO') { <button type="button" class="btn btn-peligro btn-sm" [disabled]="procesando()" (click)="desactivar(empleado)">Desactivar</button> } @else { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="activar(empleado)">Activar</button> }</div></td></tr>
       }
     </tbody></table></div><div class="paginador"><span>{{ total() }} empleados · Página {{ pagina() }}</span><div class="d-flex gap-2"><button type="button" class="btn btn-menta btn-sm" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button type="button" class="btn btn-menta btn-sm" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>}
   </div></div><div class="col-xl-5"><div class="panel-res">

@@ -1,0 +1,8 @@
+@import url('../../compartidos/estilos/estilos-administracion.css');
+.res-documento { display:none; }
+@media print {
+  body * { visibility: hidden !important; }
+  .res-documento, .res-documento * { visibility: visible !important; }
+  .res-documento { display:block !important; position:absolute; top:0; left:0; width:100%; padding:40px; background:white; color:#222; font-family:Arial,sans-serif; line-height:1.6; }
+  .res-documento h1 { text-align:center; color:#234e75; margin-bottom:40px; font-size:22px; }
+}

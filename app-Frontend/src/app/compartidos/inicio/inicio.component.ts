@@ -5,10 +5,11 @@ import { SesionServicio } from '../../servicios/sesion.servicio';
 import { PanelAlumnoComponent } from '../../estudiante/panel-alumno/panel-alumno.component';
 import { PanelAdministradorComponent } from '../../admin/panel/panel.component';
 import { PanelSuperAdministradorComponent } from '../../super-admin/panel/panel.component';
+import { PanelSecretariaComponent } from '../../secretaria/panel/panel.component';
 
 @Component({
   selector: 'app-inicio',
-  imports: [PanelAlumnoComponent, PanelSuperAdministradorComponent, PanelAdministradorComponent],
+  imports: [PanelAlumnoComponent, PanelSuperAdministradorComponent, PanelAdministradorComponent, PanelSecretariaComponent],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })

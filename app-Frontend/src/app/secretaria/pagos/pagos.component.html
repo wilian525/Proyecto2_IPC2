@@ -1,0 +1,15 @@
+<section>
+<a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a><h1 class="titulo-seccion">Registro de pagos</h1><p class="subtitulo mb-4">Inscripción, colegiaturas y actividades. Los cobros se registran exclusivamente por Secretaría.</p>
+@if(mensaje()){<p class="mensaje-exito" role="status">{{mensaje()}}</p>}@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
+<div class="row g-4"><div class="col-xl-7"><div class="panel-res"><div class="d-flex align-items-center justify-content-between gap-2 mb-3"><h2 class="titulo-tarjeta mb-0">Pagos registrados</h2><button class="btn btn-menta" type="button" (click)="cargar()">Actualizar</button></div>
+<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>
+@for(p of pagos();track p.idPago){<tr><td>{{nombre(p.idEstudiante)}}</td><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fecha(p.fecha)}}</td></tr>}@empty{<tr><td colspan="4">Aún no hay pagos.</td></tr>}</tbody></table></div>
+<div class="paginador"><span>{{total()}} pagos · Página {{pagina()}}</span><div class="d-flex gap-2"><button type="button" class="btn btn-menta" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button type="button" class="btn btn-menta" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>
+</div></div><div class="col-xl-5"><div class="panel-res"><h2 class="titulo-tarjeta">Registrar pago</h2><form class="d-grid gap-3" [formGroup]="formulario" (ngSubmit)="guardar()">
+<div><label for="pagoEst" class="form-label">Estudiante inscrito</label><select id="pagoEst" class="form-select" formControlName="idEstudiante"><option [ngValue]="0">Selecciona un estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(inscrito(e.idEstudiante)){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}} (#{{e.idEstudiante}})</option>}}</select></div>
+<div><label for="pagoConcepto" class="form-label">Concepto</label><select id="pagoConcepto" class="form-select" formControlName="concepto" (change)="cambiarConcepto()"><option value="INSCRIPCION">Inscripción</option><option value="MENSUALIDAD">Mensualidad</option><option value="ACTIVIDAD">Actividad extracurricular</option></select></div>
+<div><label for="pagoMonto" class="form-label">Monto (Q)</label><input id="pagoMonto" type="number" min="0.01" step="0.01" class="form-control" formControlName="monto"></div>
+<div><label for="pagoFecha" class="form-label">Fecha de pago</label><input id="pagoFecha" type="date" class="form-control" formControlName="fecha"></div>
+<p class="texto-suave mb-0">Tarifas actuales del backend: inscripción Q 500 y mensualidad Q 300. El monto de actividad se introduce según el pago real. La Secretaria autenticada se identifica mediante JWT.</p>
+<button type="submit" class="btn btn-rosa" [disabled]="procesando()||formulario.invalid">{{procesando()?'Registrando...':'Registrar pago'}}</button></form></div></div></div>
+</section>

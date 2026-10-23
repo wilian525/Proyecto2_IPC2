@@ -16,7 +16,7 @@
         <div class="col-md-4"><label for="reporteCiclo" class="form-label">ID de ciclo</label><select id="reporteCiclo" class="form-select" formControlName="ciclo"><option [ngValue]="0">Selecciona un ciclo</option>@for (c of ciclos(); track c.idCiclo) { <option [ngValue]="c.idCiclo">{{ c.anioInicio }}–{{ c.anioFin }}</option> }</select></div>
       }
       @if (tipo() === 'historial-pagos') { <div class="col-md-4"><label for="idEstudianteReporte" class="form-label">ID de estudiante</label><select id="idEstudianteReporte" class="form-select" formControlName="idEstudiante"><option [ngValue]="0">Selecciona un estudiante</option>@for (e of estudiantes(); track e.idEstudiante) { <option [ngValue]="e.idEstudiante">{{ e.nombre }} {{ e.apellido }}</option> }</select></div> }
-      @if (tipo() === 'historial-pagos' || tipo() === 'solventes-morosos') { <div class="col-md-4"><label for="mensualidadesReporte" class="form-label">Mensualidades a evaluar</label><input id="mensualidadesReporte" class="form-control" type="number" min="0" formControlName="mensualidades"></div> }
+      @if (tipo() === 'historial-pagos' || tipo() === 'solventes-morosos') { <div class="col-md-4"><label for="mensualidadesReporte" class="form-label">Mensualidades a evaluar</label><input id="mensualidadesReporte" class="form-control" type="number" min="0" max="12" formControlName="mensualidades"></div> }
       <div class="col-12 d-flex gap-2"><button type="submit" class="btn btn-menta" [disabled]="cargando()">Consultar</button><button type="button" class="btn btn-rosa" (click)="descargarPdf()" [disabled]="procesando()">Exportar PDF</button></div>
     </form><p class="texto-suave mt-3 mb-0">Los filtros de fechas son opcionales: si quedan vacíos se incluyen todos los registros correspondientes.</p>
   </div>
@@ -24,22 +24,22 @@
     @if (cargando()) { <p class="texto-suave">Preparando reporte...</p> }
     @else if (datos()) {
       @if (tipo() === 'ingresos') {
-        <p class="texto-suave">Total percibido</p><div class="dato-principal mb-3">{{ ingresos().totalIngresos | currency:'GTQ':'symbol':'1.2-2' }}</div>
+        <p class="texto-suave">Total percibido</p><div class="dato-principal mb-3">{{ ingresos().totalIngresos | currency:'GTQ':'Q ':'1.2-2' }}</div>
         <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Ingresos</th></tr></thead><tbody>
-          @for (fila of ingresos().detalle; track fila.concepto) { <tr><td>{{ fila.concepto }}</td><td>{{ fila.total | currency:'GTQ':'symbol':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="2">No hay registros.</td></tr> }
+          @for (fila of ingresos().detalle; track fila.concepto) { <tr><td>{{ fila.concepto }}</td><td>{{ fila.total | currency:'GTQ':'Q ':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="2">No hay registros.</td></tr> }
         </tbody></table></div>
       } @else if (tipo() === 'solventes-morosos') {
         <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Grado</th><th>Sección</th><th>Estado</th><th>Pendiente</th></tr></thead><tbody>
-          @for (fila of filas(); track fila['idEstudiante']) { <tr><td>{{ fila['estudiante'] }}</td><td>{{ fila['grado'] }}</td><td>{{ fila['seccion'] }}</td><td>{{ fila['estadoCuenta'] }}</td><td>{{ $any(fila['saldoPendiente']) | currency:'GTQ':'symbol':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="5">No hay registros.</td></tr> }
+          @for (fila of filas(); track fila['idEstudiante']) { <tr><td>{{ fila['estudiante'] }}</td><td>{{ fila['grado'] }}</td><td>{{ fila['seccion'] }}</td><td>{{ fila['estadoCuenta'] }}</td><td>{{ $any(fila['saldoPendiente']) | currency:'GTQ':'Q ':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="5">No hay registros.</td></tr> }
         </tbody></table></div>
       } @else if (tipo() === 'prestamos-mora') {
         <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Libro</th><th>Días de atraso</th><th>Multa</th></tr></thead><tbody>
-          @for (fila of filas(); track fila['idPrestamo']) { <tr><td>{{ fila['estudiante'] }}</td><td>{{ fila['libro'] }}</td><td>{{ fila['diasAtraso'] }}</td><td>{{ $any(fila['montoMulta']) | currency:'GTQ':'symbol':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="4">No hay préstamos en mora.</td></tr> }
+          @for (fila of filas(); track fila['idPrestamo']) { <tr><td>{{ fila['estudiante'] }}</td><td>{{ fila['libro'] }}</td><td>{{ fila['diasAtraso'] }}</td><td>{{ $any(fila['montoMulta']) | currency:'GTQ':'Q ':'1.2-2' }}</td></tr> } @empty { <tr><td colspan="4">No hay préstamos en mora.</td></tr> }
         </tbody></table></div>
       } @else if (tipo() === 'historial-pagos') {
-        <p class="texto-suave">{{ registro()['estudiante'] }}</p><p>Total pagado: {{ $any(registro()['totalPagado']) | currency:'GTQ':'symbol':'1.2-2' }}</p><p>Saldo pendiente: {{ $any(registro()['saldoPendiente']) | currency:'GTQ':'symbol':'1.2-2' }}</p>
+        <p class="texto-suave">{{ registro()['estudiante'] }}</p><p>Total pagado: {{ $any(registro()['totalPagado']) | currency:'GTQ':'Q ':'1.2-2' }}</p><p>Saldo pendiente: {{ $any(registro()['saldoPendiente']) | currency:'GTQ':'Q ':'1.2-2' }}</p>
         <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>
-          @for (pago of $any(registro()['pagos'] ?? []); track pago.idPago) { <tr><td>{{ pago.concepto }}</td><td>{{ pago.monto | currency:'GTQ':'symbol':'1.2-2' }}</td><td>{{ texto(pago.fechaPago) }}</td></tr> } @empty { <tr><td colspan="3">No hay pagos registrados.</td></tr> }
+          @for (pago of $any(registro()['pagos'] ?? []); track pago.idPago) { <tr><td>{{ pago.concepto }}</td><td>{{ pago.monto | currency:'GTQ':'Q ':'1.2-2' }}</td><td>{{ texto(pago.fechaPago) }}</td></tr> } @empty { <tr><td colspan="3">No hay pagos registrados.</td></tr> }
         </tbody></table></div>
       } @else if (tipo() === 'rendimiento') {
         <p class="texto-suave">{{ registro()['grado'] }} · {{ registro()['seccion'] }}</p>

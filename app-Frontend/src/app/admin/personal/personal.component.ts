@@ -94,6 +94,14 @@ export class PersonalAdministradorComponent {
       error: error => { this.procesando.set(false); this.error.set(explicarError(error, 'desactivar al empleado')); }
     });
   }
+  activar(e: EmpleadoColegio): void {
+    if (this.procesando() || !window.confirm(`¿Reactivar a ${e.nombre} ${e.apellido} y su cuenta de acceso?`)) return;
+    this.procesando.set(true); this.error.set(''); this.mensaje.set('');
+    this.servicio.activarEmpleado(e.idEmpleado).pipe(takeUntilDestroyed(this.destruir)).subscribe({
+      next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje); this.cargar(); },
+      error: err => { this.procesando.set(false); this.error.set(explicarError(err, 'activar al empleado')); }
+    });
+  }
   anterior(): void { if (this.pagina() > 1) { this.pagina.update(p => p-1); this.cargar(); } }
   siguiente(): void { if (this.pagina()*10 < this.total()) { this.pagina.update(p => p+1); this.cargar(); } }
 }

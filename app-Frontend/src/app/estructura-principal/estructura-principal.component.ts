@@ -18,6 +18,7 @@ export class EstructuraPrincipalComponent {
   readonly esAlumno = this.rol === 'ESTUDIANTE';
   readonly esSuperAdministrador = this.rol === 'SUPER_ADMIN';
   readonly esAdministrador = this.rol === 'ADMIN';
+  readonly esSecretaria = this.rol === 'SECRETARIA';
   readonly menuAbierto = signal(false);
 
   readonly opcionesAlumno = [
@@ -51,6 +52,17 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/admin/curriculos', titulo: 'Currículos', icono: 'bi-journal-bookmark' },
     { ruta: '/inicio/admin/asignaciones', titulo: 'Asignaciones', icono: 'bi-person-video3' },
     { ruta: '/inicio/admin/reportes', titulo: 'Ingresos', icono: 'bi-file-earmark-pdf' }
+  ];
+
+  readonly opcionesSecretaria = [
+    { ruta: '/inicio', titulo: 'Resumen', icono: 'bi-grid-1x2' },
+    { ruta: '/inicio/secretaria', titulo: 'Panel de Secretaría', icono: 'bi-speedometer2' },
+    { ruta: '/inicio/secretaria/inscripciones', titulo: 'Inscripciones', icono: 'bi-journal-check' },
+    { ruta: '/inicio/secretaria/pagos', titulo: 'Pagos', icono: 'bi-cash-coin' },
+    { ruta: '/inicio/secretaria/facturas', titulo: 'Facturas', icono: 'bi-receipt' },
+    { ruta: '/inicio/secretaria/expedientes', titulo: 'Expedientes', icono: 'bi-person-vcard' },
+    { ruta: '/inicio/secretaria/solvencias', titulo: 'Solvencias', icono: 'bi-patch-check' },
+    { ruta: '/inicio/secretaria/reportes', titulo: 'Reportes', icono: 'bi-file-earmark-pdf' }
   ];
 
   alternarMenu(): void { this.menuAbierto.update(actual => !actual); }

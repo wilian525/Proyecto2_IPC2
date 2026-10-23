@@ -31,6 +31,13 @@
             <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
           </a>
         }
+      } @else if (esSecretaria) {
+        @for (opcion of opcionesSecretaria; track opcion.ruta) {
+          <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"
+             [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarMenu()">
+            <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
+          </a>
+        }
       } @else {
         <a class="enlace-menu" routerLink="/inicio" routerLinkActive="activo" (click)="cerrarMenu()">
           <i class="bi bi-house-door"></i><span>Inicio</span>

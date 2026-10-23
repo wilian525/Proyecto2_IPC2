@@ -12,7 +12,7 @@
         <tr><td>{{ e.nombre }} {{ e.apellido }}<div class="texto-suave">#{{ e.idEstudiante }}</div></td><td>{{ e.correo }}</td>
         <td><span class="estado" [class.inactivo]="e.estado !== 'ACTIVO'">{{ e.estado }}</span></td>
         <td><div class="d-flex flex-wrap gap-1"><button type="button" class="btn btn-menta btn-sm" (click)="editar(e)">Editar</button>
-          @if (e.estado !== 'ACTIVO') { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'ACTIVO')">Activar</button> }
+          @if (e.estado === 'INACTIVO') { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'ACTIVO')">Activar</button> }
           @if (e.estado === 'ACTIVO') { <button type="button" class="btn btn-peligro btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'INACTIVO')">Inactivar</button> }
           @if (e.estado !== 'GRADUADO') { <button type="button" class="btn btn-menta btn-sm" [disabled]="procesando()" (click)="cambiarEstado(e,'GRADUADO')">Graduar</button> }
         </div></td></tr>
