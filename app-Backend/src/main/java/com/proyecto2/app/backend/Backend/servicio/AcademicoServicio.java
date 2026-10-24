@@ -184,6 +184,15 @@ public class AcademicoServicio {
                 throw new ServicioException("CONFLICTO", "El curso no pertenece al currículo del grado para ese ciclo");
             }
 
+            for (Asignacion existente : asignacionDAO.consultar(conexion)) {
+                if (existente.getIdEmpleado() == asignacion.getIdEmpleado()
+                        && existente.getIdCurso() == asignacion.getIdCurso()
+                        && existente.getIdSeccion() == asignacion.getIdSeccion()
+                        && existente.getIdCiclo() == asignacion.getIdCiclo()) {
+                    throw new ServicioException("CONFLICTO", "El maestro ya está asignado a ese curso, sección y ciclo escolar");
+                }
+            }
+
             boolean creado = asignacionDAO.insertar(asignacion, conexion);
 
             if (!creado) {
@@ -495,6 +504,9 @@ public class AcademicoServicio {
             for (Ciclo ciclo : ciclos) {
                 if (ciclo.getIdCiclo() == curriculo.getIdCiclo()) {
                     cicloExiste = true;
+                    if (!"ACTIVO".equalsIgnoreCase(ciclo.getEstado())) {
+                        throw new ServicioException("CONFLICTO", "Solo puedes crear currículos para el ciclo escolar activo");
+                    }
                     break;
                 }
             }
@@ -553,11 +565,13 @@ public class AcademicoServicio {
             conexion.setAutoCommit(false);
 
             boolean curriculoExiste = false;
+            int cicloCurriculo = 0;
             Collection<Curriculo> curriculos = curriculoDAO.consultar(conexion);
 
             for (Curriculo curriculo : curriculos) {
                 if (curriculo.getIdCurriculo() == idCurriculo) {
                     curriculoExiste = true;
+                    cicloCurriculo = curriculo.getIdCiclo();
                     break;
                 }
             }
@@ -594,6 +608,17 @@ public class AcademicoServicio {
                         throw new ServicioException("CONFLICTO", "No se puede repetir un curso dentro del currículo");
                     }
                 }
+            }
+
+            boolean cicloActivo = false;
+            for (Ciclo ciclo : cicloDAO.consultar(conexion)) {
+                if (ciclo.getIdCiclo() == cicloCurriculo && "ACTIVO".equalsIgnoreCase(ciclo.getEstado())) {
+                    cicloActivo = true;
+                    break;
+                }
+            }
+            if (!cicloActivo) {
+                throw new ServicioException("CONFLICTO", "No se pueden modificar cursos de un currículo de ciclo inactivo");
             }
 
             Collection<Curso> cursosActuales = curriculoCursoDAO.consultarCursos(idCurriculo, conexion);

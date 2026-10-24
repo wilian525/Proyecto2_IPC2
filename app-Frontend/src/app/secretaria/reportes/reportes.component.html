@@ -1,16 +1,16 @@
-<section><a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a><h1 class="titulo-seccion">Reportes de Secretaría</h1><p class="subtitulo mb-4">Estudiantes solventes y morosos, historial de pagos y exportación JasperReports.</p>
+<section><a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a><h1 class="titulo-seccion">Reportes de Secretaría</h1><p class="subtitulo mb-4">Consulta de obligaciones reales e historial de pagos; exportación JasperReports.</p>
 @if(mensaje()){<p class="mensaje-exito" role="status">{{mensaje()}}</p>}@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
 <div class="panel-res mb-4"><form [formGroup]="formulario" (ngSubmit)="consultar()" class="row g-3 align-items-end">
 <div class="col-md-6"><label for="seRepTipo" class="form-label">Reporte</label><select id="seRepTipo" class="form-select" formControlName="tipo" (change)="actualizarTipo()"><option value="solventes-morosos">Alumnos solventes y morosos</option><option value="historial-pagos">Historial de pagos por estudiante</option></select></div>
 @if(tipo()==='solventes-morosos'){
 <div class="col-md-6"><label for="seRepGrado" class="form-label">Grado</label><select id="seRepGrado" class="form-select" formControlName="grado" (change)="formulario.controls.seccion.setValue(0)"><option [ngValue]="0">Selecciona grado</option>@for(g of grados();track g.idGrado){<option [ngValue]="g.idGrado">{{g.nombre}}</option>}</select></div>
 <div class="col-md-4"><label for="seRepSec" class="form-label">Sección</label><select id="seRepSec" class="form-select" formControlName="seccion"><option [ngValue]="0">Selecciona sección</option>@for(s of seccionesGrado();track s.idSeccion){<option [ngValue]="s.idSeccion">{{s.nombre}} (#{{s.idSeccion}})</option>}</select></div>
-<div class="col-md-4"><label for="seRepCiclo" class="form-label">Ciclo</label><select id="seRepCiclo" class="form-select" formControlName="ciclo"><option [ngValue]="0">Selecciona ciclo</option>@for(c of ciclos();track c.idCiclo){<option [ngValue]="c.idCiclo">{{c.anioInicio}} - {{c.anioFin}}</option>}</select></div>
+<div class="col-md-4"><label for="seRepCiclo" class="form-label">Ciclo</label><select id="seRepCiclo" class="form-select" formControlName="ciclo"><option [ngValue]="0">Selecciona ciclo</option>@for(c of ciclos();track c.idCiclo){@if(c.estado==='ACTIVO'){<option [ngValue]="c.idCiclo">{{c.anioInicio}} - {{c.anioFin}}</option>}}</select></div>
 }@else{
 <div class="col-md-6"><label for="seRepAlumno" class="form-label">Estudiante</label><select id="seRepAlumno" class="form-select" formControlName="idEstudiante"><option [ngValue]="0">Selecciona estudiante</option>@for(e of estudiantes();track e.idEstudiante){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}}</option>}</select></div>
 <div class="col-md-4"><label for="seRepDesde" class="form-label">Desde (opcional)</label><input id="seRepDesde" type="date" class="form-control" formControlName="fechaInicio"></div><div class="col-md-4"><label for="seRepHasta" class="form-label">Hasta (opcional)</label><input id="seRepHasta" type="date" class="form-control" formControlName="fechaFin"></div>
 }
-<div class="col-md-4"><label for="seRepMens" class="form-label">Mensualidades a evaluar (0-12)</label><input id="seRepMens" type="number" min="0" max="12" class="form-control" formControlName="mensualidades"></div>
+
 <div class="col-12 d-flex gap-2"><button type="submit" class="btn btn-menta" [disabled]="cargando()">Consultar</button><button type="button" class="btn btn-rosa" (click)="descargar()" [disabled]="procesando()">Exportar PDF</button></div>
 </form></div>
 <div class="panel-res"><h2 class="titulo-tarjeta">Resultado de la consulta</h2>@if(cargando()){<p class="texto-suave">Consultando datos...</p>}@else if(datos()){
@@ -18,6 +18,6 @@
 <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Grado</th><th>Sección</th><th>Estado</th><th>Saldo pendiente</th></tr></thead><tbody>@for(f of filas();track $index){<tr><td>{{f['estudiante']}}</td><td>{{f['grado']}}</td><td>{{f['seccion']}}</td><td>{{f['estadoCuenta']}}</td><td>{{ $any(f['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</td></tr>}@empty{<tr><td colspan="5">Sin estudiantes inscritos que coincidan con el filtro.</td></tr>}</tbody></table></div>
 }@else{
 <p>Estudiante: {{historial()['estudiante']}}</p><p>Pagado: {{ $any(historial()['totalPagado'])|currency:'GTQ':'Q ':'1.2-2' }} · Pendiente: {{ $any(historial()['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</p>
-<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>@for(p of $any(historial()['pagos']??[]);track $index){<tr><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{p.fechaPago}}</td></tr>}@empty{<tr><td colspan="3">No hay pagos registrados.</td></tr>}</tbody></table></div>
+<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>@for(p of $any(historial()['pagos']??[]);track $index){<tr><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fechaPago(p.fecha)}}</td></tr>}@empty{<tr><td colspan="3">No hay pagos registrados.</td></tr>}</tbody></table></div>
 }
 }@else{<p class="texto-suave">Selecciona filtros y consulta para ver los registros.</p>}</div></section>

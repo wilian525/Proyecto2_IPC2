@@ -1,12 +1,16 @@
 <section class="seccion-solvencias">
-<a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a><h1 class="titulo-seccion">Solvencias de estudiantes</h1><p class="subtitulo mb-4">Consulta de obligaciones y emisión de constancia únicamente cuando el estudiante está inscrito y solvente.</p>
+<a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+<h1 class="titulo-seccion">Solvencias de estudiantes</h1>
+<p class="subtitulo mb-4">El estado depende de obligaciones reales del ciclo activo, no de un número manual de mensualidades.</p>
 @if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
 <div class="panel-res mb-4"><form [formGroup]="formulario" (ngSubmit)="consultar()" class="row g-3 align-items-end">
-<div class="col-md-6"><label for="solvEstudiante" class="form-label">Estudiante inscrito</label><select id="solvEstudiante" class="form-select" formControlName="idEstudiante" (change)="resultado.set(null)"><option [ngValue]="0">Selecciona un estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(inscrito(e.idEstudiante)){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}}</option>}}</select></div>
-<div class="col-md-3"><label for="solvMeses" class="form-label">Mensualidades a evaluar (0-12)</label><input id="solvMeses" type="number" min="0" max="12" class="form-control" formControlName="mensualidades" (input)="resultado.set(null)"></div>
-<div class="col-md-3"><button class="btn btn-menta w-100" type="submit" [disabled]="consultando()||formulario.invalid">{{consultando()?'Consultando...':'Verificar solvencia'}}</button></div>
-</form><p class="texto-suave mt-3 mb-0">El saldo se calcula con la regla temporal del backend. La cantidad de cuotas se usa para la consulta y no crea cargos en MariaDB.</p></div>
-@if(resultado();as dato){<div class="panel-res"><h2 class="titulo-tarjeta">Resultado de la consulta</h2><p>Estudiante: <strong>{{estudiante()?.nombre}} {{estudiante()?.apellido}}</strong></p><p>Saldo pendiente: <strong>{{dato.saldoPendiente|currency:'GTQ':'Q ':'1.2-2'}}</strong></p>
-@if(solvente()){<p class="mensaje-exito">El estudiante cumple las condiciones para emitir la constancia.</p><button class="btn btn-rosa" type="button" (click)="imprimir()"><i class="bi bi-printer me-2"></i>Imprimir constancia</button>}@else{<p class="mensaje-error">El estudiante presenta un saldo pendiente; no puede emitirse una solvencia.</p>}</div>}
-@if(solvente()&&resultado()){<article class="res-documento"><h1>RES · CONSTANCIA DE SOLVENCIA</h1><p>Se certifica que <strong>{{estudiante()?.nombre}} {{estudiante()?.apellido}}</strong>, registro #{{estudiante()?.idEstudiante}}, se encuentra solvente según la consulta del sistema para {{formulario.controls.mensualidades.value}} mensualidades evaluadas.</p><p>Saldo pendiente: Q 0.00</p><p>Fecha de emisión: {{fechaEmision}}</p><p>Documento generado por el sistema RES para consulta de Secretaría.</p></article>}
+<div class="col-md-8"><label for="solvEstudiante" class="form-label">Estudiante inscrito</label><select id="solvEstudiante" class="form-select" formControlName="idEstudiante" (change)="resultado.set(null)"><option [ngValue]="0">Selecciona estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(inscrito(e.idEstudiante)){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}}</option>}}</select></div>
+<div class="col-md-4"><button class="btn btn-menta w-100" type="submit" [disabled]="consultando()||formulario.invalid">{{consultando()?'Consultando...':'Verificar solvencia'}}</button></div>
+</form><p class="texto-suave mt-3 mb-0">Secretaría registra las cuotas mensuales debidas con el mes y ciclo correspondiente en Pagos. El saldo de esta pantalla se calcula sobre esos registros.</p></div>
+@if(resultado();as dato){<div class="panel-res"><h2 class="titulo-tarjeta">Resultado de la consulta</h2>
+<p>Estudiante: <strong>{{estudiante()?.nombre}} {{estudiante()?.apellido}}</strong></p>
+<p>Saldo pendiente: <strong>{{dato.saldoPendiente|currency:'GTQ':'Q ':'1.2-2'}}</strong></p>
+@if(solvente()){<p class="mensaje-exito">El estudiante está solvente respecto de las obligaciones registradas del ciclo activo.</p>
+<button class="btn btn-rosa" type="button" (click)="imprimir()"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar constancia PDF</button>}
+@else{<p class="mensaje-error">El estudiante tiene obligaciones pendientes. No puede emitirse la constancia.</p>}</div>}
 </section>

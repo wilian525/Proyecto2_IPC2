@@ -140,6 +140,17 @@ public class EmpleadoController {
         }
     }
 
+    @PUT
+    @Path("{idEmpleado}/activar")
+    public Response activarEmpleado(@PathParam("idEmpleado") int idEmpleado) {
+        try {
+            new EmpleadoServicio().activarEmpleado(idEmpleado);
+            return Response.ok(Map.of("mensaje", "Empleado y cuenta asociada activados correctamente")).build();
+        } catch (ServicioException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
     private Response responderError(String codigo, String mensaje) {
 
         if ("DATOS_INVALIDOS".equals(codigo)) {

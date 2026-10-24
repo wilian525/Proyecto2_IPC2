@@ -193,6 +193,9 @@ public class EstudianteServicio {
             for (Estudiante estudiante : estudiantes) {
                 if (estudiante.getIdEstudiante() == idEstudiante) {
                     encontrado = true;
+                    if ("GRADUADO".equalsIgnoreCase(estudiante.getEstado()) && !"GRADUADO".equalsIgnoreCase(estado)) {
+                        throw new ServicioException("CONFLICTO", "Un estudiante graduado conserva su historial y no puede volver a estado activo o inactivo");
+                    }
                     break;
                 }
             }

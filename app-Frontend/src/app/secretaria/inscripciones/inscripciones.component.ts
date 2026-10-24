@@ -4,7 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { SecretariaServicio } from '../../servicios/secretaria.servicio';
-import { EstudianteColegio, SeccionColegio } from '../../modelos/gestion-colegio';
+import { EstudianteColegio, SeccionColegio, RespuestaPagina } from '../../modelos/gestion-colegio';
 import { CicloEscolar, GradoEscolar } from '../../modelos/administracion';
 import { InscripcionEscolar } from '../../modelos/secretaria';
 import { explicarError } from '../../admin/mensajes-error';
@@ -18,7 +18,7 @@ export class InscripcionesSecretariaComponent {
   constructor(){this.catalogos();this.cargar();}
   private catalogos():void {
     forkJoin({estudiantes:this.servicio.estudiantes(1,100),grados:this.servicio.grados(),secciones:this.servicio.secciones(),ciclos:this.servicio.ciclos()})
-      .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.estudiantes.set(r.estudiantes.datos);this.grados.set(r.grados);this.secciones.set(r.secciones);this.ciclos.set(r.ciclos);const actual=r.ciclos.find(c=>c.estado==='ACTIVO');if(actual)this.formulario.patchValue({idCiclo:actual.idCiclo});},error:e=>this.error.set(explicarError(e,'cargar estudiantes y opciones de inscripción'))});
+      .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:(r:{estudiantes:RespuestaPagina<EstudianteColegio>;grados:GradoEscolar[];secciones:SeccionColegio[];ciclos:CicloEscolar[]})=>{this.estudiantes.set(r.estudiantes.datos);this.grados.set(r.grados);this.secciones.set(r.secciones);this.ciclos.set(r.ciclos);const actual=r.ciclos.find(c=>c.estado==='ACTIVO');if(actual)this.formulario.patchValue({idCiclo:actual.idCiclo});},error:(e:unknown)=>this.error.set(explicarError(e,'cargar estudiantes y opciones de inscripción'))});
   }
   seccionesDelGrado():SeccionColegio[]{return this.secciones().filter(s=>s.idGrado===this.formulario.controls.idGrado.value);}
   cambiarGrado():void{this.formulario.controls.idSeccion.setValue(0);}

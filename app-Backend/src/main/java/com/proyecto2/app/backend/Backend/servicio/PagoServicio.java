@@ -7,6 +7,7 @@ package com.proyecto2.app.backend.Backend.servicio;
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
 import com.proyecto2.app.backend.Backend.Dao.FacturaDao;
 import com.proyecto2.app.backend.Backend.Dao.PagoDao;
 import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
@@ -35,6 +36,7 @@ public class PagoServicio {
     private PagoDao pagoDAO;
     private FacturaDao facturaDAO;
     private EstudianteDao estudianteDAO;
+    private InscripcionDao inscripcionDAO;
     private EmpleadoDao empleadoDAO;
     private UsuarioDao usuarioDAO;
 
@@ -42,6 +44,7 @@ public class PagoServicio {
         pagoDAO = new PagoDao();
         facturaDAO = new FacturaDao();
         estudianteDAO = new EstudianteDao();
+        inscripcionDAO = new InscripcionDao();
         empleadoDAO = new EmpleadoDao();
         usuarioDAO = new UsuarioDao();
     }
@@ -86,6 +89,18 @@ public class PagoServicio {
 
             if (estudianteEncontrado == null) {
                 throw new ServicioException("NO_ENCONTRADO", "El estudiante no existe");
+            }
+
+            // No se cobran conceptos a estudiantes sin inscripción escolar.
+            boolean tieneInscripcion = false;
+            for (var inscripcion : inscripcionDAO.consultar(conexion)) {
+                if (inscripcion.getIdEstudiante() == pago.getIdEstudiante()) {
+                    tieneInscripcion = true;
+                    break;
+                }
+            }
+            if (!tieneInscripcion) {
+                throw new ServicioException("CONFLICTO", "El estudiante no tiene inscripción escolar. Secretaría debe inscribirlo antes de registrar pagos");
             }
 
             Empleado empleadoEncontrado = null;

@@ -150,6 +150,8 @@ public class EmpleadoServicio {
                 throw new ServicioException("NO_ENCONTRADO", "El empleado no existe");
             }
 
+            validarEmpleadoOperativo(empleado.getIdEmpleado(), conexion);
+
             empleado.setEstado(empleadoActual.getEstado());
 
             boolean actualizado = empleadoDAO.actualizar(empleado, conexion);
@@ -211,13 +213,15 @@ public class EmpleadoServicio {
                 throw new ServicioException("CONFLICTO", "El empleado ya se encuentra inactivo");
             }
 
+            Collection<Usuario> usuarios = validarEmpleadoOperativo(idEmpleado, conexion);
+
             boolean desactivado = empleadoDAO.desactivar(idEmpleado, conexion);
 
             if (!desactivado) {
                 throw new ServicioException("OPERACION_ERROR", "No fue posible desactivar el empleado");
             }
 
-            Collection<Usuario> usuarios = usuarioDAO.consultar(conexion);
+            // Los usuarios ya fueron consultados y validados antes de desactivar el empleado.
 
             for (Usuario usuario : usuarios) {
                 if (Integer.valueOf(idEmpleado).equals(usuario.getIdEmpleado()) && "ACTIVO".equalsIgnoreCase(usuario.getEstado())) {
@@ -250,6 +254,62 @@ public class EmpleadoServicio {
             restaurarAutoCommit(conexion, autoCommitAnterior);
             cerrarConexion(conexion);
         }
+    }
+
+    public boolean activarEmpleado(int idEmpleado) {
+        if (idEmpleado <= 0) throw new ServicioException("DATOS_INVALIDOS", "El id del empleado no es válido");
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
+            Empleado encontrado = null;
+            for (Empleado empleado : empleadoDAO.consultar(conexion)) {
+                if (empleado.getIdEmpleado() == idEmpleado) { encontrado = empleado; break; }
+            }
+            if (encontrado == null) throw new ServicioException("NO_ENCONTRADO", "El empleado no existe");
+            Collection<Usuario> usuarios = validarEmpleadoOperativo(idEmpleado, conexion);
+            if (!"INACTIVO".equalsIgnoreCase(encontrado.getEstado())) {
+                throw new ServicioException("CONFLICTO", "El empleado ya se encuentra activo");
+            }
+            if (!empleadoDAO.activar(idEmpleado, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No se pudo activar al empleado");
+            }
+            for (Usuario usuario : usuarios) {
+                if (Integer.valueOf(idEmpleado).equals(usuario.getIdEmpleado())
+                        && "INACTIVO".equalsIgnoreCase(usuario.getEstado())) {
+                    if (!usuarioDAO.activarPersonal(usuario.getIdUsuario(), conexion)) {
+                        throw new ServicioException("OPERACION_ERROR", "No se pudo reactivar la cuenta del empleado");
+                    }
+                }
+            }
+            conexion.commit();
+            return true;
+        } catch (ServicioException e) {
+            rollback(conexion, e); throw e;
+        } catch (daoException e) {
+            rollback(conexion, e); throw new ServicioException("BD_ERROR", "No fue posible activar el empleado", e);
+        } catch (SQLException e) {
+            rollback(conexion, e); throw new ServicioException("TRANSACCION_ERROR", "Falló la activación del empleado", e);
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
+        }
+    }
+
+    // Los administradores se gestionan exclusivamente desde AdministracionServicio.
+    // Esta validación evita que un ADMIN los modifique por la API general de empleados.
+    private Collection<Usuario> validarEmpleadoOperativo(int idEmpleado, Connection conexion) {
+        Collection<Usuario> usuarios = usuarioDAO.consultar(conexion);
+        for (Usuario usuario : usuarios) {
+            if (Integer.valueOf(idEmpleado).equals(usuario.getIdEmpleado())
+                    && ("ADMIN".equalsIgnoreCase(usuario.getRol())
+                    || "SUPER_ADMIN".equalsIgnoreCase(usuario.getRol()))) {
+                throw new ServicioException("NO_AUTORIZADO", "Las cuentas administrativas se gestionan desde el módulo de Super Admin");
+            }
+        }
+        return usuarios;
     }
 
     private void rollback(Connection conexion, Exception causa) {

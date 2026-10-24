@@ -1,15 +1,49 @@
 <section>
-<a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a><h1 class="titulo-seccion">Registro de pagos</h1><p class="subtitulo mb-4">Inscripción, colegiaturas y actividades. Los cobros se registran exclusivamente por Secretaría.</p>
-@if(mensaje()){<p class="mensaje-exito" role="status">{{mensaje()}}</p>}@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
-<div class="row g-4"><div class="col-xl-7"><div class="panel-res"><div class="d-flex align-items-center justify-content-between gap-2 mb-3"><h2 class="titulo-tarjeta mb-0">Pagos registrados</h2><button class="btn btn-menta" type="button" (click)="cargar()">Actualizar</button></div>
-<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>
-@for(p of pagos();track p.idPago){<tr><td>{{nombre(p.idEstudiante)}}</td><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fecha(p.fecha)}}</td></tr>}@empty{<tr><td colspan="4">Aún no hay pagos.</td></tr>}</tbody></table></div>
-<div class="paginador"><span>{{total()}} pagos · Página {{pagina()}}</span><div class="d-flex gap-2"><button type="button" class="btn btn-menta" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button type="button" class="btn btn-menta" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>
-</div></div><div class="col-xl-5"><div class="panel-res"><h2 class="titulo-tarjeta">Registrar pago</h2><form class="d-grid gap-3" [formGroup]="formulario" (ngSubmit)="guardar()">
-<div><label for="pagoEst" class="form-label">Estudiante inscrito</label><select id="pagoEst" class="form-select" formControlName="idEstudiante"><option [ngValue]="0">Selecciona un estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(inscrito(e.idEstudiante)){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}} (#{{e.idEstudiante}})</option>}}</select></div>
-<div><label for="pagoConcepto" class="form-label">Concepto</label><select id="pagoConcepto" class="form-select" formControlName="concepto" (change)="cambiarConcepto()"><option value="INSCRIPCION">Inscripción</option><option value="MENSUALIDAD">Mensualidad</option><option value="ACTIVIDAD">Actividad extracurricular</option></select></div>
-<div><label for="pagoMonto" class="form-label">Monto (Q)</label><input id="pagoMonto" type="number" min="0.01" step="0.01" class="form-control" formControlName="monto"></div>
-<div><label for="pagoFecha" class="form-label">Fecha de pago</label><input id="pagoFecha" type="date" class="form-control" formControlName="fecha"></div>
-<p class="texto-suave mb-0">Tarifas actuales del backend: inscripción Q 500 y mensualidad Q 300. El monto de actividad se introduce según el pago real. La Secretaria autenticada se identifica mediante JWT.</p>
-<button type="submit" class="btn btn-rosa" [disabled]="procesando()||formulario.invalid">{{procesando()?'Registrando...':'Registrar pago'}}</button></form></div></div></div>
-</section>
+<a routerLink="/inicio/secretaria" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+<h1 class="titulo-seccion">Registro de pagos y mensualidades</h1>
+<p class="subtitulo mb-4">Secretaría registra cuotas del ciclo activo y sus pagos, sin generar deudas arbitrarias.</p>
+@if(mensaje()){<p class="mensaje-exito" role="status">{{mensaje()}}</p>}
+@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
+<div class="row g-4">
+  <div class="col-xl-7"><div class="panel-res">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta mb-0">Pagos registrados</h2><button type="button" class="btn btn-menta" (click)="cargar()">Actualizar</button></div>
+    <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>
+      @for(p of pagos();track p.idPago){<tr><td>{{nombre(p.idEstudiante)}}</td><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fecha(p.fecha)}}</td></tr>}
+      @empty{<tr><td colspan="4">No hay pagos.</td></tr>}
+    </tbody></table></div>
+    <div class="paginador"><span>{{total()}} pagos · Página {{pagina()}}</span><div class="d-flex gap-2"><button class="btn btn-menta" type="button" [disabled]="pagina()===1" (click)="anterior()">Anterior</button><button class="btn btn-menta" type="button" [disabled]="pagina()*10>=total()" (click)="siguiente()">Siguiente</button></div></div>
+  </div>
+  @if(formulario.controls.idEstudiante.value>0){<div class="panel-res mt-4"><h2 class="titulo-tarjeta">Mensualidades del estudiante</h2>
+  <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Período</th><th>Monto</th><th>Estado</th></tr></thead><tbody>
+  @for(c of cuotas();track c.idCuota){<tr><td>{{periodo(c)}}</td><td>{{c.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{c.idPago?'PAGADA':'PENDIENTE'}}</td></tr>}@empty{<tr><td colspan="3">No hay cuotas registradas para este estudiante.</td></tr>}
+  </tbody></table></div></div>}
+  </div>
+  <div class="col-xl-5"><div class="panel-res"><h2 class="titulo-tarjeta">Registrar pago</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" class="d-grid gap-3">
+      <div><label class="form-label" for="pagoEst">Estudiante inscrito</label><select class="form-select" id="pagoEst" formControlName="idEstudiante"><option [ngValue]="0">Selecciona estudiante</option>@for(e of estudiantes();track e.idEstudiante){@if(inscrito(e.idEstudiante)){<option [ngValue]="e.idEstudiante">{{e.nombre}} {{e.apellido}}</option>}}</select></div>
+      <div><label class="form-label" for="pagoIns">Inscripción del ciclo activo</label><select class="form-select" id="pagoIns" formControlName="idInscripcion"><option [ngValue]="0">Selecciona inscripción</option>@for(i of inscripcionesActivas(formulario.controls.idEstudiante.value);track i.idInscripcion){<option [ngValue]="i.idInscripcion">Inscripción #{{i.idInscripcion}} · Ciclo #{{i.idCiclo}}</option>}</select></div>
+      <div><label class="form-label" for="pagoConcepto">Concepto</label><select class="form-select" id="pagoConcepto" formControlName="concepto" (change)="cambiarConcepto()"><option value="INSCRIPCION">Inscripción</option><option value="MENSUALIDAD">Mensualidad</option><option value="ACTIVIDAD">Actividad</option></select></div>
+      @if(concepto()==='MENSUALIDAD'){
+        <div><label class="form-label" for="pagoCuota">Cuota por mes/año</label><select class="form-select" id="pagoCuota" formControlName="idCuota" (change)="seleccionarCuota()"><option [ngValue]="0">Selecciona la cuota pendiente</option>@for(c of cuotasSinPagar();track c.idCuota){<option [ngValue]="c.idCuota">{{periodo(c)}} · Q {{c.monto}}</option>}</select></div>
+      }
+      <div><label class="form-label" for="pagoMonto">Monto (Q)</label><input class="form-control" id="pagoMonto" type="number" min="0.01" step="0.01" formControlName="monto"></div>
+      <div><label class="form-label" for="pagoFecha">Fecha</label><input class="form-control" id="pagoFecha" type="date" formControlName="fecha"></div>
+      <p class="texto-suave mb-0">Inscripción Q 500 y mensualidad Q 300, según las tarifas existentes. Las actividades reflejan el cobro registrado.</p>
+      <button type="submit" class="btn btn-rosa" [disabled]="procesando()||formulario.invalid">{{procesando()?'Guardando...':'Registrar pago'}}</button>
+    </form>
+  </div>
+  <div class="panel-res mt-4"><h2 class="titulo-tarjeta">Registrar cuota mensual</h2><p class="texto-suave">Una cuota crea la obligación del mes indicado; no registra un pago.</p>
+    <form [formGroup]="cuotaFormulario" (ngSubmit)="registrarCuota()" class="row g-3">
+      <div class="col-6"><label class="form-label" for="cuotaMes">Mes</label><select class="form-select" id="cuotaMes" formControlName="mes">@for(m of [1,2,3,4,5,6,7,8,9,10,11,12];track m){<option [ngValue]="m">{{m}}</option>}</select></div>
+      <div class="col-6"><label class="form-label" for="cuotaAnio">Año</label><input class="form-control" id="cuotaAnio" type="number" formControlName="anio"></div>
+      <div class="col-12"><button class="btn btn-menta" type="submit" [disabled]="procesando()||cuotaFormulario.invalid">Registrar cuota de Q 300.00</button></div>
+    </form>
+  </div>
+  <div class="panel-res mt-4"><h2 class="titulo-tarjeta">Conciliar pagos anteriores</h2><p class="texto-suave">Vincula un pago previo con la inscripción o cuota correcta sin volver a cobrarlo. No se infiere el mes por la fecha del recibo.</p>
+    <form [formGroup]="conciliacion" (ngSubmit)="conciliar()" class="d-grid gap-3">
+      <div><label class="form-label" for="conPago">Pago histórico</label><select id="conPago" class="form-select" formControlName="idPago"><option [ngValue]="0">Selecciona pago</option>@for(p of pagos();track p.idPago){@if(p.idEstudiante===formulario.controls.idEstudiante.value){<option [ngValue]="p.idPago">#{{p.idPago}} · {{p.concepto}} · Q {{p.monto}}</option>}}</select></div>
+      <div><label class="form-label" for="conCuota">Mes/año (solo mensualidades)</label><select id="conCuota" class="form-select" formControlName="idCuota"><option [ngValue]="0">No aplica a inscripción/actividad</option>@for(c of cuotasSinPagar();track c.idCuota){<option [ngValue]="c.idCuota">{{periodo(c)}}</option>}</select></div>
+      <button type="submit" class="btn btn-menta" [disabled]="procesando()">Conciliar pago existente</button>
+    </form>
+  </div></div>
+</div></section>

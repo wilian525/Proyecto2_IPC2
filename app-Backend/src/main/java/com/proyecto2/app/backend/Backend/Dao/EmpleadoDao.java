@@ -39,6 +39,7 @@ public class EmpleadoDao {
     private static final String INSERTAR = "INSERT INTO EMPLEADO (nombre, apellido, puesto, fecha_contratacion, salario, estado) VALUES (?, ?, ?, ?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_empleado, nombre, apellido, puesto, fecha_contratacion, salario, estado FROM EMPLEADO ORDER BY apellido, nombre";
     private static final String ACTUALIZAR = "UPDATE EMPLEADO SET nombre = ?, apellido = ?, puesto = ?, fecha_contratacion = ?, salario = ? WHERE id_empleado = ?";
+    private static final String ACTIVAR = "UPDATE EMPLEADO SET estado = 'ACTIVO' WHERE id_empleado = ? AND estado = 'INACTIVO'";
     private static final String DESACTIVAR = "UPDATE EMPLEADO SET estado = 'INACTIVO' WHERE id_empleado = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM EMPLEADO";
@@ -226,6 +227,17 @@ public class EmpleadoDao {
             return false;
         } finally {
             cerrar(ps);
+        }
+    }
+
+    public boolean activar(int idEmpleado, Connection conexion) {
+        if (idEmpleado <= 0) return false;
+        try (PreparedStatement ps = conexion.prepareStatement(ACTIVAR)) {
+            ps.setInt(1, idEmpleado);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
         }
     }
 

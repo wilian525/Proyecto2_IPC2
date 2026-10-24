@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { URL_API } from '../configuracion/api';
 import { RespuestaAccion, RespuestaPagina, EstudianteColegio, SeccionColegio } from '../modelos/gestion-colegio';
 import { GradoEscolar, CicloEscolar } from '../modelos/administracion';
-import { InscripcionEscolar, PagoEscolar, FacturaEscolar, EstadoCuentaEscolar, SolvenciaEscolar } from '../modelos/secretaria';
+import { InscripcionEscolar, PagoEscolar, FacturaEscolar, EstadoCuentaEscolar, SolvenciaEscolar, CuotaEscolar } from '../modelos/secretaria';
 @Injectable({ providedIn: 'root' })
 export class SecretariaServicio {
   private readonly http = inject(HttpClient);
@@ -30,15 +30,30 @@ export class SecretariaServicio {
   historial(id: number, pagina = 1, limite = 10): Observable<RespuestaPagina<PagoEscolar>> {
     return this.http.get<RespuestaPagina<PagoEscolar>>(`${this.url}/pagos/estudiantes/${id}/historial`, { params: this.parametros(pagina, limite) });
   }
-  registrarPago(datos: Pick<PagoEscolar, 'idEstudiante' | 'concepto' | 'monto' | 'fecha'>): Observable<RespuestaAccion> {
+  registrarPago(datos: Pick<PagoEscolar, 'idEstudiante' | 'concepto' | 'monto' | 'fecha' | 'idInscripcion' | 'idCuota'>): Observable<RespuestaAccion> {
     // El backend identifica a la Secretaria por el token. No se envía idEmpleado.
     return this.http.post<RespuestaAccion>(`${this.url}/pagos`, datos);
   }
-  estadoCuenta(id: number, mensualidades: number): Observable<EstadoCuentaEscolar> {
-    return this.http.get<EstadoCuentaEscolar>(`${this.url}/pagos/estudiantes/${id}/estado-cuenta`, { params: new HttpParams().set('mensualidades', mensualidades) });
+  cuotas(id: number): Observable<CuotaEscolar[]> {
+    return this.http.get<CuotaEscolar[]>(`${this.url}/pagos/cuotas/${id}`);
   }
-  solvencia(id: number, mensualidades: number): Observable<SolvenciaEscolar> {
-    return this.http.get<SolvenciaEscolar>(`${this.url}/pagos/estudiantes/${id}/solvencia`, { params: new HttpParams().set('mensualidades', mensualidades) });
+  crearCuota(datos: Pick<CuotaEscolar, 'idInscripcion'|'mes'|'anio'|'monto'>): Observable<RespuestaAccion> {
+    return this.http.post<RespuestaAccion>(`${this.url}/pagos/cuotas`,datos);
+  }
+  conciliarPago(datos: {idPago:number;idInscripcion:number;idCuota:number|null}): Observable<RespuestaAccion> {
+    return this.http.post<RespuestaAccion>(`${this.url}/pagos/conciliaciones`,datos);
+  }
+  estadoCuenta(id: number, _mensualidades = 0): Observable<EstadoCuentaEscolar> {
+    return this.http.get<EstadoCuentaEscolar>(`${this.url}/pagos/estudiantes/${id}/estado-cuenta`);
+  }
+  solvencia(id: number, _mensualidades = 0): Observable<SolvenciaEscolar> {
+    return this.http.get<SolvenciaEscolar>(`${this.url}/pagos/estudiantes/${id}/solvencia`);
+  }
+  solvenciaPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.url}/pagos/estudiantes/${id}/solvencia/pdf`,{responseType:'blob'});
+  }
+  facturaPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.url}/pagos/facturas/${id}/pdf`,{responseType:'blob'});
   }
   facturas(pagina = 1, limite = 10): Observable<RespuestaPagina<FacturaEscolar>> {
     return this.http.get<RespuestaPagina<FacturaEscolar>>(`${this.url}/pagos/facturas`, { params: this.parametros(pagina, limite) });

@@ -45,6 +45,18 @@ public class UsuarioDao {
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM USUARIO";
     private static final String CONSULTAR_POR_NOMBRE = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE nombre_usuario = ? LIMIT 1";
     private static final String CONSULTAR_POR_ID = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE id_usuario = ?";
+    private static final String ACTIVAR_PERSONAL = "UPDATE USUARIO SET estado = 'ACTIVO' WHERE id_usuario = ? AND estado = 'INACTIVO' AND rol IN ('SECRETARIA','MAESTRO','BIBLIOTECARIO','MANTENIMIENTO','LIMPIEZA')";
+    private static final String ACTIVAR = "UPDATE USUARIO SET estado = 'ACTIVO' WHERE id_usuario = ? AND rol = ? AND estado = 'INACTIVO'";
+    private static final String ADMINISTRATIVOS_DESDE = " FROM USUARIO u LEFT JOIN EMPLEADO e ON u.id_empleado = e.id_empleado"
+            + " WHERE u.rol IN ('ADMIN', 'SUPER_ADMIN')";
+    private static final String ADMINISTRATIVOS_COLUMNAS = "SELECT u.id_usuario, u.nombre_usuario, u.rol, u.estado, u.id_empleado, "
+            + "e.nombre, e.apellido, e.puesto, e.fecha_contratacion, e.salario";
+    private static final String CONSULTAR_ADMINISTRATIVOS = ADMINISTRATIVOS_COLUMNAS + ADMINISTRATIVOS_DESDE
+            + " ORDER BY u.id_usuario DESC LIMIT ? OFFSET ?";
+    private static final String CONSULTAR_ADMINISTRATIVOS_ROL = ADMINISTRATIVOS_COLUMNAS + ADMINISTRATIVOS_DESDE
+            + " AND u.rol = ? ORDER BY u.id_usuario DESC LIMIT ? OFFSET ?";
+    private static final String CONTAR_ADMINISTRATIVOS = "SELECT COUNT(*) AS total" + ADMINISTRATIVOS_DESDE;
+    private static final String CONTAR_ADMINISTRATIVOS_ROL = CONTAR_ADMINISTRATIVOS + " AND u.rol = ?";
 
     public UsuarioDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -256,6 +268,32 @@ public class UsuarioDao {
         }
     }
 
+    public boolean activarPersonal(int idUsuario, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(ACTIVAR_PERSONAL)) {
+            ps.setInt(1, idUsuario);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
+    // Cambia únicamente el acceso del usuario; el estado del empleado es independiente.
+    public boolean activar(int idUsuario, String rol, Connection conexion) {
+        if (idUsuario <= 0 || (!"ADMIN".equals(rol) && !"SUPER_ADMIN".equals(rol))) {
+            return false;
+        }
+
+        try (PreparedStatement ps = conexion.prepareStatement(ACTIVAR)) {
+            ps.setInt(1, idUsuario);
+            ps.setString(2, rol);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
     public boolean cambiarContraseña(int idUsuario, String nuevaContraseña) {
         try (Connection conexion = conexionDB.getConnection()) {
             return cambiarContraseña(idUsuario, nuevaContraseña, conexion);
@@ -398,6 +436,73 @@ public class UsuarioDao {
         }
 
         return null;
+    }
+
+    // Busca por ID en la transacción recibida; reutiliza la consulta existente.
+    public Usuario consultarPorId(int idUsuario, Connection conexion) {
+        if (idUsuario <= 0) {
+            return null;
+        }
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? construirUsuario(rs) : null;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
+    }
+
+    // Consulta solo datos administrativos; nunca selecciona ni devuelve contraseñas.
+    public java.util.Map<String, Object> consultarAdministrativos(int pagina, int limite, String rol) {
+        boolean filtrar = rol != null;
+        String consulta = filtrar ? CONSULTAR_ADMINISTRATIVOS_ROL : CONSULTAR_ADMINISTRATIVOS;
+        String conteo = filtrar ? CONTAR_ADMINISTRATIVOS_ROL : CONTAR_ADMINISTRATIVOS;
+        java.util.List<java.util.Map<String, Object>> datos = new java.util.ArrayList<>();
+
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(consulta);
+                PreparedStatement psConteo = conexion.prepareStatement(conteo)) {
+
+            int posicion = 1;
+            if (filtrar) {
+                ps.setString(posicion++, rol);
+                psConteo.setString(1, rol);
+            }
+            ps.setInt(posicion++, limite);
+            ps.setInt(posicion, (pagina - 1) * limite);
+
+            int total = 0;
+            try (ResultSet rs = psConteo.executeQuery()) {
+                if (rs.next()) {
+                    total = rs.getInt("total");
+                }
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> item = new java.util.LinkedHashMap<>();
+                    item.put("idUsuario", rs.getInt("id_usuario"));
+                    item.put("nombreUsuario", rs.getString("nombre_usuario"));
+                    item.put("rol", rs.getString("rol"));
+                    item.put("estado", rs.getString("estado"));
+                    int idEmpleado = rs.getInt("id_empleado");
+                    item.put("idEmpleado", rs.wasNull() ? null : idEmpleado);
+                    item.put("nombre", rs.getString("nombre"));
+                    item.put("apellido", rs.getString("apellido"));
+                    item.put("puesto", rs.getString("puesto"));
+                    java.sql.Date fecha = rs.getDate("fecha_contratacion");
+                    item.put("fechaContratacion", fecha == null ? null : fecha.toLocalDate().toString());
+                    item.put("salario", rs.getBigDecimal("salario"));
+                    datos.add(item);
+                }
+            }
+            return java.util.Map.of("datos", datos, "total", total, "pagina", pagina, "limite", limite);
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return java.util.Map.of();
+        }
     }
 
     private void cerrar(Statement statement) {

@@ -34,6 +34,10 @@ public class cicloDao {
 
     private static final String INSERTAR = "INSERT INTO CICLO (año_inicio, año_fin, estado) VALUES (?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_ciclo, año_inicio, año_fin, estado " + "FROM CICLO ORDER BY año_inicio DESC";
+    private static final String CONSULTAR_PARA_ACTUALIZACION = "SELECT id_ciclo, año_inicio, año_fin, estado "
+            + "FROM CICLO ORDER BY año_inicio DESC FOR UPDATE";
+    private static final String ACTIVAR = "UPDATE CICLO SET estado = 'ACTIVO' "
+            + "WHERE id_ciclo = ? AND estado = 'INACTIVO'";
     private static final String DESACTIVAR = "UPDATE CICLO SET estado = 'INACTIVO' " + "WHERE id_ciclo = ? AND estado <> 'INACTIVO'";
     private static final String EXISTE_CICLO = "SELECT COUNT(*) FROM CICLO " + "WHERE año_inicio = ? AND año_fin = ?";
 
@@ -119,13 +123,22 @@ public class cicloDao {
     }
 
     public Collection<Ciclo> consultar(Connection conexion) {
+        return consultar(conexion, false);
+    }
+
+    // Bloquea los ciclos durante las operaciones que cambian el ciclo activo.
+    public Collection<Ciclo> consultarParaActualizacion(Connection conexion) {
+        return consultar(conexion, true);
+    }
+
+    private Collection<Ciclo> consultar(Connection conexion, boolean bloquear) {
 
         Collection<Ciclo> ciclos = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
-            ps = conexion.prepareStatement(CONSULTAR);
+            ps = conexion.prepareStatement(bloquear ? CONSULTAR_PARA_ACTUALIZACION : CONSULTAR);
             rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -139,6 +152,26 @@ public class cicloDao {
         }
 
         return ciclos;
+    }
+
+    public boolean activar(int idCiclo, Connection conexion) {
+
+        if (idCiclo <= 0) {
+            return false;
+        }
+
+        PreparedStatement ps = null;
+
+        try {
+            ps = conexion.prepareStatement(ACTIVAR);
+            ps.setInt(1, idCiclo);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        } finally {
+            cerrar(ps);
+        }
     }
 
     public boolean desactivar(int idCiclo) {

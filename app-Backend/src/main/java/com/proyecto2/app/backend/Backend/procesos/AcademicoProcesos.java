@@ -153,6 +153,14 @@ public class AcademicoProcesos {
         }
     }
 
+    public Collection<Curriculo> consultarCurriculosRegistrados() {
+        try {
+            return curriculoDAO.consultar();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar los currículos", e);
+        }
+    }
+
     public Collection<Curso> consultarCurriculo(int idGrado, int idCiclo) {
         if (idGrado <= 0 || idCiclo <= 0) {
             throw new ProcesosException("DATOS_INVALIDOS", "El grado y el ciclo deben ser válidos");

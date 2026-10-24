@@ -268,6 +268,19 @@ public class AcademicoController {
         }
     }
 
+    // Reutiliza la activación validada que ya existe en AcademicoServicio.
+    @PUT
+    @Path("carreras/{idCarrera}/activar")
+    @RolesAllowed("ADMIN")
+    public Response activarCarrera(@PathParam("idCarrera") int idCarrera) {
+        try {
+            new AcademicoServicio().activarCarrera(idCarrera);
+            return Response.ok(Map.of("mensaje", "Carrera activada correctamente")).build();
+        } catch (ServicioException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
     @POST
     @Path("carreras")
     @RolesAllowed("ADMIN")
@@ -325,6 +338,18 @@ public class AcademicoController {
             new AcademicoServicio().establecerCurriculo(idCurriculo, idCursos);
             return Response.ok(Map.of("mensaje", "Cursos del currículo actualizados correctamente")).build();
         } catch (ServicioException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    // Listado para la selección de currículos en Angular; usa el DAO existente.
+    @GET
+    @Path("curriculos/registrados")
+    @RolesAllowed("ADMIN")
+    public Response listarCurriculos() {
+        try {
+            return Response.ok(new AcademicoProcesos().consultarCurriculosRegistrados()).build();
+        } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
     }

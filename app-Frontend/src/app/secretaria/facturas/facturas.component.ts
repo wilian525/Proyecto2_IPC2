@@ -22,6 +22,16 @@ export class FacturasSecretariaComponent {
     this.procesando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.emitirFactura(d).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.formulario.patchValue({numeroFactura:'',idPago:0});this.cargar();},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'emitir la factura'));}});
   }
+  descargarFactura(id:number):void {
+    this.error.set('');
+    this.servicio.facturaPdf(id).pipe(takeUntilDestroyed(this.destruir)).subscribe({
+      next:archivo=>{
+        const url=URL.createObjectURL(archivo);const a=document.createElement('a');
+        a.href=url;a.download=`factura_${id}.pdf`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1200);
+        this.mensaje.set('Comprobante PDF generado correctamente.');
+      },error:e=>this.error.set(explicarError(e,'descargar la factura'))
+    });
+  }
   anterior():void{if(this.pagina()>1){this.pagina.update(p=>p-1);this.cargar();}}
   siguiente():void{if(this.pagina()*10<this.total()){this.pagina.update(p=>p+1);this.cargar();}}
 }

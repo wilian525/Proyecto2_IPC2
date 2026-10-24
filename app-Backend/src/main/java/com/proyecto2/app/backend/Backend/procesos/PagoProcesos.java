@@ -7,6 +7,7 @@ package com.proyecto2.app.backend.Backend.procesos;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
 import com.proyecto2.app.backend.Backend.Dao.FacturaDao;
 import com.proyecto2.app.backend.Backend.Dao.PagoDao;
+import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
@@ -23,11 +24,13 @@ import java.util.Collection;
 public class PagoProcesos {
 
     private PagoDao pagoDAO;
+    private InscripcionDao inscripcionDAO;
     private EstudianteDao estudianteDAO;
     private FacturaDao facturaDAO;
 
     public PagoProcesos() {
         pagoDAO = new PagoDao();
+        inscripcionDAO = new InscripcionDao();
         estudianteDAO = new EstudianteDao();
         facturaDAO = new FacturaDao();
     }
@@ -38,8 +41,22 @@ public class PagoProcesos {
         }
 
         try {
+            if (mensualidadesRequeridas > 12) {
+                throw new ProcesosException("DATOS_INVALIDOS", "No puedes evaluar más de 12 mensualidades en un ciclo escolar");
+            }
             if (!existeEstudiante(idEstudiante)) {
                 throw new ProcesosException("NO_ENCONTRADO", "No se encontró el estudiante");
+            }
+
+            boolean inscrito = false;
+            for (var inscripcion : inscripcionDAO.consultar()) {
+                if (inscripcion.getIdEstudiante() == idEstudiante) {
+                    inscrito = true;
+                    break;
+                }
+            }
+            if (!inscrito) {
+                return 0;
             }
 
             double totalInscripcion = 0;
@@ -155,6 +172,23 @@ public class PagoProcesos {
     }
 
     public boolean consultarSolvencia(int idEstudiante, int mensualidadesRequeridas) {
+        if (idEstudiante <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "El estudiante indicado no es válido");
+        }
+        try {
+            boolean inscrito = false;
+            for (var inscripcion : inscripcionDAO.consultar()) {
+                if (inscripcion.getIdEstudiante() == idEstudiante) {
+                    inscrito = true;
+                    break;
+                }
+            }
+            if (!inscrito) {
+                throw new ProcesosException("CONFLICTO", "No se puede emitir solvencia: el estudiante no tiene inscripción registrada");
+            }
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron verificar las inscripciones", e);
+        }
         return consultarEstadoCuenta(idEstudiante, mensualidadesRequeridas) <= 0.01;
     }
 

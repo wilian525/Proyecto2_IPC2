@@ -7,6 +7,8 @@ package com.proyecto2.app.backend.Backend.controller;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.ServicioException;
 import com.proyecto2.app.backend.Backend.Model.Ciclo;
+import com.proyecto2.app.backend.Backend.Model.Empleado;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proyecto2.app.backend.Backend.Model.Grado;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.procesos.AdministracionProcesos;
@@ -19,6 +21,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -146,6 +150,19 @@ public class AdministracionController {
         }
     }
 
+    @PUT
+    @Path("{tipo:admin|super-admin}/{idUsuario}/activar")
+    @RolesAllowed("SUPER_ADMIN")
+    public Response activarAdministrativo(@PathParam("tipo") String tipo,
+            @PathParam("idUsuario") int idUsuario) {
+        try {
+            new AdministracionServicio().activarAdministrativo(idUsuario, obtenerRol(tipo));
+            return Response.ok(Map.of("mensaje", "Cuenta administrativa activada correctamente")).build();
+        } catch (ServicioException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
     @GET
     @Path("ciclos")
     @RolesAllowed({"ADMIN", "SUPER_ADMIN", "SECRETARIA"})
@@ -173,6 +190,21 @@ public class AdministracionController {
             return Response.status(Response.Status.CREATED)
                     .entity(Map.of("mensaje", "Ciclo creado correctamente"))
                     .build();
+
+        } catch (ServicioException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    @PUT
+    @Path("ciclos/{idCiclo}/activar")
+    @RolesAllowed("SUPER_ADMIN")
+    public Response activarCiclo(@PathParam("idCiclo") int idCiclo) {
+        AdministracionServicio servicio = new AdministracionServicio();
+
+        try {
+            servicio.activarCiclo(idCiclo);
+            return Response.ok(Map.of("mensaje", "Año lectivo activado correctamente")).build();
 
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
@@ -248,6 +280,86 @@ public class AdministracionController {
         } catch (ServicioException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }
+    }
+
+    // Listado del panel Super Admin, con consulta en Procesos y DAO.
+    @GET
+    @Path("usuarios-administrativos")
+    @RolesAllowed("SUPER_ADMIN")
+    public Response consultarAdministrativos(@DefaultValue("1") @QueryParam("pagina") int pagina,
+            @DefaultValue("10") @QueryParam("limite") int limite,
+            @QueryParam("rol") String rol) {
+        try {
+            return Response.ok(new AdministracionProcesos().consultarAdministrativos(pagina, limite, rol)).build();
+        } catch (ProcesosException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    @GET
+    @Path("niveles")
+    @RolesAllowed({"SUPER_ADMIN", "ADMIN", "SECRETARIA"})
+    public Response consultarNiveles() {
+        try {
+            return Response.ok(new AdministracionProcesos().consultarNiveles()).build();
+        } catch (ProcesosException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    // Acepta el mismo formato que los formularios Angular: {usuario, empleado}.
+    @POST
+    @Path("{tipo:admin|super-admin}/completo")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
+    public Response crearAdministrativoCompleto(@PathParam("tipo") String tipo, Map<String, Object> datos) {
+        try {
+            Usuario usuario = convertirUsuario(datos);
+            Empleado empleado = convertirEmpleado(datos);
+            new AdministracionServicio().crearAdministrativoCompleto(usuario, empleado, obtenerRol(tipo));
+            return Response.status(Response.Status.CREATED)
+                    .entity(Map.of("mensaje", "Usuario administrativo creado correctamente")).build();
+        } catch (IllegalArgumentException e) {
+            return responderError("DATOS_INVALIDOS", "Los datos de usuario o empleado no tienen el formato correcto");
+        } catch (ServicioException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    @PUT
+    @Path("{tipo:admin|super-admin}/completo/{idUsuario}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SUPER_ADMIN")
+    public Response modificarAdministrativoCompleto(@PathParam("tipo") String tipo,
+            @PathParam("idUsuario") int idUsuario, Map<String, Object> datos) {
+        try {
+            Usuario usuario = convertirUsuario(datos);
+            Empleado empleado = convertirEmpleado(datos);
+            new AdministracionServicio().modificarAdministrativoCompleto(idUsuario, usuario, empleado, obtenerRol(tipo));
+            return Response.ok(Map.of("mensaje", "Usuario administrativo modificado correctamente")).build();
+        } catch (IllegalArgumentException e) {
+            return responderError("DATOS_INVALIDOS", "Los datos de usuario o empleado no tienen el formato correcto");
+        } catch (ServicioException e) {
+            return responderError(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    private String obtenerRol(String tipo) {
+        return "super-admin".equals(tipo) ? "SUPER_ADMIN" : "ADMIN";
+    }
+
+    private Usuario convertirUsuario(Map<String, Object> datos) {
+        if (datos == null || datos.get("usuario") == null) {
+            throw new IllegalArgumentException("Faltan datos de usuario");
+        }
+        return new ObjectMapper().findAndRegisterModules().convertValue(datos.get("usuario"), Usuario.class);
+    }
+
+    private Empleado convertirEmpleado(Map<String, Object> datos) {
+        if (datos == null || datos.get("empleado") == null) {
+            throw new IllegalArgumentException("Faltan datos de empleado");
+        }
+        return new ObjectMapper().findAndRegisterModules().convertValue(datos.get("empleado"), Empleado.class);
     }
 
     private Response responderError(String codigo, String mensaje) {
