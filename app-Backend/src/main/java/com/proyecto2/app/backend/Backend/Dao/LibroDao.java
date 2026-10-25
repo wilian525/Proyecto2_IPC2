@@ -39,6 +39,7 @@ public class LibroDao {
     private static final String DESACTIVAR = "UPDATE LIBRO SET estado = 'INACTIVO' WHERE id_libro = ?";
     private static final String ELIMINAR = "DELETE FROM LIBRO WHERE id_libro = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONSULTAR_ID = "SELECT id_libro, titulo, autor, editorial, cantidad_disponible, estado FROM LIBRO WHERE id_libro=? FOR UPDATE";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM LIBRO";
 
     public void crearTabla() {
@@ -123,6 +124,18 @@ public class LibroDao {
         }
 
         return libros;
+    }
+
+    public Libro consultarPorId(int idLibro, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_ID)) {
+            ps.setInt(1, idLibro);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? construirLibro(rs) : null;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
     }
 
     public boolean actualizar(Libro libro) {

@@ -6,6 +6,8 @@ import { soloAlumno } from './seguridad/solo-alumno.guard';
 import { soloSuperAdministrador } from './seguridad/solo-super-administrador.guard';
 import { soloAdministrador } from './seguridad/solo-administrador.guard';
 import { soloSecretaria } from './seguridad/solo-secretaria.guard';
+import { soloBibliotecario } from './seguridad/solo-bibliotecario.guard';
+
 
 export const rutas: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -82,6 +84,36 @@ export const rutas: Routes = [
       },
       { path: 'secretaria/reportes', canActivate: [soloSecretaria],
         loadComponent: () => import('./secretaria/reportes/reportes.component').then(m => m.ReportesSecretariaComponent)
+      },
+      { path: 'bibliotecario', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/panel/panel.component').then(m => m.PanelBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/libros', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/libros/libros.component').then(m => m.LibrosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/prestamos', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/prestamos/prestamos.component').then(m => m.PrestamosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/atrasos', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/atrasos/atrasos.component').then(m => m.AtrasosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/reportes', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/reportes/reportes.component').then(m => m.ReportesBibliotecarioComponent)
+      },
+      { path: 'bibliotecario', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/panel/panel.component').then(m => m.PanelBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/libros', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/libros/libros.component').then(m => m.LibrosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/prestamos', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/prestamos/prestamos.component').then(m => m.PrestamosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/atrasos', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/atrasos/atrasos.component').then(m => m.AtrasosBibliotecarioComponent)
+      },
+      { path: 'bibliotecario/reportes', canActivate: [soloBibliotecario],
+        loadComponent: () => import('./bibliotecario/reportes/reportes.component').then(m => m.ReportesBibliotecarioComponent)
       },
       { path: 'admin', canActivate: [soloAdministrador],
         loadComponent: () => import('./admin/panel/panel.component')

@@ -1,0 +1,7 @@
+<section><a routerLink="/inicio/bibliotecario" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+<h1 class="titulo-seccion">Préstamos de biblioteca en mora</h1><p class="subtitulo mb-4">Reporte del enunciado, exportable con JasperReports.</p>
+@if(mensaje()){<p class="mensaje-exito">{{mensaje()}}</p>}@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
+<div class="panel-res"><div class="d-flex gap-2 mb-4"><button class="btn btn-menta" (click)="consultar()" [disabled]="cargando()">Consultar</button><button class="btn btn-rosa" (click)="pdf()">Exportar PDF</button></div>
+<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Libro</th><th>Días de atraso</th><th>Multa</th></tr></thead><tbody>
+@for(f of filas();track f.idPrestamo){<tr><td>{{f.estudiante}}</td><td>{{f.libro}}</td><td>{{f.diasAtraso}}</td><td>Q {{f.montoMulta}}</td></tr>}
+@empty{<tr><td colspan="4">No hay préstamos de estudiantes en mora.</td></tr>}</tbody></table></div></div></section>

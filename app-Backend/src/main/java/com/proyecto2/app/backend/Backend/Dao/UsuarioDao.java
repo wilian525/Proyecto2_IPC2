@@ -43,6 +43,7 @@ public class UsuarioDao {
     private static final String CAMBIAR_CONTRASEÑA = "UPDATE USUARIO SET contraseña = ? WHERE id_usuario = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM USUARIO";
+    private static final String VALIDAR_SECRETARIA = "SELECT 1 FROM USUARIO u JOIN EMPLEADO e ON e.id_empleado=u.id_empleado WHERE e.id_empleado=? AND e.estado='ACTIVO' AND u.estado='ACTIVO' AND u.rol='SECRETARIA' LIMIT 1";
     private static final String CONSULTAR_POR_NOMBRE = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE nombre_usuario = ? LIMIT 1";
     private static final String CONSULTAR_POR_ID = "SELECT id_usuario, nombre_usuario, contraseña, rol, estado, id_empleado FROM USUARIO WHERE id_usuario = ?";
     private static final String ACTIVAR_PERSONAL = "UPDATE USUARIO SET estado = 'ACTIVO' WHERE id_usuario = ? AND estado = 'INACTIVO' AND rol IN ('SECRETARIA','MAESTRO','BIBLIOTECARIO','MANTENIMIENTO','LIMPIEZA')";
@@ -60,6 +61,18 @@ public class UsuarioDao {
 
     public UsuarioDao() {
         this.conexionDB = ConexionDB.getInstance();
+    }
+
+    public boolean esSecretariaActiva(int idEmpleado, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(VALIDAR_SECRETARIA)) {
+            ps.setInt(1, idEmpleado);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
     }
 
     public void crearTabla() {

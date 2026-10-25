@@ -33,6 +33,7 @@ public class PrestamoDao {
                 fecha_devolucion DATE,
                 dias_atraso INT NOT NULL DEFAULT 0,
                 monto_multa DECIMAL(10,2) NOT NULL DEFAULT 0,
+                fecha_aviso DATE NULL,
 
                 CONSTRAINT fk_prestamo_libro
                     FOREIGN KEY (id_libro)
@@ -46,12 +47,14 @@ public class PrestamoDao {
 
     private static final String INSERTAR = "INSERT INTO PRESTAMO (id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-    private static final String CONSULTAR = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
+    private static final String CONSULTAR = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa, fecha_aviso "
             + "FROM PRESTAMO ORDER BY fecha_prestamo DESC";
-    private static final String CONSULTAR_ATRASOS = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa "
+    private static final String CONSULTAR_ATRASOS = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa, fecha_aviso "
             + "FROM PRESTAMO WHERE fecha_devolucion IS NULL AND fecha_devolucion_esperada < CURDATE() ORDER BY fecha_devolucion_esperada";
     private static final String ACTUALIZAR = "UPDATE PRESTAMO SET fecha_devolucion = ?, dias_atraso = ?, monto_multa = ? WHERE id_prestamo = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
+    private static final String CONSULTAR_ID = "SELECT id_prestamo, id_libro, id_usuario, fecha_prestamo, fecha_devolucion_esperada, fecha_devolucion, dias_atraso, monto_multa, fecha_aviso FROM PRESTAMO WHERE id_prestamo=? FOR UPDATE";
+    private static final String AVISO = "UPDATE PRESTAMO SET fecha_aviso=CURDATE() WHERE id_prestamo=? AND fecha_devolucion IS NULL AND fecha_devolucion_esperada<CURDATE()";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM PRESTAMO";
     private static final String CONSULTAR_ATRASOS_PAGINADO = CONSULTAR_ATRASOS + " LIMIT ? OFFSET ?";
     private static final String CONTAR_ATRASOS = "SELECT COUNT(*) AS total FROM PRESTAMO WHERE fecha_devolucion IS NULL AND fecha_devolucion_esperada < CURDATE()";
@@ -175,6 +178,29 @@ public class PrestamoDao {
         return prestamos;
     }
 
+    public Prestamo consultarPorId(int idPrestamo, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_ID)) {
+            ps.setInt(1, idPrestamo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? construirPrestamo(rs) : null;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
+    }
+
+    public boolean registrarAviso(int idPrestamo) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(AVISO)) {
+            ps.setInt(1, idPrestamo);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
     public boolean actualizar(Prestamo prestamo) {
         try (Connection conexion = ConexionDB.getInstance().getConnection()) {
             return actualizar(prestamo, conexion);
@@ -224,7 +250,7 @@ public class PrestamoDao {
     private Prestamo construirPrestamo(ResultSet rs) throws SQLException {
         Date fechaDevolucion = rs.getDate("fecha_devolucion");
 
-        return new Prestamo(
+        Prestamo prestamo = new Prestamo(
                 rs.getInt("id_prestamo"),
                 rs.getInt("id_libro"),
                 rs.getInt("id_usuario"),
@@ -234,6 +260,9 @@ public class PrestamoDao {
                 rs.getInt("dias_atraso"),
                 rs.getDouble("monto_multa")
         );
+        Date aviso = rs.getDate("fecha_aviso");
+        prestamo.setFechaAviso(aviso == null ? null : aviso.toLocalDate());
+        return prestamo;
     }
     
     public Collection<Prestamo> consultar(int pagina, int limite) {

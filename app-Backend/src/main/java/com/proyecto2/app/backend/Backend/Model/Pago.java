@@ -18,6 +18,9 @@ public class Pago {
     private String concepto;
     private double monto;
     private LocalDate fecha;
+    private Integer idInscripcion;
+    private Integer idCuota;
+    private String nombreEmpleado;
     
     public Pago(){
     
@@ -33,6 +36,13 @@ public class Pago {
         this.monto = monto;
         this.fecha = fecha;
     }
+
+    public String getNombreEmpleado() { return nombreEmpleado; }
+    public void setNombreEmpleado(String valor) { nombreEmpleado = valor; }
+    public Integer getIdInscripcion() { return idInscripcion; }
+    public void setIdInscripcion(Integer valor) { idInscripcion = valor; }
+    public Integer getIdCuota() { return idCuota; }
+    public void setIdCuota(Integer valor) { idCuota = valor; }
 
     public int getIdPago() {
         return idPago;

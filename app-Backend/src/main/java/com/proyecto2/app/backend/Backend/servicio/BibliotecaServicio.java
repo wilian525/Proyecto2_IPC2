@@ -57,15 +57,7 @@ public class BibliotecaServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
-            Libro libroEncontrado = null;
-            Collection<Libro> libros = libroDAO.consultar(conexion);
-
-            for (Libro libro : libros) {
-                if (libro.getIdLibro() == prestamo.getIdLibro()) {
-                    libroEncontrado = libro;
-                    break;
-                }
-            }
+            Libro libroEncontrado = libroDAO.consultarPorId(prestamo.getIdLibro(), conexion);
 
             if (libroEncontrado == null) {
                 throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
@@ -75,15 +67,7 @@ public class BibliotecaServicio {
                 throw new ServicioException("CONFLICTO", "El libro no se encuentra disponible");
             }
 
-            Usuario usuarioEncontrado = null;
-            Collection<Usuario> usuarios = usuarioDAO.consultar(conexion);
-
-            for (Usuario usuario : usuarios) {
-                if (usuario.getIdUsuario() == prestamo.getIdUsuario()) {
-                    usuarioEncontrado = usuario;
-                    break;
-                }
-            }
+            Usuario usuarioEncontrado = usuarioDAO.consultarPorId(prestamo.getIdUsuario(), conexion);
 
             if (usuarioEncontrado == null) {
                 throw new ServicioException("NO_ENCONTRADO", "El usuario no existe");
@@ -97,6 +81,7 @@ public class BibliotecaServicio {
                 throw new ServicioException("NO_AUTORIZADO", "Los préstamos únicamente pueden realizarse a estudiantes o maestros");
             }
 
+            prestamo.setFechaPrestamo(LocalDate.now());
             prestamo.setFechaDevolucion(null);
             prestamo.setDiasAtraso(0);
             prestamo.setMontoMulta(0);
@@ -150,15 +135,7 @@ public class BibliotecaServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
-            Prestamo prestamoEncontrado = null;
-            Collection<Prestamo> prestamos = prestamoDAO.consultar(conexion);
-
-            for (Prestamo prestamo : prestamos) {
-                if (prestamo.getIdPrestamo() == idPrestamo) {
-                    prestamoEncontrado = prestamo;
-                    break;
-                }
-            }
+            Prestamo prestamoEncontrado = prestamoDAO.consultarPorId(idPrestamo, conexion);
 
             if (prestamoEncontrado == null) {
                 throw new ServicioException("NO_ENCONTRADO", "El préstamo no existe");
@@ -172,6 +149,7 @@ public class BibliotecaServicio {
                 throw new ServicioException("DATOS_INVALIDOS", "La fecha de devolución no puede ser anterior a la fecha del préstamo");
             }
 
+            fechaDevolucion = LocalDate.now();
             int diasAtraso = 0;
 
             if (fechaDevolucion.isAfter(prestamoEncontrado.getFechaDevolucionEsperada())) {
@@ -190,15 +168,7 @@ public class BibliotecaServicio {
                 throw new ServicioException("OPERACION_ERROR", "No fue posible registrar la devolución");
             }
 
-            Libro libroEncontrado = null;
-            Collection<Libro> libros = libroDAO.consultar(conexion);
-
-            for (Libro libro : libros) {
-                if (libro.getIdLibro() == prestamoEncontrado.getIdLibro()) {
-                    libroEncontrado = libro;
-                    break;
-                }
-            }
+            Libro libroEncontrado = libroDAO.consultarPorId(prestamoEncontrado.getIdLibro(), conexion);
 
             if (libroEncontrado == null) {
                 throw new ServicioException("NO_ENCONTRADO", "El libro relacionado con el préstamo no existe");
@@ -391,6 +361,26 @@ public class BibliotecaServicio {
             restaurarAutoCommit(conexion, autoCommitAnterior);
             cerrarConexion(conexion);
         }
+    }
+
+    public boolean cambiarEstadoLibro(int idLibro, boolean activar) {
+        if (idLibro <= 0) throw new ServicioException("DATOS_INVALIDOS", "Selecciona un libro válido");
+        try (Connection conexion = ConexionDB.getInstance().getConnection()) {
+            Libro libro = libroDAO.consultarPorId(idLibro, conexion);
+            if (libro == null) throw new ServicioException("NO_ENCONTRADO", "El libro no existe");
+            if (activar ? "ACTIVO".equals(libro.getEstado()) : "INACTIVO".equals(libro.getEstado()))
+                throw new ServicioException("CONFLICTO", "El libro ya tiene ese estado");
+            return activar ? libroDAO.activar(idLibro, conexion) : libroDAO.desactivar(idLibro, conexion);
+        } catch (SQLException e) {
+            throw new ServicioException("BD_ERROR", "No se pudo cambiar el estado del libro", e);
+        }
+    }
+
+    public boolean registrarAviso(int idPrestamo) {
+        if (idPrestamo <= 0) throw new ServicioException("DATOS_INVALIDOS", "Selecciona un préstamo válido");
+        if (!prestamoDAO.registrarAviso(idPrestamo))
+            throw new ServicioException("CONFLICTO", "Solo puedes avisar sobre préstamos atrasados y no devueltos");
+        return true;
     }
 
     private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {

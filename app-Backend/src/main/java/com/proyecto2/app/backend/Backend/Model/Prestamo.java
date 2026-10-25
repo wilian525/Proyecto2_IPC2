@@ -20,6 +20,7 @@ public class Prestamo {
     private LocalDate fechaDevolucion;
     private int diasAtraso;
     private double montoMulta;
+    private LocalDate fechaAviso;
     
     public Prestamo(){
     
@@ -94,6 +95,9 @@ public class Prestamo {
     public void setDiasAtraso(int diasAtraso) {
         this.diasAtraso = diasAtraso;
     }
+
+    public LocalDate getFechaAviso() { return fechaAviso; }
+    public void setFechaAviso(LocalDate fechaAviso) { this.fechaAviso = fechaAviso; }
 
     public double getMontoMulta() {
         return montoMulta;

@@ -9,8 +9,8 @@
 </form><p class="texto-suave mt-3 mb-0">Secretaría registra las cuotas mensuales debidas con el mes y ciclo correspondiente en Pagos. El saldo de esta pantalla se calcula sobre esos registros.</p></div>
 @if(resultado();as dato){<div class="panel-res"><h2 class="titulo-tarjeta">Resultado de la consulta</h2>
 <p>Estudiante: <strong>{{estudiante()?.nombre}} {{estudiante()?.apellido}}</strong></p>
-<p>Saldo pendiente: <strong>{{dato.saldoPendiente|currency:'GTQ':'Q ':'1.2-2'}}</strong></p>
-@if(solvente()){<p class="mensaje-exito">El estudiante está solvente respecto de las obligaciones registradas del ciclo activo.</p>
+<p>Saldo total pendiente (incluye cuotas futuras): <strong>{{dato.saldoPendiente|currency:'GTQ':'Q ':'1.2-2'}}</strong></p>
+@if(solvente()){<p class="mensaje-exito">El estudiante está al día: no tiene cuotas vencidas sin pagar. Puede tener cuotas futuras pendientes.</p>
 <button class="btn btn-rosa" type="button" (click)="imprimir()"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar constancia PDF</button>}
-@else{<p class="mensaje-error">El estudiante tiene obligaciones pendientes. No puede emitirse la constancia.</p>}</div>}
+@else{<p class="mensaje-error">El estudiante tiene obligaciones vencidas sin pagar. No puede emitirse la constancia.</p>}</div>}
 </section>

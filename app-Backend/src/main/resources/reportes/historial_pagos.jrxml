@@ -33,7 +33,7 @@
     <dataset name="Pagos" uuid="7bf2f62d-23bf-4528-a337-83a65ab81102">
         <field name="idPago" class="java.lang.Integer"/>
         <field name="idEstudiante" class="java.lang.Integer"/>
-        <field name="idEmpleado" class="java.lang.Integer"/>
+        <field name="nombreEmpleado" class="java.lang.String"/>
         <field name="concepto" class="java.lang.String"/>
         <field name="monto" class="java.lang.Double"/>
         <field name="fecha" class="java.time.LocalDate"/>
@@ -89,12 +89,12 @@
         </element>
 
         <element kind="textField" x="400" y="95" width="200" height="27" style="Celda" hTextAlign="Center" vTextAlign="Middle">
-            <expression><![CDATA[$F{fechaInicio} == null ? "TODOS LOS REGISTROS" : $F{fechaInicio}.toString()]]></expression>
+            <expression><![CDATA[$F{fechaInicio} == null ? "TODOS LOS REGISTROS" : $F{fechaInicio}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
             <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
         </element>
 
         <element kind="textField" x="600" y="95" width="202" height="27" style="Celda" hTextAlign="Center" vTextAlign="Middle">
-            <expression><![CDATA[$F{fechaFin} == null ? "TODOS LOS REGISTROS" : $F{fechaFin}.toString()]]></expression>
+            <expression><![CDATA[$F{fechaFin} == null ? "TODOS LOS REGISTROS" : $F{fechaFin}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
             <box><pen lineWidth="0.5" lineColor="#D9E2F3"/></box>
         </element>
 
@@ -158,7 +158,7 @@
                         </columnHeader>
                         <detailCell height="25">
                             <element kind="textField" width="100" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
-                                <expression><![CDATA[$F{idEmpleado}]]></expression>
+                                <expression><![CDATA[$F{nombreEmpleado}]]></expression>
                                 <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
                             </element>
                         </detailCell>
@@ -203,7 +203,7 @@
                         </columnHeader>
                         <detailCell height="25">
                             <element kind="textField" width="142" height="25" style="Celda" hTextAlign="Center" vTextAlign="Middle">
-                                <expression><![CDATA[$F{fecha} == null ? "" : $F{fecha}.toString()]]></expression>
+                                <expression><![CDATA[$F{fecha} == null ? "" : $F{fecha}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
                                 <box><pen lineWidth="0.4" lineColor="#D9E2F3"/></box>
                             </element>
                         </detailCell>

@@ -8,7 +8,6 @@ import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.sf.jasperreports.engine.JRException;
@@ -25,21 +24,20 @@ public class GeneradorReportePdf {
     public static final String RENDIMIENTO = "rendimiento";
     public static final String HISTORIAL_PAGOS = "historial_pagos";
     public static final String INGRESOS = "ingresos";
+    public static final String FACTURA = "factura";
+    public static final String SOLVENCIA = "solvencia";
     public static final String PRESTAMOS_MORA = "prestamos_mora";
 
     public byte[] generarPdf(String nombreReporte, Collection<?> datos, Map<String, Object> parametros) {
         if (datos == null) throw new ProcesosException("REPORTE_ERROR", "Los datos del reporte no pueden ser nulos");
 
         String ruta = obtenerRuta(nombreReporte);
-        Map<String, Object> parametrosReporte = new HashMap<>();
-        if (parametros != null) parametrosReporte.putAll(parametros);
-
         try (InputStream archivo = getClass().getClassLoader().getResourceAsStream(ruta)) {
             if (archivo == null) throw new ProcesosException("REPORTE_ERROR", "No se encontró la plantilla " + ruta);
 
             JasperReport reporte = JasperCompileManager.compileReport(archivo);
             JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(datos);
-            JasperPrint impresion = JasperFillManager.fillReport(reporte, parametrosReporte, dataSource);
+            JasperPrint impresion = JasperFillManager.fillReport(reporte, parametros, dataSource);
             return JasperExportManager.exportReportToPdf(impresion);
 
         } catch (JRException e) {
@@ -58,6 +56,8 @@ public class GeneradorReportePdf {
         if (SOLVENTES_MOROSOS.equals(nombreReporte)) return "reportes/solventes_morosos.jrxml";
         if (RENDIMIENTO.equals(nombreReporte)) return "reportes/rendimiento.jrxml";
         if (HISTORIAL_PAGOS.equals(nombreReporte)) return "reportes/historial_pagos.jrxml";
+        if (FACTURA.equals(nombreReporte)) return "reportes/factura.jrxml";
+        if (SOLVENCIA.equals(nombreReporte)) return "reportes/solvencia.jrxml";
         if (INGRESOS.equals(nombreReporte)) return "reportes/ingresos.jrxml";
         if (PRESTAMOS_MORA.equals(nombreReporte)) return "reportes/prestamos_mora.jrxml";
         throw new ProcesosException("REPORTE_ERROR", "El reporte solicitado no existe");

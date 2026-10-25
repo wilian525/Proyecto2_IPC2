@@ -46,6 +46,7 @@ public class PagoDao {
     private static final String CONSULTAR = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO ORDER BY fecha DESC";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM PAGO";
+    private static final String CONSULTAR_POR_ID = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO WHERE id_pago = ? FOR UPDATE";
     private static final String CONSULTAR_ESTUDIANTE_PAGINADO = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO WHERE id_estudiante = ? ORDER BY fecha DESC LIMIT ? OFFSET ?";
     private static final String CONTAR_ESTUDIANTE = "SELECT COUNT(*) AS total FROM PAGO WHERE id_estudiante = ?";
 
@@ -107,6 +108,16 @@ public class PagoDao {
         }
     }
 
+    public int insertarConId(Pago pago, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(INSERTAR, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, pago.getIdEstudiante()); ps.setInt(2, pago.getIdEmpleado());
+            ps.setString(3, pago.getConcepto()); ps.setDouble(4, pago.getMonto());
+            ps.setDate(5, Date.valueOf(pago.getFecha()));
+            if (ps.executeUpdate()!=1) return 0;
+            try (ResultSet rs=ps.getGeneratedKeys()) {return rs.next()?rs.getInt(1):0;}
+        } catch(SQLException e) {daoException.manejarError(e);return 0;}
+    }
+
     public Collection<Pago> consultar() {
         try (Connection conexion = ConexionDB.getInstance().getConnection()) {
             return consultar(conexion);
@@ -136,6 +147,18 @@ public class PagoDao {
         }
 
         return pagos;
+    }
+
+    public Pago consultarPorId(int idPago, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
+            ps.setInt(1, idPago);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? construirPago(rs) : null;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
     }
 
     private Pago construirPago(ResultSet rs) throws SQLException {

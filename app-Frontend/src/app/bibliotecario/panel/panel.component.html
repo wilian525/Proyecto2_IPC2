@@ -1,0 +1,8 @@
+<section>
+  <span class="etiqueta"><i class="bi bi-book"></i> Gestión de biblioteca</span>
+  <h1 class="titulo-seccion">Panel de Bibliotecario</h1>
+  <p class="subtitulo mb-4">Libros, préstamos, devoluciones y atrasos.</p>
+  <div class="row g-3">@for(modulo of modulos;track modulo.ruta){
+    <div class="col-md-6 col-xl-4"><app-tarjeta-modulo [ruta]="modulo.ruta" [titulo]="modulo.titulo" [descripcion]="modulo.descripcion" [icono]="modulo.icono" /></div>
+  }</div>
+</section>

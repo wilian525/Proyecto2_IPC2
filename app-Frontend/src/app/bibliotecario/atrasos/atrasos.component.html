@@ -1,0 +1,9 @@
+<section><a routerLink="/inicio/bibliotecario" class="etiqueta text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al panel</a>
+<h1 class="titulo-seccion">Atrasos y avisos</h1><p class="subtitulo mb-4">Préstamos vencidos, recargos automáticos y seguimiento.</p>
+@if(mensaje()){<p class="mensaje-exito">{{mensaje()}}</p>}@if(error()){<p class="mensaje-error" role="alert">{{error()}}</p>}
+<div class="panel-res"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="titulo-tarjeta mb-0">Préstamos atrasados</h2><button class="btn btn-menta" (click)="cargar()">Actualizar</button></div>
+<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Préstamo</th><th>Libro</th><th>Lector</th><th>Fecha límite</th><th>Días de atraso</th><th>Multa</th><th>Último aviso</th><th>Acción</th></tr></thead><tbody>
+@for(p of atrasos();track p.idPrestamo){<tr><td>#{{p.idPrestamo}}</td><td>{{libro(p.idLibro)}}</td><td>{{lector(p.idUsuario)}}</td><td>{{fecha(p.fechaDevolucionEsperada)}}</td><td>{{p.diasAtraso}}</td><td>Q {{p.montoMulta}}</td><td>{{fecha(p.fechaAviso)}}</td><td><button class="btn btn-menta btn-sm" (click)="avisar(p)">Registrar aviso</button></td></tr>}
+@empty{<tr><td colspan="8">No hay préstamos atrasados.</td></tr>}</tbody></table></div>
+<div class="paginador"><span>{{total()}} atrasos · Página {{pagina()}}</span><div class="d-flex gap-2"><button class="btn btn-menta" (click)="anterior()" [disabled]="pagina()===1">Anterior</button><button class="btn btn-menta" (click)="siguiente()" [disabled]="pagina()*10>=total()">Siguiente</button></div></div>
+</div></section>

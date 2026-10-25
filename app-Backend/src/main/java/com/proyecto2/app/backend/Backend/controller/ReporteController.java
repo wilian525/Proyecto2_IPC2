@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.Map;
+import com.proyecto2.app.backend.Backend.Dao.cicloDao;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.SecurityContext;
 
 @Path("reportes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -28,8 +31,9 @@ public class ReporteController {
    @GET
     @Path("solventes-morosos")
     @RolesAllowed({"ADMIN", "SECRETARIA"})
-    public Response solventesMorosos(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
+    public Response solventesMorosos(@Context SecurityContext seguridad, @QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
         try {
+            verificarCicloSecretaria(seguridad,idCiclo);
             return Response.ok(new ReporteProcesos().generarReporteSolventesMorosos(idGrado, idSeccion, idCiclo, mensualidades)).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
@@ -40,10 +44,11 @@ public class ReporteController {
     @Path("solventes-morosos/pdf")
     @Produces({"application/pdf", MediaType.APPLICATION_JSON})
     @RolesAllowed({"ADMIN", "SECRETARIA"})
-    public Response solventesMorososPdf(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
+    public Response solventesMorososPdf(@Context SecurityContext seguridad, @QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
         try {
+            verificarCicloSecretaria(seguridad,idCiclo);
             Collection<ReporteSolventeMoroso> datos = new ReporteProcesos().generarReporteSolventesMorosos(idGrado, idSeccion, idCiclo, mensualidades);
-            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.SOLVENTES_MOROSOS, datos, Map.of());
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.SOLVENTES_MOROSOS, datos, new java.util.HashMap<>(Map.of()));
             return responderPdf(pdf, "solventes_morosos.pdf");
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
@@ -68,7 +73,7 @@ public class ReporteController {
     public Response rendimientoPdf(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo) {
         try {
             ReporteRendimiento datos = new ReporteProcesos().generarReporteRendimiento(idGrado, idSeccion, idCiclo);
-            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.RENDIMIENTO, datos, Map.of());
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.RENDIMIENTO, datos, new java.util.HashMap<>(Map.of()));
             return responderPdf(pdf, "rendimiento_academico.pdf");
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
@@ -97,7 +102,7 @@ public class ReporteController {
             LocalDate inicio = convertirFecha(fechaInicio);
             LocalDate fin = convertirFecha(fechaFin);
             ReporteHistorialPago datos = new ReporteProcesos().generarReporteHistorialPagos(idEstudiante, inicio, fin, mensualidades);
-            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.HISTORIAL_PAGOS, datos, Map.of());
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.HISTORIAL_PAGOS, datos, new java.util.HashMap<>(Map.of()));
             return responderPdf(pdf, "historial_pagos_" + idEstudiante + ".pdf");
         } catch (DateTimeParseException e) {
             return error("DATOS_INVALIDOS", "Las fechas deben tener formato yyyy-MM-dd");
@@ -128,7 +133,7 @@ public class ReporteController {
             LocalDate inicio = convertirFecha(fechaInicio);
             LocalDate fin = convertirFecha(fechaFin);
             ReporteIngresos datos = new ReporteProcesos().generarReporteIngresos(inicio, fin);
-            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.INGRESOS, datos, Map.of());
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.INGRESOS, datos, new java.util.HashMap<>(Map.of()));
             return responderPdf(pdf, "reporte_ingresos.pdf");
         } catch (DateTimeParseException e) {
             return error("DATOS_INVALIDOS", "Las fechas deben tener formato yyyy-MM-dd");
@@ -155,11 +160,20 @@ public class ReporteController {
     public Response prestamosMoraPdf() {
         try {
             Collection<ReportePrestamoMora> datos = new ReporteProcesos().generarReportePrestamosMora();
-            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.PRESTAMOS_MORA, datos, Map.of());
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.PRESTAMOS_MORA, datos, new java.util.HashMap<>(Map.of()));
             return responderPdf(pdf, "prestamos_mora.pdf");
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
+    }
+
+    // Consultas históricas permitidas; activar un ciclo solo es necesario para operaciones de registro.
+    private void verificarCicloSecretaria(SecurityContext seguridad, int idCiclo) {
+        if (seguridad==null || !seguridad.isUserInRole("SECRETARIA")) return;
+        for(var ciclo:new cicloDao().consultar()) {
+            if(ciclo.getIdCiclo()==idCiclo) return;
+        }
+        throw new ProcesosException("CONFLICTO","No se encontró el ciclo escolar del reporte");
     }
 
     private LocalDate convertirFecha(String fecha) {

@@ -60,6 +60,7 @@ public class InscripcionDao {
     private static final String CONSULTAR_INSCRIPCION_EXISTENTE = "SELECT id_inscripcion FROM INSCRIPCION WHERE id_estudiante = ? AND id_ciclo = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM INSCRIPCION";
+    private static final String CONSULTAR_POR_ID = "SELECT id_inscripcion, id_estudiante, id_ciclo, id_grado, id_seccion FROM INSCRIPCION WHERE id_inscripcion = ?";
 
     public InscripcionDao() {
         this.conexionDB = ConexionDB.getInstance();
@@ -153,6 +154,18 @@ public class InscripcionDao {
         }
 
         return inscripciones;
+    }
+
+    public Inscripcion consultarPorId(int idInscripcion, Connection conexion) {
+        try (PreparedStatement ps = conexion.prepareStatement(CONSULTAR_POR_ID)) {
+            ps.setInt(1, idInscripcion);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? construirInscripcion(rs) : null;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return null;
+        }
     }
 
     private boolean estudianteActivo(int idEstudiante) {

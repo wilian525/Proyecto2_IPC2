@@ -15,9 +15,9 @@
 </form></div>
 <div class="panel-res"><h2 class="titulo-tarjeta">Resultado de la consulta</h2>@if(cargando()){<p class="texto-suave">Consultando datos...</p>}@else if(datos()){
 @if(tipo()==='solventes-morosos'){
-<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Grado</th><th>Sección</th><th>Estado</th><th>Saldo pendiente</th></tr></thead><tbody>@for(f of filas();track $index){<tr><td>{{f['estudiante']}}</td><td>{{f['grado']}}</td><td>{{f['seccion']}}</td><td>{{f['estadoCuenta']}}</td><td>{{ $any(f['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</td></tr>}@empty{<tr><td colspan="5">Sin estudiantes inscritos que coincidan con el filtro.</td></tr>}</tbody></table></div>
+<div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Grado</th><th>Sección</th><th>Estado</th><th>Saldo total pendiente</th></tr></thead><tbody>@for(f of filas();track $index){<tr><td>{{f['estudiante']}}</td><td>{{f['grado']}}</td><td>{{f['seccion']}}</td><td>{{f['estadoCuenta']}}</td><td>{{ $any(f['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</td></tr>}@empty{<tr><td colspan="5">Sin estudiantes inscritos que coincidan con el filtro.</td></tr>}</tbody></table></div>
 }@else{
-<p>Estudiante: {{historial()['estudiante']}}</p><p>Pagado: {{ $any(historial()['totalPagado'])|currency:'GTQ':'Q ':'1.2-2' }} · Pendiente: {{ $any(historial()['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</p>
+<p>Estudiante: {{historial()['estudiante']}}</p><p>Pagado: {{ $any(historial()['totalPagado'])|currency:'GTQ':'Q ':'1.2-2' }} · Pendiente (incluye cuotas futuras): {{ $any(historial()['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</p>
 <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>@for(p of $any(historial()['pagos']??[]);track $index){<tr><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fechaPago(p.fecha)}}</td></tr>}@empty{<tr><td colspan="3">No hay pagos registrados.</td></tr>}</tbody></table></div>
 }
 }@else{<p class="texto-suave">Selecciona filtros y consulta para ver los registros.</p>}</div></section>

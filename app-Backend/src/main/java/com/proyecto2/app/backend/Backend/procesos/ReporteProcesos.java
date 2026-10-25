@@ -7,6 +7,8 @@ package com.proyecto2.app.backend.Backend.procesos;
 import com.proyecto2.app.backend.Backend.Dao.AsignacionDao;
 import com.proyecto2.app.backend.Backend.Dao.CursoDao;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
+import com.proyecto2.app.backend.Backend.Model.Empleado;
 import com.proyecto2.app.backend.Backend.Dao.GradoDao;
 import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
 import com.proyecto2.app.backend.Backend.Dao.LibroDao;
@@ -121,8 +123,9 @@ public class ReporteProcesos {
         Collection<ReporteSolventeMoroso> reporte = new ArrayList<>();
 
         for (ReporteGradoSeccion estudiante : generarReporteGradoSeccion(idGrado, idSeccion, idCiclo)) {
-            double saldoPendiente = pagoProcesos.consultarEstadoCuenta(estudiante.getIdEstudiante(), mensualidadesRequeridas);
-            String estadoCuenta = saldoPendiente <= 0 ? "SOLVENTE" : "MOROSO";
+            double saldoPendiente = pagoProcesos.consultarEstadoCuentaPorCiclo(estudiante.getIdEstudiante(), estudiante.getIdCiclo());
+            double saldoVencido = pagoProcesos.consultarSaldoVencido(estudiante.getIdEstudiante(), estudiante.getIdCiclo());
+            String estadoCuenta = saldoVencido > 0.01 ? "MOROSO" : saldoPendiente > 0.01 ? "PENDIENTE" : "SOLVENTE";
             reporte.add(new ReporteSolventeMoroso(estudiante.getIdEstudiante(), estudiante.getEstudiante(), estudiante.getIdGrado(), estudiante.getGrado(), estudiante.getIdSeccion(), estudiante.getSeccion(), estudiante.getIdCiclo(), redondear(saldoPendiente), estadoCuenta));
         }
 
@@ -251,6 +254,7 @@ public class ReporteProcesos {
             }
 
             Collection<Pago> historial = new ArrayList<>();
+            Collection<Empleado> personal = new EmpleadoDao().consultar();
             double totalPagado = 0;
 
             for (Pago pago : pagoProcesos.consultarHistorialPagos(idEstudiante)) {
@@ -258,12 +262,19 @@ public class ReporteProcesos {
                     continue;
                 }
 
+                for(Empleado empleado:personal) {
+                    if(empleado.getIdEmpleado()==pago.getIdEmpleado()) {
+                        pago.setNombreEmpleado(empleado.getNombre()+" "+empleado.getApellido());break;
+                    }
+                }
+                if(pago.getNombreEmpleado()==null) pago.setNombreEmpleado("Personal #"+pago.getIdEmpleado());
                 historial.add(pago);
                 totalPagado += pago.getMonto();
             }
 
             double saldoPendiente = pagoProcesos.consultarEstadoCuenta(idEstudiante, mensualidadesRequeridas);
-            String estadoCuenta = saldoPendiente <= 0 ? "SOLVENTE" : "MOROSO";
+            double saldoVencido = pagoProcesos.consultarSaldoVencido(idEstudiante);
+            String estadoCuenta = saldoVencido > 0.01 ? "MOROSO" : saldoPendiente > 0.01 ? "PENDIENTE" : "SOLVENTE";
             return new ReporteHistorialPago(estudiante.getIdEstudiante(), estudiante.getNombre() + " " + estudiante.getApellido(), fechaInicio, fechaFin, historial, redondear(totalPagado), redondear(saldoPendiente), estadoCuenta);
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo generar el historial de pagos", e);

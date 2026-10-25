@@ -6,10 +6,12 @@ import { PanelAlumnoComponent } from '../../estudiante/panel-alumno/panel-alumno
 import { PanelAdministradorComponent } from '../../admin/panel/panel.component';
 import { PanelSuperAdministradorComponent } from '../../super-admin/panel/panel.component';
 import { PanelSecretariaComponent } from '../../secretaria/panel/panel.component';
+import { PanelBibliotecarioComponent } from '../../bibliotecario/panel/panel.component';
+
 
 @Component({
   selector: 'app-inicio',
-  imports: [PanelAlumnoComponent, PanelSuperAdministradorComponent, PanelAdministradorComponent, PanelSecretariaComponent],
+  imports: [PanelAlumnoComponent, PanelSuperAdministradorComponent, PanelAdministradorComponent, PanelSecretariaComponent, PanelBibliotecarioComponent],
   templateUrl: './inicio.component.html',
   styleUrl: './inicio.component.css'
 })

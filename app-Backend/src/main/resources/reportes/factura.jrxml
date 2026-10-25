@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="factura" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="AllSectionsNoDetail" uuid="8dc86035-c3c0-5c63-a303-27317b417f95">
+    <parameter name="NUMERO" class="java.lang.String"/>
+    <parameter name="ESTUDIANTE" class="java.lang.String"/>
+    <parameter name="CONCEPTO" class="java.lang.String"/>
+    <parameter name="MONTO" class="java.lang.String"/>
+    <parameter name="FECHA" class="java.lang.String"/>
+    <parameter name="ID_PAGO" class="java.lang.String"/>
+    <title height="480">
+        <element kind="staticText" x="0" y="0" width="535" height="46" fontName="DejaVu Sans" fontSize="17" bold="true" forecolor="#FFFFFF" backcolor="#224F77" mode="Opaque" hTextAlign="Center" vTextAlign="Middle"><text><![CDATA[FACTURA Y COMPROBANTE DE PAGO]]></text></element>
+        <element kind="staticText" x="5" y="54" width="525" height="25" fontName="DejaVu Sans" fontSize="10" hTextAlign="Center"><text><![CDATA[RES · Sistema de gestión escolar]]></text></element>
+        <element kind="staticText" x="18" y="110" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Número de factura]]></text></element>
+        <element kind="textField" x="200" y="110" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{NUMERO}]]></expression></element>
+        <element kind="staticText" x="18" y="153" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Estudiante]]></text></element>
+        <element kind="textField" x="200" y="153" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{ESTUDIANTE}]]></expression></element>
+        <element kind="staticText" x="18" y="196" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Concepto]]></text></element>
+        <element kind="textField" x="200" y="196" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{CONCEPTO}]]></expression></element>
+        <element kind="staticText" x="18" y="239" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Monto pagado]]></text></element>
+        <element kind="textField" x="200" y="239" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{MONTO}]]></expression></element>
+        <element kind="staticText" x="18" y="282" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Fecha de emisión]]></text></element>
+        <element kind="textField" x="200" y="282" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{FECHA}]]></expression></element>
+        <element kind="staticText" x="18" y="325" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[ID del pago]]></text></element>
+        <element kind="textField" x="200" y="325" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{ID_PAGO}]]></expression></element>
+    </title>
+    <pageFooter height="20"><element kind="staticText" x="0" y="0" width="535" height="16" fontName="DejaVu Sans" fontSize="8" forecolor="#666666" hTextAlign="Center"><text><![CDATA[Documento emitido por Secretaría · RES]]></text></element></pageFooter>
+</jasperReport>

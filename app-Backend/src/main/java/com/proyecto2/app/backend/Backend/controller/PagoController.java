@@ -9,6 +9,10 @@ import com.proyecto2.app.backend.Backend.Exception.ServicioException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import com.proyecto2.app.backend.Backend.Model.Factura;
 import com.proyecto2.app.backend.Backend.Model.Pago;
+import com.proyecto2.app.backend.Backend.Model.CuotaMensual;
+import com.proyecto2.app.backend.Backend.Reporte.GeneradorReportePdf;
+import java.util.List;
+import java.time.LocalDate;
 import com.proyecto2.app.backend.Backend.procesos.EstudianteProcesos;
 import com.proyecto2.app.backend.Backend.procesos.PagoProcesos;
 import com.proyecto2.app.backend.Backend.servicio.PagoServicio;
@@ -73,6 +77,7 @@ public class PagoController {
             return Response.status(Response.Status.FORBIDDEN).entity(Map.of( "codigo", "NO_AUTORIZADO","mensaje", "No se pudo identificar a la Secretaria autenticada")).build();
         }
 
+        if(pago==null) return responderError("DATOS_INVALIDOS","Los datos del pago son obligatorios");
         pago.setIdEmpleado((Integer) valorIdEmpleado);
 
         PagoServicio servicio = new PagoServicio();
@@ -253,6 +258,79 @@ public class PagoController {
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }
+    }
+
+    @GET
+    @Path("cuotas/{idEstudiante}")
+    @RolesAllowed("SECRETARIA")
+    public Response cuotas(@PathParam("idEstudiante") int idEstudiante) {
+        try { return Response.ok(new PagoProcesos().consultarCuotas(idEstudiante)).build(); }
+        catch(ProcesosException e) {return responderError(e.getCodigo(),e.getMessage());}
+    }
+
+    @POST
+    @Path("cuotas")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SECRETARIA")
+    public Response registrarCuota(CuotaMensual cuota) {
+        try {
+            new PagoServicio().registrarCuota(cuota);
+            return Response.status(Response.Status.CREATED).entity(Map.of("mensaje","Mensualidad registrada para el período indicado")).build();
+        } catch(ServicioException e) {return responderError(e.getCodigo(),e.getMessage());}
+    }
+
+    @POST
+    @Path("conciliaciones")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("SECRETARIA")
+    public Response conciliar(ConciliacionRequest datos) {
+        if(datos==null) return responderError("DATOS_INVALIDOS","Selecciona un pago y su inscripción");
+        try {
+            new PagoServicio().conciliarPago(datos.idPago,datos.idInscripcion,datos.idCuota);
+            return Response.ok(Map.of("mensaje","Pago histórico conciliado correctamente")).build();
+        } catch(ServicioException e) {return responderError(e.getCodigo(),e.getMessage());}
+    }
+
+    public static class ConciliacionRequest {
+        public int idPago;
+        public int idInscripcion;
+        public Integer idCuota;
+    }
+
+    @GET
+    @Path("facturas/{idFactura}/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
+    @RolesAllowed("SECRETARIA")
+    public Response facturaPdf(@PathParam("idFactura") int idFactura) {
+        try {
+            PagoProcesos procesos = new PagoProcesos();
+            Factura factura=procesos.consultarFactura(idFactura);
+            Pago pago=procesos.consultarPago(factura.getIdPago());
+            String nombre=procesos.consultarNombreEstudiante(pago.getIdEstudiante());
+            byte[] pdf=new GeneradorReportePdf().generarPdf(GeneradorReportePdf.FACTURA,List.of("factura"),
+                    new java.util.HashMap<>(Map.of("NUMERO",factura.getNumeroFactura(),"ESTUDIANTE",nombre,"CONCEPTO",pago.getConcepto(),
+                            "MONTO",String.format(java.util.Locale.US,"Q %,.2f",factura.getMontoTotal()),
+                            "FECHA",factura.getFecha().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                            "ID_PAGO",String.valueOf(pago.getIdPago()))));
+            return Response.ok(pdf,"application/pdf").header("Content-Disposition","attachment; filename=factura_"+idFactura+".pdf").build();
+        } catch(ProcesosException e) {return responderError(e.getCodigo(),e.getMessage());}
+    }
+
+    @GET
+    @Path("estudiantes/{idEstudiante}/solvencia/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
+    @RolesAllowed("SECRETARIA")
+    public Response solvenciaPdf(@PathParam("idEstudiante") int idEstudiante) {
+        try {
+            PagoProcesos procesos=new PagoProcesos();
+            if(!procesos.consultarSolvencia(idEstudiante,0))
+                return responderError("CONFLICTO","El estudiante tiene obligaciones pendientes; no se puede emitir solvencia");
+            String nombre=procesos.consultarNombreEstudiante(idEstudiante);
+            byte[] pdf=new GeneradorReportePdf().generarPdf(GeneradorReportePdf.SOLVENCIA,List.of("solvencia"),
+                    new java.util.HashMap<>(Map.of("ESTUDIANTE",nombre,"ID_ESTUDIANTE",String.valueOf(idEstudiante),
+                           "FECHA",LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")))));
+            return Response.ok(pdf,"application/pdf").header("Content-Disposition","attachment; filename=solvencia_"+idEstudiante+".pdf").build();
+        } catch(ProcesosException e) {return responderError(e.getCodigo(),e.getMessage());}
     }
 
     private int obtenerIdUsuario(SecurityContext securityContext) {

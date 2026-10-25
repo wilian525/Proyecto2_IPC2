@@ -7,10 +7,13 @@ package com.proyecto2.app.backend.Backend.procesos;
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
 import com.proyecto2.app.backend.Backend.Dao.LibroDao;
 import com.proyecto2.app.backend.Backend.Dao.PrestamoDao;
+import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import com.proyecto2.app.backend.Backend.Model.Libro;
+import com.proyecto2.app.backend.Backend.Model.LectorBiblioteca;
+import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.Model.Prestamo;
 import com.proyecto2.app.backend.Backend.servicio.BibliotecaServicio;
 import java.time.LocalDate;
@@ -32,6 +35,21 @@ public class BibliotecaProcesos {
         libroDAO = new LibroDao();
         prestamoDAO = new PrestamoDao();
         estudianteDAO = new EstudianteDao();
+    }
+
+    public Collection<LectorBiblioteca> consultarLectores() {
+        Collection<LectorBiblioteca> lectores = new ArrayList<>();
+        try {
+            for (Usuario usuario : new UsuarioDao().consultar()) {
+                if ("ACTIVO".equalsIgnoreCase(usuario.getEstado())
+                        && ("ESTUDIANTE".equalsIgnoreCase(usuario.getRol()) || "MAESTRO".equalsIgnoreCase(usuario.getRol()))) {
+                    lectores.add(new LectorBiblioteca(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol()));
+                }
+            }
+            return lectores;
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar los lectores", e);
+        }
     }
 
     public Libro consultarLibro(int idLibro) {

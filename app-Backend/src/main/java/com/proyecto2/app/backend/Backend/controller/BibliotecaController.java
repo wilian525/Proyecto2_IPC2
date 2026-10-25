@@ -97,6 +97,28 @@ public class BibliotecaController {
         }
     }
 
+    @PUT
+    @Path("libros/{idLibro}/estado")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RolesAllowed("BIBLIOTECARIO")
+    public Response estadoLibro(@PathParam("idLibro") int idLibro, Map<String, String> datos) {
+        try {
+            String estado = datos == null ? "" : datos.getOrDefault("estado", "");
+            if (!"ACTIVO".equals(estado) && !"INACTIVO".equals(estado))
+                return responderError("DATOS_INVALIDOS", "Selecciona ACTIVO o INACTIVO");
+            new BibliotecaServicio().cambiarEstadoLibro(idLibro, "ACTIVO".equals(estado));
+            return Response.ok(Map.of("mensaje", "Estado actualizado correctamente")).build();
+        } catch (ServicioException e) { return responderError(e.getCodigo(), e.getMessage()); }
+    }
+
+    @GET
+    @Path("lectores")
+    @RolesAllowed("BIBLIOTECARIO")
+    public Response lectores() {
+        try { return Response.ok(new BibliotecaProcesos().consultarLectores()).build(); }
+        catch (ProcesosException e) { return responderError(e.getCodigo(), e.getMessage()); }
+    }
+
     @GET
     @Path("catalogo")
     @RolesAllowed({"BIBLIOTECARIO", "ESTUDIANTE"})
@@ -158,6 +180,16 @@ public class BibliotecaController {
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }
+    }
+
+    @PUT
+    @Path("prestamos/{idPrestamo}/aviso")
+    @RolesAllowed("BIBLIOTECARIO")
+    public Response registrarAviso(@PathParam("idPrestamo") int idPrestamo) {
+        try {
+            new BibliotecaServicio().registrarAviso(idPrestamo);
+            return Response.ok(Map.of("mensaje", "Aviso de atraso registrado")).build();
+        } catch (ServicioException e) { return responderError(e.getCodigo(), e.getMessage()); }
     }
 
     @GET

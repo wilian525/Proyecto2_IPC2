@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="solvencia" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="AllSectionsNoDetail" uuid="ba592c84-22b3-51d9-be8e-3dff6e6bcc66">
+    <parameter name="ESTUDIANTE" class="java.lang.String"/>
+    <parameter name="ID_ESTUDIANTE" class="java.lang.String"/>
+    <parameter name="FECHA" class="java.lang.String"/>
+    <title height="480">
+        <element kind="staticText" x="0" y="0" width="535" height="46" fontName="DejaVu Sans" fontSize="17" bold="true" forecolor="#FFFFFF" backcolor="#224F77" mode="Opaque" hTextAlign="Center" vTextAlign="Middle"><text><![CDATA[CONSTANCIA DE SOLVENCIA]]></text></element>
+        <element kind="staticText" x="5" y="54" width="525" height="25" fontName="DejaVu Sans" fontSize="10" hTextAlign="Center"><text><![CDATA[RES · Sistema de gestión escolar]]></text></element>
+        <element kind="staticText" x="18" y="110" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Estudiante]]></text></element>
+        <element kind="textField" x="200" y="110" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{ESTUDIANTE}]]></expression></element>
+        <element kind="staticText" x="18" y="153" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Registro del estudiante]]></text></element>
+        <element kind="textField" x="200" y="153" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{ID_ESTUDIANTE}]]></expression></element>
+        <element kind="staticText" x="18" y="196" width="175" height="30" fontName="DejaVu Sans" fontSize="10" bold="true"><text><![CDATA[Fecha de emisión]]></text></element>
+        <element kind="textField" x="200" y="196" width="310" height="30" fontName="DejaVu Sans" fontSize="10"><expression><![CDATA[$P{FECHA}]]></expression></element>
+        <element kind="staticText" x="18" y="300" width="500" height="64" fontName="DejaVu Sans" fontSize="10" forecolor="#1F4E78"><text><![CDATA[Se hace constar que el estudiante no tiene obligaciones vencidas pendientes de pago en el ciclo escolar activo, a la fecha de emisión.]]></text></element>
+    </title>
+    <pageFooter height="20"><element kind="staticText" x="0" y="0" width="535" height="16" fontName="DejaVu Sans" fontSize="8" forecolor="#666666" hTextAlign="Center"><text><![CDATA[Documento emitido por Secretaría · RES]]></text></element></pageFooter>
+</jasperReport>

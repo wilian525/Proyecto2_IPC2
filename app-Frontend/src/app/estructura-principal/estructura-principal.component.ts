@@ -19,6 +19,7 @@ export class EstructuraPrincipalComponent {
   readonly esSuperAdministrador = this.rol === 'SUPER_ADMIN';
   readonly esAdministrador = this.rol === 'ADMIN';
   readonly esSecretaria = this.rol === 'SECRETARIA';
+  readonly esBibliotecario = this.rol === 'BIBLIOTECARIO';
   readonly menuAbierto = signal(false);
 
   readonly opcionesAlumno = [
@@ -63,6 +64,15 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/secretaria/expedientes', titulo: 'Expedientes', icono: 'bi-person-vcard' },
     { ruta: '/inicio/secretaria/solvencias', titulo: 'Solvencias', icono: 'bi-patch-check' },
     { ruta: '/inicio/secretaria/reportes', titulo: 'Reportes', icono: 'bi-file-earmark-pdf' }
+  ];
+
+  readonly opcionesBibliotecario = [
+    { ruta: '/inicio', titulo: 'Resumen', icono: 'bi-grid-1x2' },
+    { ruta: '/inicio/bibliotecario', titulo: 'Panel de biblioteca', icono: 'bi-speedometer2' },
+    { ruta: '/inicio/bibliotecario/libros', titulo: 'Libros', icono: 'bi-book' },
+    { ruta: '/inicio/bibliotecario/prestamos', titulo: 'Préstamos', icono: 'bi-journal-arrow-up' },
+    { ruta: '/inicio/bibliotecario/atrasos', titulo: 'Atrasos', icono: 'bi-clock-history' },
+    { ruta: '/inicio/bibliotecario/reportes', titulo: 'Reporte en mora', icono: 'bi-file-earmark-pdf' }
   ];
 
   alternarMenu(): void { this.menuAbierto.update(actual => !actual); }

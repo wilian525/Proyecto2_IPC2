@@ -5,6 +5,11 @@
 package com.proyecto2.app.backend.Backend.procesos;
 
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.CuotaMensualDao;
+import com.proyecto2.app.backend.Backend.Dao.cicloDao;
+import com.proyecto2.app.backend.Backend.Model.CuotaMensual;
+import com.proyecto2.app.backend.Backend.Model.Ciclo;
+import com.proyecto2.app.backend.Backend.Model.Inscripcion;
 import com.proyecto2.app.backend.Backend.Dao.FacturaDao;
 import com.proyecto2.app.backend.Backend.Dao.PagoDao;
 import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
@@ -24,64 +29,84 @@ import java.util.Collection;
 public class PagoProcesos {
 
     private PagoDao pagoDAO;
+    private CuotaMensualDao cuotaDAO;
+    private cicloDao cicloDAO;
     private InscripcionDao inscripcionDAO;
     private EstudianteDao estudianteDAO;
     private FacturaDao facturaDAO;
 
     public PagoProcesos() {
         pagoDAO = new PagoDao();
+        cuotaDAO = new CuotaMensualDao();
+        cicloDAO = new cicloDao();
         inscripcionDAO = new InscripcionDao();
         estudianteDAO = new EstudianteDao();
         facturaDAO = new FacturaDao();
     }
 
-    public double consultarEstadoCuenta(int idEstudiante, int mensualidadesRequeridas) {
-        if (idEstudiante <= 0 || mensualidadesRequeridas < 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "Los datos para consultar el estado de cuenta no son válidos");
-        }
-
+    // Se conserva la firma para los endpoints existentes, pero el cliente no determina cuotas.
+    public double consultarEstadoCuenta(int idEstudiante, int mensualidadesIgnoradas) {
+        if (idEstudiante<=0) throw new ProcesosException("DATOS_INVALIDOS","El estudiante no es válido");
+        if(!existeEstudiante(idEstudiante)) throw new ProcesosException("NO_ENCONTRADO","No se encontró al estudiante");
         try {
-            if (mensualidadesRequeridas > 12) {
-                throw new ProcesosException("DATOS_INVALIDOS", "No puedes evaluar más de 12 mensualidades en un ciclo escolar");
+            for(Ciclo ciclo:cicloDAO.consultar()) {
+                if("ACTIVO".equalsIgnoreCase(ciclo.getEstado()))
+                    return consultarEstadoCuentaPorCiclo(idEstudiante,ciclo.getIdCiclo());
             }
-            if (!existeEstudiante(idEstudiante)) {
-                throw new ProcesosException("NO_ENCONTRADO", "No se encontró el estudiante");
-            }
+            return 0;
+        } catch(daoException e) {throw new ProcesosException("BD_ERROR","No se pudo consultar el estado de cuenta",e);}
+    }
 
-            boolean inscrito = false;
-            for (var inscripcion : inscripcionDAO.consultar()) {
-                if (inscripcion.getIdEstudiante() == idEstudiante) {
-                    inscrito = true;
-                    break;
-                }
-            }
-            if (!inscrito) {
-                return 0;
-            }
-
-            double totalInscripcion = 0;
-            double totalMensualidades = 0;
-
-            for (Pago pago : pagoDAO.consultar()) {
-                if (pago.getIdEstudiante() == idEstudiante) {
-                    if ("INSCRIPCION".equalsIgnoreCase(pago.getConcepto())) {
-                        totalInscripcion += pago.getMonto();
-                    }
-
-                    if ("MENSUALIDAD".equalsIgnoreCase(pago.getConcepto())) {
-                        totalMensualidades += pago.getMonto();
-                    }
-                }
-            }
-
-            double totalRequerido = PagoServicio.PRECIO_INSCRIPCION + (mensualidadesRequeridas * PagoServicio.PRECIO_MENSUALIDAD);
-            double totalPagado = totalInscripcion + totalMensualidades;
-            double saldoPendiente = totalRequerido - totalPagado;
-
-            return Math.max(saldoPendiente, 0);
-        } catch (daoException e) {
-            throw new ProcesosException("BD_ERROR", "No se pudo consultar el estado de cuenta", e);
+    public double consultarEstadoCuentaPorCiclo(int idEstudiante, int idCiclo) {
+        if (idEstudiante <= 0 || idCiclo <= 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "Estudiante o ciclo no válidos");
         }
+        try {
+            return cuotaDAO.saldoPendiente(idEstudiante, idCiclo, PagoServicio.PRECIO_INSCRIPCION);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo calcular el saldo", e);
+        }
+    }
+
+    // Solo cuotas cuyo mes ya terminó; conserva el saldo total para el estado de cuenta.
+    public double consultarSaldoVencido(int idEstudiante, int idCiclo) {
+        if (idEstudiante <= 0 || idCiclo <= 0)
+            throw new ProcesosException("DATOS_INVALIDOS", "Estudiante o ciclo no válidos");
+        try {
+            return cuotaDAO.saldoVencido(idEstudiante, idCiclo, PagoServicio.PRECIO_INSCRIPCION);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar el saldo vencido", e);
+        }
+    }
+
+    public double consultarSaldoVencido(int idEstudiante) {
+        for (Ciclo ciclo : cicloDAO.consultar()) {
+            if ("ACTIVO".equalsIgnoreCase(ciclo.getEstado()))
+                return consultarSaldoVencido(idEstudiante, ciclo.getIdCiclo());
+        }
+        return 0;
+    }
+
+    public Collection<CuotaMensual> consultarCuotas(int idEstudiante) {
+        if(idEstudiante<=0) throw new ProcesosException("DATOS_INVALIDOS","Selecciona un estudiante");
+        return cuotaDAO.consultar(idEstudiante);
+    }
+
+    public Factura consultarFactura(int idFactura) {
+        if(idFactura<=0) throw new ProcesosException("DATOS_INVALIDOS","La factura indicada no es válida");
+        for(Factura factura:facturaDAO.consultar()) if(factura.getIdFactura()==idFactura) return factura;
+        throw new ProcesosException("NO_ENCONTRADO","No se encontró la factura");
+    }
+
+    public Pago consultarPago(int idPago) {
+        for(Pago p:pagoDAO.consultar()) if(p.getIdPago()==idPago) return p;
+        throw new ProcesosException("NO_ENCONTRADO","No se encontró el pago");
+    }
+
+    public String consultarNombreEstudiante(int idEstudiante) {
+        for(Estudiante e:estudianteDAO.consultar())
+            if(e.getIdEstudiante()==idEstudiante) return e.getNombre()+" "+e.getApellido();
+        throw new ProcesosException("NO_ENCONTRADO","No se encontró el estudiante");
     }
 
     public Collection<Pago> consultarHistorialPagos(int idEstudiante) {
@@ -171,25 +196,24 @@ public class PagoProcesos {
         }
     }
 
-    public boolean consultarSolvencia(int idEstudiante, int mensualidadesRequeridas) {
+    public boolean consultarSolvencia(int idEstudiante, int mensualidadesIgnoradas) {
         if (idEstudiante <= 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "El estudiante indicado no es válido");
+            throw new ProcesosException("DATOS_INVALIDOS", "El estudiante no es válido");
         }
         try {
-            boolean inscrito = false;
-            for (var inscripcion : inscripcionDAO.consultar()) {
-                if (inscripcion.getIdEstudiante() == idEstudiante) {
-                    inscrito = true;
-                    break;
+            for (Ciclo ciclo : cicloDAO.consultar()) {
+                if (!"ACTIVO".equalsIgnoreCase(ciclo.getEstado())) continue;
+                for (Inscripcion inscripcion : inscripcionDAO.consultar()) {
+                    if (inscripcion.getIdEstudiante() == idEstudiante
+                            && inscripcion.getIdCiclo() == ciclo.getIdCiclo()) {
+                        return consultarSaldoVencido(idEstudiante, ciclo.getIdCiclo()) <= 0.01;
+                    }
                 }
             }
-            if (!inscrito) {
-                throw new ProcesosException("CONFLICTO", "No se puede emitir solvencia: el estudiante no tiene inscripción registrada");
-            }
+            throw new ProcesosException("CONFLICTO", "No se puede emitir solvencia sin inscripción en el ciclo activo");
         } catch (daoException e) {
-            throw new ProcesosException("BD_ERROR", "No se pudieron verificar las inscripciones", e);
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar la solvencia", e);
         }
-        return consultarEstadoCuenta(idEstudiante, mensualidadesRequeridas) <= 0.01;
     }
 
     public Collection<Factura> consultarFacturas(int pagina, int limite) {
