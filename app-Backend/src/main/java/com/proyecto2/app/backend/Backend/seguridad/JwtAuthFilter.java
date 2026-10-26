@@ -5,6 +5,7 @@
 package com.proyecto2.app.backend.Backend.seguridad;
 
 import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
+import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import jakarta.annotation.Priority;
@@ -73,6 +74,12 @@ public class JwtAuthFilter implements ContainerRequestFilter {
                 return;
             }
 
+            if ("MAESTRO".equalsIgnoreCase(usuario.getRol())
+                    && !new EmpleadoDao().maestroActivo(usuario.getIdEmpleado())) {
+                rechazar(request, "El maestro no se encuentra activo");
+                return;
+            }
+
             request.setProperty("idUsuario", usuario.getIdUsuario());
             request.setProperty("idEmpleado", usuario.getIdEmpleado());
 
@@ -111,7 +118,8 @@ public class JwtAuthFilter implements ContainerRequestFilter {
                 }
 
                 if (usuario.getRol().equalsIgnoreCase("SUPER_ADMIN")) {
-                    return true;
+                    // Solo el maestro puede ingresar y modificar calificaciones.
+                    return !"MAESTRO".equalsIgnoreCase(rol);
                 }
 
                 return usuario.getRol().equalsIgnoreCase(rol);

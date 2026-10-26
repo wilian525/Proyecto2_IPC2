@@ -38,6 +38,7 @@ import com.proyecto2.app.backend.Backend.Model.Seccion;
 import com.proyecto2.app.backend.Backend.Model.Zona;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -919,6 +920,14 @@ public class AcademicoServicio {
         if (asistencia == null || idEmpleado <= 0 || asistencia.getIdAsignacion() <= 0 || asistencia.getIdInscripcion() <= 0 || asistencia.getFecha() == null || asistencia.getEstado() == null || asistencia.getEstado().trim().isEmpty()) {
             throw new ServicioException("DATOS_INVALIDOS", "Los datos de la asistencia no son válidos");
         }
+        if (asistencia.getFecha().isAfter(LocalDate.now())) {
+            throw new ServicioException("DATOS_INVALIDOS", "La asistencia no puede registrarse para una fecha futura");
+        }
+        String estadoAsistencia = asistencia.getEstado().trim().toUpperCase();
+        if (!"PRESENTE".equals(estadoAsistencia) && !"AUSENTE".equals(estadoAsistencia) && !"TARDE".equals(estadoAsistencia)) {
+            throw new ServicioException("DATOS_INVALIDOS", "El estado de asistencia no es válido");
+        }
+        asistencia.setEstado(estadoAsistencia);
 
         Connection conexion = null;
         boolean autoCommitAnterior = true;

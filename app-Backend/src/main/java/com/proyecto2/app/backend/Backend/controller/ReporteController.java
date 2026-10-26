@@ -23,6 +23,8 @@ import java.util.Map;
 import com.proyecto2.app.backend.Backend.Dao.cicloDao;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
+import jakarta.servlet.http.HttpServletRequest;
+import com.proyecto2.app.backend.Backend.procesos.AcademicoProcesos;
 
 @Path("reportes")
 @Produces(MediaType.APPLICATION_JSON)
@@ -78,6 +80,41 @@ public class ReporteController {
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
+    }
+
+    @GET
+    @Path("mi-rendimiento/{idAsignacion}")
+    @RolesAllowed("MAESTRO")
+    public Response miRendimiento(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
+        try {
+            int idEmpleado = obtenerIdEmpleado(request);
+            return Response.ok(new AcademicoProcesos().consultarRendimientoMaestro(idAsignacion, idEmpleado)).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    @GET
+    @Path("mi-rendimiento/{idAsignacion}/pdf")
+    @Produces({"application/pdf", MediaType.APPLICATION_JSON})
+    @RolesAllowed("MAESTRO")
+    public Response miRendimientoPdf(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
+        try {
+            int idEmpleado = obtenerIdEmpleado(request);
+            ReporteRendimiento datos = new AcademicoProcesos().consultarRendimientoMaestro(idAsignacion, idEmpleado);
+            byte[] pdf = new GeneradorReportePdf().generarPdf(GeneradorReportePdf.RENDIMIENTO, datos, new java.util.HashMap<>(Map.of()));
+            return responderPdf(pdf, "mi_rendimiento.pdf");
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
+    private int obtenerIdEmpleado(HttpServletRequest request) {
+        Object id = request.getAttribute("idEmpleado");
+        if (!(id instanceof Integer) || (Integer) id <= 0) {
+            throw new ProcesosException("NO_AUTORIZADO", "No se identificó al maestro autenticado");
+        }
+        return (Integer) id;
     }
 
     @GET

@@ -18,6 +18,9 @@ import com.proyecto2.app.backend.Backend.Dao.curriculoDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Asignacion;
+import com.proyecto2.app.backend.Backend.Model.AsignacionDetalle;
+import com.proyecto2.app.backend.Backend.Model.AlumnoNomina;
+import com.proyecto2.app.backend.Backend.Model.ReporteRendimiento;
 import com.proyecto2.app.backend.Backend.Model.Asistencia;
 import com.proyecto2.app.backend.Backend.Model.Carrera;
 import com.proyecto2.app.backend.Backend.Model.Curriculo;
@@ -68,6 +71,39 @@ public class AcademicoProcesos {
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudieron consultar los cursos", e);
         }
+    }
+
+    public Collection<AsignacionDetalle> consultarMisCursos(int idEmpleado) {
+        if (idEmpleado <= 0) {
+            throw new ProcesosException("NO_AUTORIZADO", "No se identificó al maestro autenticado");
+        }
+        try {
+            return asignacionDAO.consultarDetallesMaestro(idEmpleado);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar los cursos asignados", e);
+        }
+    }
+
+    public Collection<AlumnoNomina> consultarNominaMaestro(int idAsignacion, int idEmpleado) {
+        try {
+            Asignacion asignacion = validarAsignacionMaestro(idAsignacion, idEmpleado);
+            return inscripcionDAO.consultarNominaAsignacion(asignacion.getIdSeccion(), asignacion.getIdCiclo());
+        } catch (ProcesosException e) {
+            throw e;
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar la nómina", e);
+        }
+    }
+
+    public ReporteRendimiento consultarRendimientoMaestro(int idAsignacion, int idEmpleado) {
+        Asignacion asignacion = validarAsignacionMaestro(idAsignacion, idEmpleado);
+        for (Seccion seccion : seccionDAO.consultar()) {
+            if (seccion.getIdSeccion() == asignacion.getIdSeccion()) {
+                return new ReporteProcesos().generarReporteRendimientoMaestro(
+                        seccion.getIdGrado(), asignacion.getIdSeccion(), asignacion.getIdCiclo(), idEmpleado);
+            }
+        }
+        throw new ProcesosException("NO_ENCONTRADO", "No se encontró la sección asignada");
     }
 
     public Collection<Estudiante> consultarNomina(int idAsignacion, int idEmpleado) {

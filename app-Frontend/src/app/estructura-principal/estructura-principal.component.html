@@ -38,6 +38,13 @@
             <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
           </a>
         }
+      } @else if (esMaestro) {
+        @for (opcion of opcionesMaestro; track opcion.ruta) {
+          <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"
+             [routerLinkActiveOptions]="{ exact: true }" (click)="cerrarMenu()">
+            <i class="bi {{ opcion.icono }}"></i><span>{{ opcion.titulo }}</span>
+          </a>
+        }
       } @else if (esBibliotecario) {
         @for (opcion of opcionesBibliotecario; track opcion.ruta) {
           <a class="enlace-menu" [routerLink]="opcion.ruta" routerLinkActive="activo"

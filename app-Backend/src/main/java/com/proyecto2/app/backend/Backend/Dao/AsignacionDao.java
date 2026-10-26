@@ -7,6 +7,7 @@ package com.proyecto2.app.backend.Backend.Dao;
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Asignacion;
+import com.proyecto2.app.backend.Backend.Model.AsignacionDetalle;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,6 +60,39 @@ private static final String CONTAR_EMPLEADO = "SELECT COUNT(*) AS total FROM ASI
     private static final String CONSULTAR_CURRICULO = "SELECT id_curriculo FROM CURRICULO WHERE id_grado = ? AND id_ciclo = ?";
     private static final String CONSULTAR_CURSO_CURRICULO = "SELECT id_curso FROM CURRICULO_CURSO WHERE id_curriculo = ? AND id_curso = ?";
     private static final String CONSULTAR_ASIGNACION_EXISTENTE = "SELECT id_asignacion FROM ASIGNACION WHERE id_empleado = ? AND id_curso = ? AND id_seccion = ? AND id_ciclo = ?";
+
+    private static final String CONSULTAR_DETALLES_MAESTRO = """
+            SELECT a.id_asignacion, a.id_curso, a.id_seccion, a.id_ciclo,
+                   c.nombre AS curso, g.nombre AS grado, s.nombre AS seccion,
+                   ci.año_inicio, ci.año_fin, ci.estado AS estado_ciclo
+            FROM ASIGNACION a
+            JOIN CURSO c ON c.id_curso = a.id_curso
+            JOIN SECCION s ON s.id_seccion = a.id_seccion
+            JOIN GRADO g ON g.id_grado = s.id_grado
+            JOIN CICLO ci ON ci.id_ciclo = a.id_ciclo
+            JOIN EMPLEADO e ON e.id_empleado = a.id_empleado
+            WHERE a.id_empleado = ? AND e.estado = 'ACTIVO' AND e.puesto = 'MAESTRO'
+            ORDER BY ci.año_inicio DESC, c.nombre, s.nombre
+            """;
+
+    public Collection<AsignacionDetalle> consultarDetallesMaestro(int idEmpleado) {
+        Collection<AsignacionDetalle> detalles = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_DETALLES_MAESTRO)) {
+            ps.setInt(1, idEmpleado);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    detalles.add(new AsignacionDetalle(rs.getInt("id_asignacion"), rs.getInt("id_curso"),
+                            rs.getInt("id_seccion"), rs.getInt("id_ciclo"), rs.getString("curso"),
+                            rs.getString("grado"), rs.getString("seccion"),
+                            rs.getInt("año_inicio") + "-" + rs.getInt("año_fin"), rs.getString("estado_ciclo")));
+                }
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return detalles;
+    }
 
     public AsignacionDao() {
         this.conexionDB = ConexionDB.getInstance();

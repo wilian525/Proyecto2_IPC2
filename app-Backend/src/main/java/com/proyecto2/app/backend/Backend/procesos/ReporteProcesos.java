@@ -159,7 +159,18 @@ public class ReporteProcesos {
         }
     }
 
+    public ReporteRendimiento generarReporteRendimientoMaestro(int idGrado, int idSeccion, int idCiclo, int idEmpleado) {
+        if (idEmpleado <= 0) {
+            throw new ProcesosException("NO_AUTORIZADO", "No se identificó al maestro");
+        }
+        return generarReporteRendimientoFiltrado(idGrado, idSeccion, idCiclo, idEmpleado);
+    }
+
     public ReporteRendimiento generarReporteRendimiento(int idGrado, int idSeccion, int idCiclo) {
+        return generarReporteRendimientoFiltrado(idGrado, idSeccion, idCiclo, 0);
+    }
+
+    private ReporteRendimiento generarReporteRendimientoFiltrado(int idGrado, int idSeccion, int idCiclo, int idEmpleadoFiltro) {
         if (idGrado <= 0 || idSeccion <= 0 || idCiclo <= 0) {
             throw new ProcesosException("DATOS_INVALIDOS", "El grado, la sección y el ciclo deben ser válidos");
         }
@@ -170,7 +181,10 @@ public class ReporteProcesos {
             Collection<Grado> grados = gradoDAO.consultar();
             Collection<Seccion> secciones = seccionDAO.consultar();
             Collection<Curso> cursos = cursoDAO.consultar();
-            Collection<Asignacion> asignaciones = asignacionDAO.consultar();
+            Collection<Asignacion> asignaciones = new ArrayList<>(asignacionDAO.consultar());
+            if (idEmpleadoFiltro > 0) {
+                asignaciones.removeIf(asignacion -> asignacion.getIdEmpleado() != idEmpleadoFiltro);
+            }
             Collection<Zona> zonas = zonaDAO.consultar();
             Collection<Nota> notas = notaDAO.consultar();
             Collection<Integer> cursosProcesados = new ArrayList<>();

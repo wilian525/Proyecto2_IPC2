@@ -7,6 +7,7 @@ import { soloSuperAdministrador } from './seguridad/solo-super-administrador.gua
 import { soloAdministrador } from './seguridad/solo-administrador.guard';
 import { soloSecretaria } from './seguridad/solo-secretaria.guard';
 import { soloBibliotecario } from './seguridad/solo-bibliotecario.guard';
+import { soloMaestro } from './seguridad/solo-maestro.guard';
 
 
 export const rutas: Routes = [
@@ -84,6 +85,24 @@ export const rutas: Routes = [
       },
       { path: 'secretaria/reportes', canActivate: [soloSecretaria],
         loadComponent: () => import('./secretaria/reportes/reportes.component').then(m => m.ReportesSecretariaComponent)
+      },
+      { path: 'maestro', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/panel/panel.component').then(m => m.PanelMaestroComponent)
+      },
+      { path: 'maestro/cursos', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/cursos/cursos.component').then(m => m.CursosMaestroComponent)
+      },
+      { path: 'maestro/asistencia', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/asistencia/asistencia.component').then(m => m.AsistenciaMaestroComponent)
+      },
+      { path: 'maestro/zona', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/zona/zona.component').then(m => m.ZonaMaestroComponent)
+      },
+      { path: 'maestro/notas', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/notas/notas.component').then(m => m.NotasMaestroComponent)
+      },
+      { path: 'maestro/rendimiento', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/rendimiento/rendimiento.component').then(m => m.RendimientoMaestroComponent)
       },
       { path: 'bibliotecario', canActivate: [soloBibliotecario],
         loadComponent: () => import('./bibliotecario/panel/panel.component').then(m => m.PanelBibliotecarioComponent)

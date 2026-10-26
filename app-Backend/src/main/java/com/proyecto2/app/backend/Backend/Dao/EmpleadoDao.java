@@ -44,6 +44,21 @@ public class EmpleadoDao {
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM EMPLEADO";
 
+    private static final String CONSULTAR_MAESTRO_ACTIVO = "SELECT 1 FROM EMPLEADO WHERE id_empleado = ? AND puesto = 'MAESTRO' AND estado = 'ACTIVO'";
+
+    public boolean maestroActivo(int idEmpleado) {
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_MAESTRO_ACTIVO)) {
+            ps.setInt(1, idEmpleado);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return false;
+        }
+    }
+
     public EmpleadoDao() {
         this.conexionDB = ConexionDB.getInstance();
     }

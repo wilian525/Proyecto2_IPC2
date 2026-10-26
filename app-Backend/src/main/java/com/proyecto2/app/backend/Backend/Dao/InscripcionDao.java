@@ -7,6 +7,7 @@ package com.proyecto2.app.backend.Backend.Dao;
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Inscripcion;
+import com.proyecto2.app.backend.Backend.Model.AlumnoNomina;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -61,6 +62,31 @@ public class InscripcionDao {
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM INSCRIPCION";
     private static final String CONSULTAR_POR_ID = "SELECT id_inscripcion, id_estudiante, id_ciclo, id_grado, id_seccion FROM INSCRIPCION WHERE id_inscripcion = ?";
+
+    private static final String CONSULTAR_NOMINA_ASIGNACION = """
+            SELECT i.id_inscripcion, e.id_estudiante, e.nombre, e.apellido
+            FROM INSCRIPCION i JOIN ESTUDIANTE e ON e.id_estudiante = i.id_estudiante
+            WHERE i.id_seccion = ? AND i.id_ciclo = ?
+            ORDER BY e.apellido, e.nombre
+            """;
+
+    public Collection<AlumnoNomina> consultarNominaAsignacion(int idSeccion, int idCiclo) {
+        Collection<AlumnoNomina> nomina = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_NOMINA_ASIGNACION)) {
+            ps.setInt(1, idSeccion);
+            ps.setInt(2, idCiclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    nomina.add(new AlumnoNomina(rs.getInt("id_inscripcion"), rs.getInt("id_estudiante"),
+                            rs.getString("nombre"), rs.getString("apellido")));
+                }
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return nomina;
+    }
 
     public InscripcionDao() {
         this.conexionDB = ConexionDB.getInstance();

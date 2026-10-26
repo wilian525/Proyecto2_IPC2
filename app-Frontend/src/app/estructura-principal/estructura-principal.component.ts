@@ -20,6 +20,7 @@ export class EstructuraPrincipalComponent {
   readonly esAdministrador = this.rol === 'ADMIN';
   readonly esSecretaria = this.rol === 'SECRETARIA';
   readonly esBibliotecario = this.rol === 'BIBLIOTECARIO';
+  readonly esMaestro = this.rol === 'MAESTRO';
   readonly menuAbierto = signal(false);
 
   readonly opcionesAlumno = [
@@ -64,6 +65,16 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/secretaria/expedientes', titulo: 'Expedientes', icono: 'bi-person-vcard' },
     { ruta: '/inicio/secretaria/solvencias', titulo: 'Solvencias', icono: 'bi-patch-check' },
     { ruta: '/inicio/secretaria/reportes', titulo: 'Reportes', icono: 'bi-file-earmark-pdf' }
+  ];
+
+  readonly opcionesMaestro = [
+    { ruta: '/inicio', titulo: 'Resumen', icono: 'bi-grid-1x2' },
+    { ruta: '/inicio/maestro', titulo: 'Panel del Maestro', icono: 'bi-speedometer2' },
+    { ruta: '/inicio/maestro/cursos', titulo: 'Mis cursos', icono: 'bi-journals' },
+    { ruta: '/inicio/maestro/asistencia', titulo: 'Asistencia', icono: 'bi-calendar-check' },
+    { ruta: '/inicio/maestro/zona', titulo: 'Zona', icono: 'bi-pie-chart' },
+    { ruta: '/inicio/maestro/notas', titulo: 'Notas', icono: 'bi-journal-check' },
+    { ruta: '/inicio/maestro/rendimiento', titulo: 'Rendimiento', icono: 'bi-file-earmark-pdf' }
   ];
 
   readonly opcionesBibliotecario = [

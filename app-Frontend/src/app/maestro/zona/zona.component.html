@@ -1,0 +1,19 @@
+<section>
+  <a routerLink="/inicio/maestro" class="btn btn-menta mb-3">← Volver al panel</a>
+  <h1 class="titulo-seccion">Zona y ponderaciones</h1><p class="subtitulo mb-4">La suma debe ser 100% antes de registrar notas.</p>
+  @if(error()){<div class="alert alert-danger">{{error()}}</div>}@if(mensaje()){<div class="alert alert-success">{{mensaje()}}</div>}
+  <div class="row g-4"><div class="col-lg-7"><div class="panel-res p-4"><h2 class="h3">Ponderaciones registradas</h2>
+    <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Actividad</th><th>Porcentaje</th></tr></thead><tbody>
+      @for(zona of zonas();track zona.idZona){<tr><td>{{zona.nombre}}</td><td>{{zona.porcentaje}}%</td></tr>}
+      @empty{<tr><td colspan="2">Selecciona un curso para consultar su zona.</td></tr>}
+    </tbody></table></div><strong>Total: {{porcentajeTotal()}}%</strong>
+  </div></div><div class="col-lg-5"><div class="panel-res p-4"><h2 class="h3">Definir zona</h2>
+    <form [formGroup]="formulario" (ngSubmit)="guardar()"><label class="form-label">Mi curso / sección</label>
+      <select class="form-select mb-3" formControlName="idAsignacion" (change)="seleccionar()"><option [ngValue]="0">Selecciona un curso</option>
+      @for(curso of cursos();track curso.idAsignacion){<option [ngValue]="curso.idAsignacion">{{curso.curso}} · {{curso.grado}} / {{curso.seccion}} · {{curso.ciclo}}</option>}</select>
+      <label class="form-label">Nombre de la actividad</label><input class="form-control mb-3" formControlName="nombre" placeholder="Ejemplo: Tareas" />
+      <label class="form-label">Porcentaje (%)</label><input class="form-control mb-3" type="number" min="1" max="100" formControlName="porcentaje" />
+      <button class="btn btn-rosa" [disabled]="procesando()||!curso()||curso()?.estadoCiclo!=='ACTIVO'">Guardar ponderación</button>
+    </form>
+  </div></div></div>
+</section>

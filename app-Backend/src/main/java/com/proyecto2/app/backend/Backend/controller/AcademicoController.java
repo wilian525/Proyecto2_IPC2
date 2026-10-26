@@ -125,7 +125,7 @@ public class AcademicoController {
     @RolesAllowed("MAESTRO")
     public Response consultarMisAsignaciones(@Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarAsignacionesMaestro(obtenerId(request, "idEmpleado"))).build();
+            return Response.ok(new AcademicoProcesos().consultarMisCursos(obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -136,7 +136,7 @@ public class AcademicoController {
     @RolesAllowed("MAESTRO")
     public Response consultarNomina(@PathParam("idAsignacion") int idAsignacion, @Context HttpServletRequest request) {
         try {
-            return Response.ok(new AcademicoProcesos().consultarNomina(idAsignacion, obtenerId(request, "idEmpleado"))).build();
+            return Response.ok(new AcademicoProcesos().consultarNominaMaestro(idAsignacion, obtenerId(request, "idEmpleado"))).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }

@@ -1,0 +1,22 @@
+<section>
+  <a routerLink="/inicio/maestro" class="btn btn-menta mb-3">← Volver al panel</a>
+  <h1 class="titulo-seccion">Notas de mis alumnos</h1><p class="subtitulo mb-4">Solo el maestro asignado puede guardar notas durante el ciclo activo.</p>
+  @if(error()){<div class="alert alert-danger">{{error()}}</div>}@if(mensaje()){<div class="alert alert-success">{{mensaje()}}</div>}
+  <div class="panel-res p-4 mb-3" [formGroup]="formulario"><div class="row g-3"><div class="col-md-7"><label class="form-label">Curso / sección</label>
+    <select class="form-select" formControlName="idAsignacion" (change)="seleccionar()"><option [ngValue]="0">Selecciona un curso</option>
+    @for(curso of cursos();track curso.idAsignacion){<option [ngValue]="curso.idAsignacion">{{curso.curso}} · {{curso.grado}} / {{curso.seccion}} · {{curso.ciclo}}</option>}</select></div>
+    <div class="col-md-5"><label class="form-label">Ponderación</label><select class="form-select" formControlName="idZona"><option [ngValue]="0">Selecciona una actividad</option>
+    @for(zona of zonas();track zona.idZona){<option [ngValue]="zona.idZona">{{zona.nombre}} ({{zona.porcentaje}}%)</option>}</select></div></div>
+  </div>
+  @if(curso()){<div class="panel-res p-4"><h2 class="h3">Calificaciones</h2>
+    @if(curso()?.estadoCiclo!=='ACTIVO'){<div class="alert alert-warning">Ciclo inactivo. Solo consulta.</div>}
+    @if(totalZona()<99.99){<p class="texto-suave">La zona suma {{totalZona()}}%. Debe llegar a 100% antes de ingresar notas.</p>}
+    @if(zona()){<p class="texto-suave">Actividad: {{zona()?.nombre}} · Ponderación: {{zona()?.porcentaje}}%</p>}
+    <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Nota actual</th><th>Nota (0–100)</th><th>Acción</th></tr></thead><tbody>
+      @for(alumno of alumnos();track alumno.idInscripcion){<tr><td>{{alumno.nombre}} {{alumno.apellido}}</td><td>{{actual(alumno.idInscripcion)??'Sin nota'}}</td>
+      <td><input class="form-control form-control-sm" type="number" #notaEntrada min="0" max="100" [value]="actual(alumno.idInscripcion)??''" [disabled]="!zona()||curso()?.estadoCiclo!=='ACTIVO'" /></td>
+      <td><button class="btn btn-menta btn-sm" [disabled]="procesando()||!zona()||curso()?.estadoCiclo!=='ACTIVO'||totalZona()<99.99" (click)="guardar(alumno.idInscripcion,notaEntrada.value)">Guardar</button></td></tr>}
+      @empty{<tr><td colspan="4">No hay estudiantes inscritos en la sección.</td></tr>}
+    </tbody></table></div>
+  </div>}
+</section>
