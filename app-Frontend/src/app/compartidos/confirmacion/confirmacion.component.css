@@ -1,0 +1,27 @@
+.fondo-confirmacion {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(6, 12, 27, .75);
+}
+.modal { z-index: 2001; }
+.modal-dialog { max-width: 440px; padding: 12px; }
+.modal-content {
+  color: #edf2ff;
+  background: #26314c;
+  border: 1px solid #536480;
+  border-radius: 16px;
+  box-shadow: 0 18px 56px rgba(0, 0, 0, .4);
+}
+.modal-header, .modal-footer { border-color: #40506d; }
+.modal-title { color: #f1a2cc; font-weight: 700; }
+.modal-body { line-height: 1.6; overflow-wrap: anywhere; }
+.btn-cancelar { border: 1px solid #647593; color: #dce5f5; }
+.btn-cancelar:hover { color: #fff; background: #394867; }
+.btn-aceptar {
+  color: #18243b;
+  font-weight: 700;
+  border: 0;
+  background: linear-gradient(100deg, #eb8bb6, #a881d6);
+}
+.btn-aceptar:hover { filter: brightness(1.1); }

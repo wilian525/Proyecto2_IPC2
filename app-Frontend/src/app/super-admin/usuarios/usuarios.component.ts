@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -14,6 +15,7 @@ import { ListaAdministradoresComponent } from '../lista-usuarios/lista-usuarios.
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class UsuariosAdministrativosComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(AdministracionServicio);
   private readonly ruta = inject(ActivatedRoute);
   private readonly destruir = inject(DestroyRef);
@@ -62,9 +64,9 @@ export class UsuariosAdministrativosComponent {
     });
   }
 
-  activar(usuario: Administrador): void {
+  async activar(usuario: Administrador): Promise<void> {
     if (this.procesando() || usuario.estado !== 'INACTIVO') return;
-    if (!window.confirm(`¿Confirmas la reactivación de ${usuario.nombreUsuario}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Confirmas la reactivación de ${usuario.nombreUsuario}?`)) return;
     this.error.set(''); this.mensaje.set(''); this.procesando.set(true);
     this.servicio.activarAdministrador(this.rol, usuario.idUsuario)
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({
@@ -73,9 +75,9 @@ export class UsuariosAdministrativosComponent {
       });
   }
 
-  desactivar(usuario: Administrador): void {
+  async desactivar(usuario: Administrador): Promise<void> {
     if (this.procesando() || usuario.estado !== 'ACTIVO') return;
-    if (!window.confirm(`¿Confirmas la desactivación de ${usuario.nombreUsuario}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Confirmas la desactivación de ${usuario.nombreUsuario}?`)) return;
     this.error.set(''); this.mensaje.set(''); this.procesando.set(true);
     this.servicio.desactivarAdministrador(this.rol, usuario.idUsuario)
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({

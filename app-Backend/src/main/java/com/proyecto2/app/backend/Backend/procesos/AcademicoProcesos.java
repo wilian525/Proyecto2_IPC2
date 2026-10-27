@@ -28,6 +28,7 @@ import com.proyecto2.app.backend.Backend.Model.Curso;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
 import com.proyecto2.app.backend.Backend.Model.Inscripcion;
 import com.proyecto2.app.backend.Backend.Model.Nota;
+import com.proyecto2.app.backend.Backend.Model.NotaHistorial;
 import com.proyecto2.app.backend.Backend.Model.Seccion;
 import com.proyecto2.app.backend.Backend.Model.Zona;
 import java.util.ArrayList;
@@ -168,22 +169,12 @@ public class AcademicoProcesos {
         }
     }
 
-    public Collection<Nota> consultarHistorialNotas(int idEstudiante) {
+    public Collection<NotaHistorial> consultarHistorialNotas(int idEstudiante) {
         if (idEstudiante <= 0) {
-            throw new ProcesosException("DATOS_INVALIDOS", "El id del estudiante no es válido");
+            throw new ProcesosException("DATOS_INVALIDOS", "El estudiante no es válido");
         }
-
         try {
-            Collection<Nota> historial = new ArrayList<>();
-            Collection<Inscripcion> inscripciones = inscripcionDAO.consultar();
-
-            for (Nota nota : notaDAO.consultar()) {
-                if (inscripcionPerteneceEstudiante(nota.getIdInscripcion(), idEstudiante, inscripciones)) {
-                    historial.add(nota);
-                }
-            }
-
-            return historial;
+            return notaDAO.consultarHistorialEstudiante(idEstudiante);
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo consultar el historial de notas", e);
         }
@@ -250,15 +241,6 @@ public class AcademicoProcesos {
             }
         }
 
-        return false;
-    }
-
-    private boolean inscripcionPerteneceEstudiante(int idInscripcion, int idEstudiante, Collection<Inscripcion> inscripciones) {
-        for (Inscripcion inscripcion : inscripciones) {
-            if (inscripcion.getIdInscripcion() == idInscripcion && inscripcion.getIdEstudiante() == idEstudiante) {
-                return true;
-            }
-        }
         return false;
     }
 

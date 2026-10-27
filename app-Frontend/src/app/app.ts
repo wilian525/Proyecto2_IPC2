@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ConfirmacionComponent } from './compartidos/confirmacion/confirmacion.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ConfirmacionComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

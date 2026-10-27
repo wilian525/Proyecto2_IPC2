@@ -29,6 +29,7 @@ export class ConsultaAlumnoComponent {
   readonly notas = signal<NotaAlumno[]>([]);
   readonly estadoCuenta = signal<EstadoCuenta | null>(null);
   readonly historial = signal<PaginaPagos | null>(null);
+  readonly cargandoMasPagos = signal(false);
   readonly libros = signal<LibroAlumno[]>([]);
   readonly prestamos = signal<PrestamoAlumno[]>([]);
   readonly multas = signal<PrestamoAlumno[]>([]);
@@ -79,6 +80,23 @@ export class ConsultaAlumnoComponent {
         });
         break;
     }
+  }
+
+  cargarMasPagos(): void {
+    const actual = this.historial();
+    if (!actual || this.cargandoMasPagos() || actual.datos.length >= actual.total) return;
+    this.cargandoMasPagos.set(true);
+    this.servicio.obtenerHistorialPagos(actual.pagina + 1)
+      .pipe(takeUntilDestroyed(this.destruir)).subscribe({
+        next: pagina => {
+          this.historial.set({ ...pagina, datos: [...actual.datos, ...pagina.datos] });
+          this.cargandoMasPagos.set(false);
+        },
+        error: () => {
+          this.mensajeError.set('No fue posible cargar más pagos.');
+          this.cargandoMasPagos.set(false);
+        }
+      });
   }
 
   private finalizar(): void { this.cargando.set(false); }

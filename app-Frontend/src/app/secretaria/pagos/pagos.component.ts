@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -11,6 +12,7 @@ import { CuotaEscolar, PagoEscolar, InscripcionEscolar } from '../../modelos/sec
 import { explicarError } from '../../admin/mensajes-error';
 @Component({selector:'app-pagos-secretaria',imports:[RouterLink,ReactiveFormsModule,CurrencyPipe],templateUrl:'./pagos.component.html',styleUrl:'../../compartidos/estilos/estilos-administracion.css'})
 export class PagosSecretariaComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio=inject(SecretariaServicio);
   private readonly fb=inject(FormBuilder);
   private readonly destruir=inject(DestroyRef);
@@ -58,7 +60,7 @@ export class PagosSecretariaComponent {
   seleccionarCuota():void{const c=this.cuotaSeleccionada();if(c)this.formulario.patchValue({monto:c.monto,idInscripcion:c.idInscripcion});}
   cargarCuotas(id:number):void{this.servicio.cuotas(id).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>this.cuotas.set(r),error:e=>this.error.set(explicarError(e,'consultar cuotas'))});}
   cargar():void{this.servicio.pagos(this.pagina()).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.pagos.set(r.datos);this.total.set(r.total);},error:e=>this.error.set(explicarError(e,'consultar pagos'))});}
-  guardar():void{
+  async guardar(): Promise<void> {
     this.formulario.markAllAsTouched();if(this.formulario.invalid||this.procesando())return;
     const d=this.formulario.getRawValue();
     if(!this.inscripcionesActivas(d.idEstudiante).some(i=>i.idInscripcion===d.idInscripcion)){
@@ -68,7 +70,7 @@ export class PagosSecretariaComponent {
       this.error.set('Registra primero la cuota del mes y selecciónala. No se permiten cobros duplicados.');return;
     }
     if(d.concepto==='INSCRIPCION'&&d.monto!==500||d.concepto==='MENSUALIDAD'&&d.monto!==300){this.error.set('La tarifa no coincide con la cuota del backend.');return;}
-    if(!window.confirm(`¿Registrar ${d.concepto} por Q ${d.monto.toFixed(2)} de ${this.nombre(d.idEstudiante)}?`))return;
+    if(!await this.confirmacion.confirmar(`¿Registrar ${d.concepto} por Q ${d.monto.toFixed(2)} de ${this.nombre(d.idEstudiante)}?`))return;
     this.procesando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.registrarPago({...d,idCuota:d.concepto==='MENSUALIDAD'?d.idCuota:null,idInscripcion:d.idInscripcion})
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.cargar();this.cargarCuotas(d.idEstudiante);},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'registrar el pago'));}});
@@ -82,7 +84,7 @@ export class PagosSecretariaComponent {
     this.procesando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.crearCuota(d).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.cargarCuotas(this.formulario.controls.idEstudiante.value);},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'registrar la cuota'));}});
   }
-  conciliar():void{
+  async conciliar(): Promise<void> {
     const d=this.conciliacion.getRawValue();
     const pago=this.pagos().find(p=>p.idPago===d.idPago);
     if(!pago||!this.inscripciones().some(i=>i.idInscripcion===d.idInscripcion&&i.idEstudiante===pago.idEstudiante)){
@@ -91,7 +93,7 @@ export class PagosSecretariaComponent {
     if(pago.concepto==='MENSUALIDAD'&&!this.cuotas().some(c=>c.idCuota===d.idCuota&&c.idPago==null)){
       this.error.set('Para conciliar una mensualidad, selecciona su mes y año previamente registrados.');return;
     }
-    if(!window.confirm('¿Vincular el pago histórico a la obligación seleccionada? Esta operación no registra otro cobro.'))return;
+    if(!await this.confirmacion.confirmar('¿Vincular el pago histórico a la obligación seleccionada? Esta operación no registra otro cobro.'))return;
     this.procesando.set(true);this.error.set('');
     this.servicio.conciliarPago({idPago:d.idPago,idInscripcion:d.idInscripcion,idCuota:pago.concepto==='MENSUALIDAD'?d.idCuota:null})
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.cargarCuotas(pago.idEstudiante);},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'conciliar el pago histórico'));}});

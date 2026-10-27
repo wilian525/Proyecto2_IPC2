@@ -220,7 +220,7 @@ public class BibliotecaController {
     public Response consultarMisPendientes(@Context SecurityContext securityContext) {
         try {
             int idUsuario = obtenerIdUsuario(securityContext);
-            return Response.ok(new BibliotecaProcesos().consultarLibrosPendientes(idUsuario)).build();
+            return Response.ok(new BibliotecaProcesos().consultarMisPendientes(idUsuario)).build();
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }
@@ -233,7 +233,7 @@ public class BibliotecaController {
         try {
             int idUsuario = obtenerIdUsuario(securityContext);
             Estudiante estudiante = new EstudianteProcesos().consultarPerfil(idUsuario);
-            return Response.ok(new BibliotecaProcesos().consultarMultasEstudiante(estudiante.getIdEstudiante())).build();
+            return Response.ok(new BibliotecaProcesos().consultarMisMultas(estudiante.getIdEstudiante())).build();
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }

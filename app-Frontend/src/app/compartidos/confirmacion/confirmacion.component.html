@@ -1,0 +1,20 @@
+@if (confirmacion.mensaje()) {
+  <div class="fondo-confirmacion">
+    <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacion">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5" id="titulo-confirmacion">
+              <i class="bi bi-question-circle me-2"></i>Confirmación
+            </h2>
+          </div>
+          <div class="modal-body">{{ confirmacion.mensaje() }}</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancelar" (click)="confirmacion.resolver(false)">Cancelar</button>
+            <button type="button" class="btn btn-aceptar" (click)="confirmacion.resolver(true)" autofocus>Aceptar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

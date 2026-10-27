@@ -7,14 +7,14 @@
     <div class="row g-3"><div class="col-md-8"><label class="form-label">Curso / sección</label>
       <select class="form-select" formControlName="idAsignacion" (change)="seleccionar()"><option [ngValue]="0">Selecciona un curso</option>
         @for(curso of cursos();track curso.idAsignacion){<option [ngValue]="curso.idAsignacion">{{curso.curso}} · {{curso.grado}} / {{curso.seccion}} · {{curso.ciclo}}</option>}
-      </select></div><div class="col-md-4"><label class="form-label">Fecha</label><input class="form-control" type="date" formControlName="fecha" (change)="seleccionar()" /></div></div>
+      </select></div><div class="col-md-4"><label class="form-label">Fecha</label><input class="form-control" type="date" formControlName="fecha" [max]="fechaMaxima" (change)="seleccionar()" /></div></div>
   </div>
   @if(curso()) {<div class="panel-res p-4"><h2 class="h3">Alumnos de la sección</h2>
     @if(curso()?.estadoCiclo!=='ACTIVO'){<div class="alert alert-warning">Ciclo inactivo: la asistencia solo puede consultarse.</div>}
     <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Estudiante</th><th>Asistencia</th><th>Estado</th><th>Acción</th></tr></thead><tbody>
       @for(alumno of alumnos();track alumno.idInscripcion){<tr><td>{{alumno.nombre}} {{alumno.apellido}}</td><td>{{existente(alumno.idInscripcion)||'Sin registrar'}}</td>
       <td><select class="form-select form-select-sm" #estadoAlumno [disabled]="!!existente(alumno.idInscripcion)||curso()?.estadoCiclo!=='ACTIVO'"><option value="PRESENTE">Presente</option><option value="AUSENTE">Ausente</option><option value="TARDE">Tarde</option></select></td>
-      <td><button class="btn btn-menta btn-sm" [disabled]="guardando()||!!existente(alumno.idInscripcion)||curso()?.estadoCiclo!=='ACTIVO'" (click)="estado.set(estadoAlumno.value);guardar(alumno.idInscripcion)">Guardar</button></td></tr>}
+      <td><button class="btn btn-menta btn-sm" [disabled]="guardando()||formulario.controls.fecha.value>fechaMaxima||!!existente(alumno.idInscripcion)||curso()?.estadoCiclo!=='ACTIVO'" (click)="estado.set(estadoAlumno.value);guardar(alumno.idInscripcion)">Guardar</button></td></tr>}
       @empty{<tr><td colspan="4">No hay estudiantes inscritos.</td></tr>}
     </tbody></table></div>
   </div>}

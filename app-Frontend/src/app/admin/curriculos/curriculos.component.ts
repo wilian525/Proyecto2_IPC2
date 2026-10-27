@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,6 +16,7 @@ import { explicarError } from '../mensajes-error';
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class CurriculosAdministradorComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(GestionColegioServicio);
   private readonly administracion = inject(AdministracionServicio);
   private readonly destruir = inject(DestroyRef);
@@ -75,14 +77,14 @@ export class CurriculosAdministradorComponent {
   alternarCurso(id: number, marcado: boolean): void {
     this.asignados.update(actual => marcado ? [...actual.filter(x=>x!==id), id] : actual.filter(x=>x!==id));
   }
-  guardarCursos(): void {
+  async guardarCursos(): Promise<void> {
     const actual = this.seleccionado();
     if (!actual || this.procesando()) return;
     if (this.ciclos().find(c => c.idCiclo === actual.idCiclo)?.estado !== 'ACTIVO') {
       this.error.set('Este currículo pertenece a un ciclo inactivo. Solo puede consultarse.'); return;
     }
     if (!this.asignados().length) { this.error.set('Selecciona al menos un curso para el currículo.'); return; }
-    if (!window.confirm(`¿Guardar ${this.asignados().length} cursos en el currículo de ${this.nombreGrado(actual.idGrado)}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Guardar ${this.asignados().length} cursos en el currículo de ${this.nombreGrado(actual.idGrado)}?`)) return;
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');
     this.servicio.establecerCursos(actual.idCurriculo, this.asignados()).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje); this.cargar(); },

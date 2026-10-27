@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +10,7 @@ import { explicarError } from '../../admin/mensajes-error';
 
 @Component({selector:'app-notas-maestro',imports:[RouterLink,ReactiveFormsModule],templateUrl:'./notas.component.html',styleUrl:'../../compartidos/estilos/estilos-administracion.css'})
 export class NotasMaestroComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio=inject(MaestroServicio);private readonly destruir=inject(DestroyRef);private readonly fb=inject(FormBuilder);
   readonly cursos=signal<AsignacionMaestro[]>([]);readonly alumnos=signal<AlumnoNomina[]>([]);
   readonly zonas=signal<ZonaMaestro[]>([]);readonly notas=signal<NotaMaestro[]>([]);
@@ -24,12 +26,12 @@ export class NotasMaestroComponent {
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.alumnos.set(r.alumnos);this.zonas.set(r.zonas);this.notas.set(r.notas);},error:e=>this.error.set(explicarError(e,'consultar notas y alumnos'))});
   }
   actual(idInscripcion:number):number|null{return this.notas().find(n=>n.idInscripcion===idInscripcion&&n.idZona===this.formulario.controls.idZona.value)?.valor??null;}
-  guardar(idInscripcion:number,valorEntrada:string):void{
+  async guardar(idInscripcion:number,valorEntrada:string): Promise<void> {
     const valor=Number(valorEntrada);const idZona=this.formulario.controls.idZona.value;
     if(!idZona||valorEntrada.trim()===''||!Number.isFinite(valor)||valor<0||valor>100){this.error.set('La nota debe estar entre 0 y 100.');return;}
     if(this.curso()?.estadoCiclo!=='ACTIVO'){this.error.set('No se pueden modificar notas de un ciclo inactivo.');return;}
     if(this.totalZona()<99.99||this.totalZona()>100.01){this.error.set('La suma de la zona debe ser exactamente 100%.');return;}
-    if(this.procesando()||!window.confirm('¿Guardar esta calificación?'))return;
+    if(this.procesando()||!await this.confirmacion.confirmar('¿Guardar esta calificación?'))return;
     this.procesando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.guardarNota(idInscripcion,idZona,valor).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.servicio.notas(this.formulario.controls.idAsignacion.value).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:datos=>this.notas.set(datos),error:e=>this.error.set(explicarError(e,'actualizar notas'))});},

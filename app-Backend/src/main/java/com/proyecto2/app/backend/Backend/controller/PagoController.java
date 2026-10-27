@@ -214,8 +214,17 @@ public class PagoController {
             double saldoPendiente= procesos.consultarEstadoCuenta( estudiante.getIdEstudiante(),mensualidades
  );
 
-            return Response.ok(
-                    Map.of( "idEstudiante", estudiante.getIdEstudiante(), "saldoPendiente", saldoPendiente) ).build();
+            Collection<CuotaMensual> cuotas = procesos.consultarCuotasPendientes(estudiante.getIdEstudiante());
+            double totalCuotas = 0;
+            for (CuotaMensual cuota : cuotas) totalCuotas += cuota.getMonto();
+            double inscripcionPendiente = Math.max(0, saldoPendiente - totalCuotas);
+
+            return Response.ok(Map.of(
+                    "idEstudiante", estudiante.getIdEstudiante(),
+                    "saldoPendiente", saldoPendiente,
+                    "inscripcionPendiente", inscripcionPendiente,
+                    "cuotasPendientes", cuotas
+            )).build();
 
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());

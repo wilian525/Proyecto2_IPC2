@@ -23,8 +23,8 @@ export class AlumnoServicio {
     return this.http.get<EstadoCuenta>(`${URL_API}/pagos/mi-estado-cuenta`);
   }
 
-  obtenerHistorialPagos(): Observable<PaginaPagos> {
-    return this.http.get<PaginaPagos>(`${URL_API}/pagos/mi-historial?pagina=1&limite=20`);
+  obtenerHistorialPagos(pagina = 1): Observable<PaginaPagos> {
+    return this.http.get<PaginaPagos>(`${URL_API}/pagos/mi-historial`, { params: { pagina, limite: 20 } });
   }
 
   obtenerCatalogo(): Observable<LibroAlumno[]> {

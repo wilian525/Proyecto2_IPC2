@@ -33,12 +33,17 @@
       @if (notas().length === 0) { <p class="sin-datos">Todavía no hay notas registradas.</p> }
       @else {
         <div class="table-responsive"><table class="tabla-res table mb-0">
-          <thead><tr><th>Registro</th><th>Inscripción</th><th>Zona</th><th>Nota</th></tr></thead>
+          <thead><tr><th>Ciclo</th><th>Grado / sección</th><th>Curso</th><th>Actividad</th><th>Ponderación</th><th>Nota</th></tr></thead>
           <tbody>@for (nota of notas(); track nota.idNota) {
-            <tr><td>#{{ nota.idNota }}</td><td>#{{ nota.idInscripcion }}</td><td>#{{ nota.idZona }}</td><td><span class="valor-destacado">{{ nota.valor | number:'1.2-2' }}</span></td></tr>
+            <tr>
+              <td>{{ nota.anioInicio }}-{{ nota.anioFin }}</td>
+              <td>{{ nota.grado }} / {{ nota.seccion }}</td>
+              <td>{{ nota.curso }}</td><td>{{ nota.actividad }}</td>
+              <td>{{ nota.porcentaje | number:'1.0-2' }}%</td>
+              <td><span class="valor-destacado">{{ nota.valor | number:'1.2-2' }}</span></td>
+            </tr>
           }</tbody>
         </table></div>
-        <p class="nota-ayuda mt-3 mb-0">El backend devuelve las notas por inscripción y zona. Los nombres de cursos se agregarán cuando exista una consulta estudiantil que los relacione.</p>
       }
     }
 
@@ -46,7 +51,23 @@
       @if (estadoCuenta(); as cuenta) {
         <div class="saldo-cuenta mb-4"><small>Saldo pendiente informado por RES</small><strong>Q {{ cuenta.saldoPendiente | number:'1.2-2' }}</strong><span>Estudiante #{{ cuenta.idEstudiante }}</span></div>
       }
-      <h2 class="h6 fw-bold mb-3">Mis últimos pagos</h2>
+      <h2 class="h6 fw-bold mb-3">Pagos pendientes del ciclo activo</h2>
+      @if (estadoCuenta(); as cuenta) {
+        @if (cuenta.inscripcionPendiente > 0) {
+          <p class="nota-ayuda mb-3">Inscripción pendiente: <strong>Q {{ cuenta.inscripcionPendiente | number:'1.2-2' }}</strong></p>
+        }
+        @if (cuenta.cuotasPendientes.length === 0 && cuenta.inscripcionPendiente === 0) {
+          <p class="sin-datos">No tienes pagos pendientes en el ciclo activo.</p>
+        } @else if (cuenta.cuotasPendientes.length > 0) {
+          <div class="table-responsive mb-4"><table class="tabla-res table mb-0">
+            <thead><tr><th>Mes</th><th>Año</th><th>Concepto</th><th>Monto pendiente</th></tr></thead>
+            <tbody>@for (cuota of cuenta.cuotasPendientes; track cuota.idCuota) {
+              <tr><td>{{ cuota.mes }}</td><td>{{ cuota.anio }}</td><td>Colegiatura</td><td>Q {{ cuota.monto | number:'1.2-2' }}</td></tr>
+            }</tbody>
+          </table></div>
+        }
+      }
+      <h2 class="h6 fw-bold mb-3 mt-4">Mis últimos pagos</h2>
       @if (historial(); as historialPagos) {
         @if (historialPagos.datos.length === 0) { <p class="sin-datos">No tienes pagos registrados.</p> }
         @else {
@@ -56,13 +77,18 @@
               <tr><td>{{ pago.fecha }}</td><td>{{ pago.concepto }}</td><td>Q {{ pago.monto | number:'1.2-2' }}</td></tr>
             }</tbody>
           </table></div>
-          <p class="nota-ayuda mt-3 mb-0">Mostrando hasta {{ historialPagos.limite }} pagos de {{ historialPagos.total }} registrados.</p>
+          <p class="nota-ayuda mt-3 mb-2">Mostrando {{ historialPagos.datos.length }} de {{ historialPagos.total }} pagos registrados.</p>
+          @if (historialPagos.datos.length < historialPagos.total) {
+            <button type="button" class="btn btn-actualizar" (click)="cargarMasPagos()" [disabled]="cargandoMasPagos()">
+              {{ cargandoMasPagos() ? 'Cargando...' : 'Ver más pagos' }}
+            </button>
+          }
         }
       } @else { <p class="sin-datos">No hay historial de pagos disponible.</p> }
     }
 
     @if (seccion === 'catalogo') {
-      @if (libros().length === 0) { <p class="sin-datos">No hay libros disponibles por el momento.</p> }
+      @if (libros().length === 0) { <p class="sin-datos">No hay libros activos con ejemplares disponibles por el momento.</p> }
       @else {
         <div class="row g-3">@for (libro of libros(); track libro.idLibro) {
           <div class="col-md-6 col-xl-4"><div class="libro-card h-100">
@@ -82,7 +108,7 @@
         <div class="table-responsive"><table class="tabla-res table mb-0">
           <thead><tr><th>Préstamo</th><th>Libro</th><th>Fecha préstamo</th><th>Devolver antes de</th><th>Días de atraso</th></tr></thead>
           <tbody>@for (prestamo of prestamos(); track prestamo.idPrestamo) {
-            <tr><td>#{{ prestamo.idPrestamo }}</td><td>Libro #{{ prestamo.idLibro }}</td><td>{{ prestamo.fechaPrestamo }}</td><td>{{ prestamo.fechaDevolucionEsperada }}</td><td>{{ prestamo.diasAtraso }}</td></tr>
+            <tr><td>#{{ prestamo.idPrestamo }}</td><td>{{ prestamo.tituloLibro }}</td><td>{{ prestamo.fechaPrestamo }}</td><td>{{ prestamo.fechaDevolucionEsperada }}</td><td>{{ prestamo.diasAtraso }}</td></tr>
           }</tbody>
         </table></div>
       }
@@ -94,7 +120,7 @@
         <div class="table-responsive"><table class="tabla-res table mb-0">
           <thead><tr><th>Préstamo</th><th>Libro</th><th>Días de atraso</th><th>Multa</th></tr></thead>
           <tbody>@for (multa of multas(); track multa.idPrestamo) {
-            <tr><td>#{{ multa.idPrestamo }}</td><td>Libro #{{ multa.idLibro }}</td><td>{{ multa.diasAtraso }}</td><td class="texto-rosa">Q {{ multa.montoMulta | number:'1.2-2' }}</td></tr>
+            <tr><td>#{{ multa.idPrestamo }}</td><td>{{ multa.tituloLibro }}</td><td>{{ multa.diasAtraso }}</td><td class="texto-rosa">Q {{ multa.montoMulta | number:'1.2-2' }}</td></tr>
           }</tbody>
         </table></div>
       }

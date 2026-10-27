@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,6 +14,7 @@ import { explicarError } from '../mensajes-error';
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class PersonalAdministradorComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(GestionColegioServicio);
   private readonly destruir = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
@@ -85,17 +87,17 @@ export class PersonalAdministradorComponent {
       error: e => { this.procesando.set(false); this.error.set(explicarError(e, actual ? 'modificar el empleado' : 'registrar el empleado y su cuenta')); }
     });
   }
-  desactivar(e: EmpleadoColegio): void {
+  async desactivar(e: EmpleadoColegio): Promise<void> {
     if (this.procesando() || e.estado !== 'ACTIVO') return;
-    if (!window.confirm(`¿Desactivar a ${e.nombre} ${e.apellido}? Se bloqueará también su cuenta asociada.`)) return;
+    if (!await this.confirmacion.confirmar(`¿Desactivar a ${e.nombre} ${e.apellido}? Se bloqueará también su cuenta asociada.`)) return;
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');
     this.servicio.desactivarEmpleado(e.idEmpleado).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje); this.cargar(); },
       error: error => { this.procesando.set(false); this.error.set(explicarError(error, 'desactivar al empleado')); }
     });
   }
-  activar(e: EmpleadoColegio): void {
-    if (this.procesando() || !window.confirm(`¿Reactivar a ${e.nombre} ${e.apellido} y su cuenta de acceso?`)) return;
+  async activar(e: EmpleadoColegio): Promise<void> {
+    if (this.procesando() || !await this.confirmacion.confirmar(`¿Reactivar a ${e.nombre} ${e.apellido} y su cuenta de acceso?`)) return;
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');
     this.servicio.activarEmpleado(e.idEmpleado).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje); this.cargar(); },

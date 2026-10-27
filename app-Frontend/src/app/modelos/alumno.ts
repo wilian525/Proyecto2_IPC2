@@ -17,11 +17,29 @@ export interface NotaAlumno {
   idInscripcion: number;
   idZona: number;
   valor: number;
+  curso: string;
+  actividad: string;
+  grado: string;
+  seccion: string;
+  anioInicio: number;
+  anioFin: number;
+  porcentaje: number;
+}
+
+export interface CuotaAlumno {
+  idCuota: number;
+  idInscripcion: number;
+  anio: number;
+  mes: number;
+  monto: number;
+  idPago: number | null;
 }
 
 export interface EstadoCuenta {
   idEstudiante: number;
   saldoPendiente: number;
+  inscripcionPendiente: number;
+  cuotasPendientes: CuotaAlumno[];
 }
 
 export interface PagoAlumno {
@@ -52,6 +70,7 @@ export interface LibroAlumno {
 export interface PrestamoAlumno {
   idPrestamo: number;
   idLibro: number;
+  tituloLibro: string;
   idUsuario: number;
   fechaPrestamo: string;
   fechaDevolucionEsperada: string;

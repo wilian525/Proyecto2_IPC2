@@ -15,6 +15,7 @@ import com.proyecto2.app.backend.Backend.Model.Libro;
 import com.proyecto2.app.backend.Backend.Model.LectorBiblioteca;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.Model.Prestamo;
+import com.proyecto2.app.backend.Backend.Model.PrestamoConsulta;
 import com.proyecto2.app.backend.Backend.servicio.BibliotecaServicio;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -138,6 +139,30 @@ public class BibliotecaProcesos {
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudieron consultar las multas", e);
         }
+    }
+
+    public Collection<PrestamoConsulta> consultarMisPendientes(int idUsuario) {
+        return agregarTitulos(consultarLibrosPendientes(idUsuario));
+    }
+
+    public Collection<PrestamoConsulta> consultarMisMultas(int idEstudiante) {
+        return agregarTitulos(consultarMultasEstudiante(idEstudiante));
+    }
+
+    private Collection<PrestamoConsulta> agregarTitulos(Collection<Prestamo> prestamos) {
+        Collection<PrestamoConsulta> resultado = new ArrayList<>();
+        Collection<Libro> libros = libroDAO.consultar();
+        for (Prestamo prestamo : prestamos) {
+            String titulo = "Libro #" + prestamo.getIdLibro();
+            for (Libro libro : libros) {
+                if (libro.getIdLibro() == prestamo.getIdLibro()) {
+                    titulo = libro.getTitulo();
+                    break;
+                }
+            }
+            resultado.add(new PrestamoConsulta(prestamo, titulo));
+        }
+        return resultado;
     }
 
     public Collection<Prestamo> consultarLibrosPendientes(int idUsuario) {

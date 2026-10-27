@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,6 +11,7 @@ import { InscripcionEscolar } from '../../modelos/secretaria';
 import { explicarError } from '../../admin/mensajes-error';
 @Component({ selector:'app-inscripciones-secretaria', imports:[RouterLink,ReactiveFormsModule], templateUrl:'./inscripciones.component.html', styleUrl:'../../compartidos/estilos/estilos-administracion.css' })
 export class InscripcionesSecretariaComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio=inject(SecretariaServicio); private readonly fb=inject(FormBuilder); private readonly destruir=inject(DestroyRef);
   readonly estudiantes=signal<EstudianteColegio[]>([]); readonly grados=signal<GradoEscolar[]>([]); readonly secciones=signal<SeccionColegio[]>([]); readonly ciclos=signal<CicloEscolar[]>([]);
   readonly inscripciones=signal<InscripcionEscolar[]>([]); readonly total=signal(0); readonly pagina=signal(1);
@@ -27,14 +29,14 @@ export class InscripcionesSecretariaComponent {
   seccion(id:number):string{return this.secciones().find(s=>s.idSeccion===id)?.nombre??`#${id}`;}
   ciclo(id:number):string{const c=this.ciclos().find(x=>x.idCiclo===id);return c?`${c.anioInicio}-${c.anioFin}`:`#${id}`;}
   cargar():void{this.cargando.set(true);this.servicio.inscripciones(this.pagina()).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.inscripciones.set(r.datos);this.total.set(r.total);this.cargando.set(false);},error:e=>{this.error.set(explicarError(e,'consultar inscripciones'));this.cargando.set(false);}});}
-  registrar():void{
+  async registrar(): Promise<void> {
     this.formulario.markAllAsTouched();if(this.formulario.invalid||this.procesando())return;
     const d=this.formulario.getRawValue();
     const estudiante=this.estudiantes().find(e=>e.idEstudiante===d.idEstudiante);
     if(!estudiante||estudiante.estado!=='ACTIVO'){this.error.set('Solo puedes inscribir estudiantes activos.');return;}
     if(!this.ciclos().some(c=>c.idCiclo===d.idCiclo&&c.estado==='ACTIVO')){this.error.set('Selecciona el ciclo escolar activo.');return;}
     if(!this.seccionesDelGrado().some(s=>s.idSeccion===d.idSeccion)){this.error.set('La sección elegida no pertenece al grado seleccionado.');return;}
-    if(!window.confirm(`¿Inscribir a ${estudiante.nombre} ${estudiante.apellido} en ${this.grado(d.idGrado)}, sección ${this.seccion(d.idSeccion)}, ciclo ${this.ciclo(d.idCiclo)}?`))return;
+    if(!await this.confirmacion.confirmar(`¿Inscribir a ${estudiante.nombre} ${estudiante.apellido} en ${this.grado(d.idGrado)}, sección ${this.seccion(d.idSeccion)}, ciclo ${this.ciclo(d.idCiclo)}?`))return;
     this.procesando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.inscribir(d).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.formulario.patchValue({idEstudiante:0,idGrado:0,idSeccion:0});this.cargar();},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'registrar la inscripción'));}});
   }

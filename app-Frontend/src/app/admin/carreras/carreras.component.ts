@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,6 +15,7 @@ import { explicarError } from '../mensajes-error';
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class CarrerasAdministradorComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(GestionColegioServicio);
   private readonly administracion = inject(AdministracionServicio);
   private readonly destruir = inject(DestroyRef);
@@ -63,10 +65,10 @@ export class CarrerasAdministradorComponent {
       error: e => { this.procesando.set(false); this.error.set(explicarError(e, actual ? 'modificar la carrera' : 'crear la carrera')); }
     });
   }
-  cambiarEstado(carrera: CarreraColegio): void {
+  async cambiarEstado(carrera: CarreraColegio): Promise<void> {
     if (this.procesando()) return;
     const activar = carrera.estado === 'INACTIVO';
-    if (!window.confirm(`¿${activar ? 'Activar' : 'Desactivar'} la carrera ${carrera.nombre}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿${activar ? 'Activar' : 'Desactivar'} la carrera ${carrera.nombre}?`)) return;
     this.procesando.set(true); this.error.set(''); this.mensaje.set('');
     const peticion = activar ? this.servicio.activarCarrera(carrera.idCarrera) : this.servicio.desactivarCarrera(carrera.idCarrera);
     peticion.pipe(takeUntilDestroyed(this.destruir)).subscribe({

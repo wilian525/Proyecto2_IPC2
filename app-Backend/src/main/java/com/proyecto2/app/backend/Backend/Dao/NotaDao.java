@@ -7,6 +7,7 @@ package com.proyecto2.app.backend.Backend.Dao;
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Nota;
+import com.proyecto2.app.backend.Backend.Model.NotaHistorial;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,6 +43,23 @@ public class NotaDao {
 
     private static final String INSERTAR = "INSERT INTO NOTA (id_inscripcion, id_zona, valor) VALUES (?, ?, ?)";
     private static final String CONSULTAR = "SELECT id_nota, id_inscripcion, id_zona, valor FROM NOTA ORDER BY id_nota";
+    private static final String HISTORIAL_ESTUDIANTE = """
+            SELECT n.id_nota, n.id_inscripcion, n.id_zona, n.valor,
+                   z.nombre AS actividad, z.porcentaje, cu.nombre AS curso,
+                   g.nombre AS grado, s.nombre AS seccion,
+                   c.`año_inicio` AS anio_inicio, c.`año_fin` AS anio_fin
+            FROM NOTA n
+            JOIN INSCRIPCION i ON i.id_inscripcion = n.id_inscripcion
+            JOIN ZONA z ON z.id_zona = n.id_zona
+            JOIN ASIGNACION a ON a.id_asignacion = z.id_asignacion
+                 AND a.id_seccion = i.id_seccion AND a.id_ciclo = i.id_ciclo
+            JOIN CURSO cu ON cu.id_curso = a.id_curso
+            JOIN GRADO g ON g.id_grado = i.id_grado
+            JOIN SECCION s ON s.id_seccion = i.id_seccion
+            JOIN CICLO c ON c.id_ciclo = i.id_ciclo
+            WHERE i.id_estudiante = ?
+            ORDER BY c.`año_inicio` DESC, cu.nombre, z.id_zona
+            """;
     private static final String ACTUALIZAR = "UPDATE NOTA SET id_inscripcion = ?, id_zona = ?, valor = ? WHERE id_nota = ?";
 
     public NotaDao() {
@@ -121,6 +139,34 @@ public class NotaDao {
         }
 
         return notas;
+    }
+
+    public Collection<NotaHistorial> consultarHistorialEstudiante(int idEstudiante) {
+        Collection<NotaHistorial> historial = new ArrayList<>();
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(HISTORIAL_ESTUDIANTE)) {
+            ps.setInt(1, idEstudiante);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    NotaHistorial nota = new NotaHistorial();
+                    nota.setIdNota(rs.getInt("id_nota"));
+                    nota.setIdInscripcion(rs.getInt("id_inscripcion"));
+                    nota.setIdZona(rs.getInt("id_zona"));
+                    nota.setValor(rs.getDouble("valor"));
+                    nota.setActividad(rs.getString("actividad"));
+                    nota.setPorcentaje(rs.getDouble("porcentaje"));
+                    nota.setCurso(rs.getString("curso"));
+                    nota.setGrado(rs.getString("grado"));
+                    nota.setSeccion(rs.getString("seccion"));
+                    nota.setAnioInicio(rs.getInt("anio_inicio"));
+                    nota.setAnioFin(rs.getInt("anio_fin"));
+                    historial.add(nota);
+                }
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return historial;
     }
 
     public boolean actualizar(Nota nota) {

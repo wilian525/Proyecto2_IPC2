@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,6 +11,7 @@ import { fechaFormulario } from '../../modelos/gestion-colegio';
 @Component({selector:'app-asistencia-maestro',imports:[RouterLink,ReactiveFormsModule],
   templateUrl:'./asistencia.component.html',styleUrl:'../../compartidos/estilos/estilos-administracion.css'})
 export class AsistenciaMaestroComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio=inject(MaestroServicio);
   private readonly destruir=inject(DestroyRef);
   private readonly fb=inject(FormBuilder);
@@ -19,6 +21,7 @@ export class AsistenciaMaestroComponent {
   readonly guardando=signal(false);
   readonly error=signal('');readonly mensaje=signal('');
   readonly formulario=this.fb.nonNullable.group({idAsignacion:[0,Validators.min(1)],fecha:[new Date().toLocaleDateString('sv-SE'),Validators.required]});
+  readonly fechaMaxima = new Date().toLocaleDateString('sv-SE');
   readonly alumnoActual=signal(0);
   readonly estado=signal('PRESENTE');
   constructor(){this.servicio.misCursos().pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>this.cursos.set(r),error:e=>this.error.set(explicarError(e,'consultar cursos'))});}
@@ -33,11 +36,12 @@ export class AsistenciaMaestroComponent {
     const fecha=this.formulario.controls.fecha.value;
     return this.registros().find(r=>r.idInscripcion===idInscripcion&&fechaFormulario(r.fecha)===fecha)?.estado??'';
   }
-  guardar(idInscripcion:number):void{
+  async guardar(idInscripcion:number): Promise<void> {
     const d=this.formulario.getRawValue();
     if(this.guardando()||!d.idAsignacion||!d.fecha)return;
+    if(d.fecha>this.fechaMaxima){this.error.set('No puedes registrar asistencia para una fecha futura.');return;}
     if(this.existente(idInscripcion)){this.error.set('La asistencia ya está registrada para este alumno y fecha.');return;}
-    if(!window.confirm('¿Registrar la asistencia de este estudiante?'))return;
+    if(!await this.confirmacion.confirmar('¿Registrar la asistencia de este estudiante?'))return;
     this.guardando.set(true);this.error.set('');this.mensaje.set('');
     this.servicio.registrarAsistencia(d.idAsignacion,{idInscripcion,fecha:d.fecha,estado:this.estado()})
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({

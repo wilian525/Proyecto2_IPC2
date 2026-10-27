@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,6 +8,7 @@ import { LibroBiblioteca } from '../../modelos/biblioteca';
 import { explicarError } from '../../admin/mensajes-error';
 @Component({selector:'app-libros-bibliotecario',imports:[RouterLink,ReactiveFormsModule],templateUrl:'./libros.component.html',styleUrl:'../../compartidos/estilos/estilos-administracion.css'})
 export class LibrosBibliotecarioComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio=inject(BibliotecaServicio);private readonly fb=inject(FormBuilder);private readonly destruir=inject(DestroyRef);
   readonly libros=signal<LibroBiblioteca[]>([]);readonly pagina=signal(1);readonly total=signal(0);
   readonly editando=signal(0);readonly error=signal('');readonly mensaje=signal('');readonly procesando=signal(false);
@@ -20,9 +22,9 @@ export class LibrosBibliotecarioComponent {
     const operacion=this.editando()?this.servicio.editarLibro(this.editando(),this.formulario.getRawValue()):this.servicio.crearLibro(this.formulario.getRawValue());
     operacion.pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.procesando.set(false);this.mensaje.set(r.mensaje);this.limpiar();this.cargar();},error:e=>{this.procesando.set(false);this.error.set(explicarError(e,'guardar libro'));}});
   }
-  estado(l:LibroBiblioteca):void {const nuevo=l.estado==='ACTIVO'?'INACTIVO':'ACTIVO';if(!window.confirm(`¿Cambiar ${l.titulo} a ${nuevo}?`))return;
+  async estado(l:LibroBiblioteca): Promise<void> {const nuevo=l.estado==='ACTIVO'?'INACTIVO':'ACTIVO';if(!await this.confirmacion.confirmar(`¿Cambiar ${l.titulo} a ${nuevo}?`))return;
     this.servicio.estadoLibro(l.idLibro,nuevo).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.mensaje.set(r.mensaje);this.cargar();},error:e=>this.error.set(explicarError(e,'cambiar estado del libro'))});}
-  eliminar(l:LibroBiblioteca):void {if(!window.confirm(`¿Eliminar ${l.titulo}? No podrás hacerlo si tiene préstamos registrados.`))return;
+  async eliminar(l:LibroBiblioteca): Promise<void> {if(!await this.confirmacion.confirmar(`¿Eliminar ${l.titulo}? No podrás hacerlo si tiene préstamos registrados.`))return;
     this.servicio.eliminarLibro(l.idLibro).pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.mensaje.set(r.mensaje);this.cargar();},error:e=>this.error.set(explicarError(e,'eliminar libro'))});}
   anterior():void{if(this.pagina()>1){this.pagina.update(x=>x-1);this.cargar();}}
   siguiente():void{if(this.pagina()*10<this.total()){this.pagina.update(x=>x+1);this.cargar();}}

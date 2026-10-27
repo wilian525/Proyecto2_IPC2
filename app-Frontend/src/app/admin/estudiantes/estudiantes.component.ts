@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,6 +14,7 @@ import { explicarError } from '../mensajes-error';
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class EstudiantesAdministradorComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(GestionColegioServicio);
   private readonly destruir = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
@@ -81,10 +83,10 @@ export class EstudiantesAdministradorComponent {
       error: e => { this.procesando.set(false); this.error.set(explicarError(e, actual ? 'modificar estudiante' : 'crear estudiante')); }
     });
   }
-  cambiarEstado(e: EstudianteColegio, estado: 'ACTIVO' | 'INACTIVO' | 'GRADUADO'): void {
+  async cambiarEstado(e: EstudianteColegio, estado: 'ACTIVO' | 'INACTIVO' | 'GRADUADO'): Promise<void> {
     if (this.procesando() || estado === e.estado) return;
     if (e.estado === 'GRADUADO') { this.error.set('No es posible reactivar a un estudiante graduado.'); return; }
-    if (!window.confirm(`¿Cambiar a ${estado} el estado de ${e.nombre} ${e.apellido}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Cambiar a ${estado} el estado de ${e.nombre} ${e.apellido}?`)) return;
     this.procesando.set(true); this.mensaje.set(''); this.error.set('');
     this.servicio.cambiarEstadoEstudiante(e.idEstudiante, estado).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => { this.procesando.set(false); this.mensaje.set(r.mensaje); this.cargar(); },

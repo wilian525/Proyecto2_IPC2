@@ -87,6 +87,34 @@ public class PagoProcesos {
         return 0;
     }
 
+    public Collection<CuotaMensual> consultarCuotasPendientes(int idEstudiante) {
+        Collection<CuotaMensual> pendientes = new ArrayList<>();
+        int cicloActivo = 0;
+        for (Ciclo ciclo : cicloDAO.consultar()) {
+            if ("ACTIVO".equalsIgnoreCase(ciclo.getEstado())) {
+                cicloActivo = ciclo.getIdCiclo();
+                break;
+            }
+        }
+        if (cicloActivo == 0) return pendientes;
+
+        int idInscripcion = 0;
+        for (Inscripcion inscripcion : inscripcionDAO.consultar()) {
+            if (inscripcion.getIdEstudiante() == idEstudiante && inscripcion.getIdCiclo() == cicloActivo) {
+                idInscripcion = inscripcion.getIdInscripcion();
+                break;
+            }
+        }
+        if (idInscripcion == 0) return pendientes;
+
+        for (CuotaMensual cuota : cuotaDAO.consultar(idEstudiante)) {
+            if (cuota.getIdInscripcion() == idInscripcion && cuota.getIdPago() == null) {
+                pendientes.add(cuota);
+            }
+        }
+        return pendientes;
+    }
+
     public Collection<CuotaMensual> consultarCuotas(int idEstudiante) {
         if(idEstudiante<=0) throw new ProcesosException("DATOS_INVALIDOS","Selecciona un estudiante");
         return cuotaDAO.consultar(idEstudiante);

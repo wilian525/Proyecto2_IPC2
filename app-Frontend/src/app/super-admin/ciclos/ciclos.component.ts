@@ -1,3 +1,4 @@
+import { ConfirmacionServicio } from '../../compartidos/confirmacion/confirmacion.servicio';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,6 +14,7 @@ import { FormularioCicloComponent } from '../formulario-ciclo/formulario-ciclo.c
   styleUrl: '../../compartidos/estilos/estilos-administracion.css'
 })
 export class CiclosComponent {
+  private readonly confirmacion = inject(ConfirmacionServicio);
   private readonly servicio = inject(AdministracionServicio);
   private readonly destruir = inject(DestroyRef);
 
@@ -63,13 +65,13 @@ export class CiclosComponent {
     });
   }
 
-  activar(ciclo: CicloEscolar): void {
+  async activar(ciclo: CicloEscolar): Promise<void> {
     if (this.procesando() || this.cargando()) return;
     if (this.tieneCicloActivo()) {
       this.error.set('Debes desactivar el año lectivo actual antes de activar otro.');
       return;
     }
-    if (!window.confirm(`¿Activar el año lectivo ${ciclo.anioInicio} - ${ciclo.anioFin}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Activar el año lectivo ${ciclo.anioInicio} - ${ciclo.anioFin}?`)) return;
 
     this.procesando.set(true);
     this.error.set('');
@@ -80,9 +82,9 @@ export class CiclosComponent {
     });
   }
 
-  desactivar(ciclo: CicloEscolar): void {
+  async desactivar(ciclo: CicloEscolar): Promise<void> {
     if (this.procesando() || this.cargando()) return;
-    if (!window.confirm(`¿Desactivar el año lectivo ${ciclo.anioInicio} - ${ciclo.anioFin}?`)) return;
+    if (!await this.confirmacion.confirmar(`¿Desactivar el año lectivo ${ciclo.anioInicio} - ${ciclo.anioFin}?`)) return;
 
     this.procesando.set(true);
     this.error.set('');
