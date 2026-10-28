@@ -39,9 +39,9 @@ export class PersonalAdministradorComponent {
   constructor() { this.cargar(); }
   cargar(): void {
     this.cargando.set(true);
-    this.servicio.empleados(this.pagina()).pipe(takeUntilDestroyed(this.destruir)).subscribe({
+    this.servicio.personal(this.pagina()).pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => {
-        this.empleados.set(r.datos.filter(e => this.roles.includes(e.puesto.toUpperCase())));
+        this.empleados.set(r.datos);
         this.total.set(r.total); this.cargando.set(false);
       },
       error: e => { this.error.set(explicarError(e, 'consultar empleados')); this.cargando.set(false); }

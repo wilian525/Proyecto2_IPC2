@@ -1108,6 +1108,72 @@ public class AcademicoServicio {
         }
     }
 
+    public boolean actualizarZona(Zona zona, int idEmpleado) {
+        if (zona == null || zona.getIdZona() <= 0 || zona.getIdAsignacion() <= 0
+                || idEmpleado <= 0 || zona.getNombre() == null || zona.getNombre().trim().isEmpty()
+                || !Double.isFinite(zona.getPorcentaje()) || zona.getPorcentaje() <= 0 || zona.getPorcentaje() > 100) {
+            throw new ServicioException("DATOS_INVALIDOS", "Los datos de la zona no son válidos");
+        }
+
+        Connection conexion = null;
+        boolean autoCommitAnterior = true;
+        try {
+            conexion = ConexionDB.getInstance().getConnection();
+            autoCommitAnterior = conexion.getAutoCommit();
+            conexion.setAutoCommit(false);
+
+            Asignacion asignacion = null;
+            for (Asignacion actual : asignacionDAO.consultar(conexion)) {
+                if (actual.getIdAsignacion() == zona.getIdAsignacion()) {
+                    asignacion = actual;
+                    break;
+                }
+            }
+            if (asignacion == null) throw new ServicioException("NO_ENCONTRADO", "La asignación no existe");
+            if (asignacion.getIdEmpleado() != idEmpleado) {
+                throw new ServicioException("NO_AUTORIZADO", "La asignación no pertenece al maestro autenticado");
+            }
+            boolean activo = false;
+            for (Ciclo ciclo : cicloDAO.consultar(conexion)) {
+                if (ciclo.getIdCiclo() == asignacion.getIdCiclo() && "ACTIVO".equalsIgnoreCase(ciclo.getEstado())) {
+                    activo = true;
+                    break;
+                }
+            }
+            if (!activo) throw new ServicioException("CONFLICTO", "Solo se puede editar zona durante el ciclo activo");
+
+            Zona encontrada = null;
+            double total = zona.getPorcentaje();
+            for (Zona actual : zonaDAO.consultar(conexion)) {
+                if (actual.getIdZona() == zona.getIdZona()) encontrada = actual;
+                else if (actual.getIdAsignacion() == zona.getIdAsignacion()) total += actual.getPorcentaje();
+            }
+            if (encontrada == null || encontrada.getIdAsignacion() != zona.getIdAsignacion()) {
+                throw new ServicioException("NO_ENCONTRADO", "La actividad no existe en este curso");
+            }
+            if (total > 100.00001) {
+                throw new ServicioException("CONFLICTO", "La suma de los porcentajes de zona no puede superar 100%");
+            }
+            if (!zonaDAO.actualizar(zona, conexion)) {
+                throw new ServicioException("OPERACION_ERROR", "No fue posible actualizar la zona");
+            }
+            conexion.commit();
+            return true;
+        } catch (ServicioException e) {
+            rollback(conexion, e);
+            throw e;
+        } catch (daoException e) {
+            rollback(conexion, e);
+            throw new ServicioException("BD_ERROR", "Error de base de datos al actualizar la zona", e);
+        } catch (SQLException e) {
+            rollback(conexion, e);
+            throw new ServicioException("TRANSACCION_ERROR", "Error en la transacción al actualizar la zona", e);
+        } finally {
+            restaurarAutoCommit(conexion, autoCommitAnterior);
+            cerrarConexion(conexion);
+        }
+    }
+
     public boolean modificarNota(Nota nota, int idEmpleado) {
 
         if (nota == null || idEmpleado <= 0 || nota.getIdInscripcion() <= 0 || nota.getIdZona() <= 0 || nota.getValor() < 0 || nota.getValor() > 100) {

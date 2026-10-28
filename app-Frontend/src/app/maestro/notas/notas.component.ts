@@ -23,7 +23,7 @@ export class NotasMaestroComponent {
   seleccionar():void{const id=this.formulario.controls.idAsignacion.value;this.alumnos.set([]);this.zonas.set([]);this.notas.set([]);this.error.set('');this.mensaje.set('');this.formulario.controls.idZona.setValue(0);
     if(!id)return;
     forkJoin({alumnos:this.servicio.nomina(id),zonas:this.servicio.zonas(id),notas:this.servicio.notas(id)})
-      .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:r=>{this.alumnos.set(r.alumnos);this.zonas.set(r.zonas);this.notas.set(r.notas);},error:e=>this.error.set(explicarError(e,'consultar notas y alumnos'))});
+      .pipe(takeUntilDestroyed(this.destruir)).subscribe({next:(r: { alumnos: AlumnoNomina[]; zonas: ZonaMaestro[]; notas: NotaMaestro[] })=>{this.alumnos.set(r.alumnos);this.zonas.set(r.zonas);this.notas.set(r.notas);},error:(e: unknown)=>this.error.set(explicarError(e,'consultar notas y alumnos'))});
   }
   actual(idInscripcion:number):number|null{return this.notas().find(n=>n.idInscripcion===idInscripcion&&n.idZona===this.formulario.controls.idZona.value)?.valor??null;}
   async guardar(idInscripcion:number,valorEntrada:string): Promise<void> {

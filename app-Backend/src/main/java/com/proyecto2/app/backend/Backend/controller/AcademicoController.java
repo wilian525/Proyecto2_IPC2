@@ -219,6 +219,24 @@ public class AcademicoController {
         }
     }
 
+    @PUT
+    @Path("asignaciones/{idAsignacion}/zonas/{idZona}")
+    @RolesAllowed("MAESTRO")
+    public Response actualizarZona(@PathParam("idAsignacion") int idAsignacion,
+            @PathParam("idZona") int idZona, Zona zona, @Context HttpServletRequest request) {
+        if (zona == null) return error("DATOS_INVALIDOS", "Debes ingresar los datos de la zona");
+        zona.setIdZona(idZona);
+        zona.setIdAsignacion(idAsignacion);
+        try {
+            new AcademicoServicio().actualizarZona(zona, obtenerId(request, "idEmpleado"));
+            return Response.ok(Map.of("mensaje", "Zona actualizada correctamente")).build();
+        } catch (ProcesosException e) {
+            return error(e.getCodigo(), e.getMessage());
+        } catch (ServicioException e) {
+            return error(e.getCodigo(), e.getMessage());
+        }
+    }
+
     @GET
     @Path("asignaciones/{idAsignacion}/notas")
     @RolesAllowed("MAESTRO")

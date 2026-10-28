@@ -42,6 +42,23 @@ public class EmpleadoProcesos {
         }
     }
 
+    public Collection<Empleado> consultarPersonal(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0) throw new ProcesosException("DATOS_INVALIDOS", "La página y el límite deben ser positivos");
+        try {
+            return empleadoDAO.consultarPersonal(pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar el personal", e);
+        }
+    }
+
+    public int contarPersonal() {
+        try {
+            return empleadoDAO.contarPersonal();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo contar el personal", e);
+        }
+    }
+
     public int contarEmpleados() {
         try {
             return empleadoDAO.contar();

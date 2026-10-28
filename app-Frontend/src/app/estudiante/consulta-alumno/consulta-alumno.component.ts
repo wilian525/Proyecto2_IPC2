@@ -8,6 +8,7 @@ import {
   PaginaPagos, PrestamoAlumno
 } from '../../modelos/alumno';
 import { AlumnoServicio } from '../alumno.servicio';
+import { fechaFormulario, FechaServidor } from '../../modelos/gestion-colegio';
 
 export type SeccionAlumno = 'perfil' | 'notas' | 'cuenta' | 'catalogo' | 'prestamos' | 'multas';
 
@@ -38,6 +39,13 @@ export class ConsultaAlumnoComponent {
     perfil: 'Mi perfil', notas: 'Mi historial de notas', cuenta: 'Estado de cuenta',
     catalogo: 'Catálogo de libros', prestamos: 'Préstamos pendientes', multas: 'Multas de biblioteca'
   };
+
+  fecha(valor: FechaServidor | null | undefined): string {
+    if (!valor) return '—';
+    const texto = fechaFormulario(valor);
+    const [anio, mes, dia] = texto.split('-');
+    return dia && mes && anio ? `${dia}/${mes}/${anio}` : texto;
+  }
 
   constructor() { this.cargar(); }
 

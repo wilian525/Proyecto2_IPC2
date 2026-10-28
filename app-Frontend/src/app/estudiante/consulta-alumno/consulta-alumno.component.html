@@ -19,7 +19,7 @@
         <div class="row g-3">
           <div class="col-md-6"><div class="campo"><small>Nombre completo</small><strong>{{ alumno.nombre }} {{ alumno.apellido }}</strong></div></div>
           <div class="col-md-6"><div class="campo"><small>Estado</small><strong>{{ alumno.estado }}</strong></div></div>
-          <div class="col-md-6"><div class="campo"><small>Fecha de nacimiento</small><strong>{{ alumno.fechaNacimiento }}</strong></div></div>
+          <div class="col-md-6"><div class="campo"><small>Fecha de nacimiento</small><strong>{{ fecha(alumno.fechaNacimiento) }}</strong></div></div>
           <div class="col-md-6"><div class="campo"><small>Correo electrónico</small><strong>{{ alumno.correo || 'Sin registrar' }}</strong></div></div>
           <div class="col-md-6"><div class="campo"><small>Teléfono</small><strong>{{ alumno.telefono || 'Sin registrar' }}</strong></div></div>
           <div class="col-md-6"><div class="campo"><small>Dirección</small><strong>{{ alumno.direccion || 'Sin registrar' }}</strong></div></div>
@@ -74,7 +74,7 @@
           <div class="table-responsive"><table class="tabla-res table mb-0">
             <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th></tr></thead>
             <tbody>@for (pago of historialPagos.datos; track pago.idPago) {
-              <tr><td>{{ pago.fecha }}</td><td>{{ pago.concepto }}</td><td>Q {{ pago.monto | number:'1.2-2' }}</td></tr>
+              <tr><td>{{ fecha(pago.fecha) }}</td><td>{{ pago.concepto }}</td><td>Q {{ pago.monto | number:'1.2-2' }}</td></tr>
             }</tbody>
           </table></div>
           <p class="nota-ayuda mt-3 mb-2">Mostrando {{ historialPagos.datos.length }} de {{ historialPagos.total }} pagos registrados.</p>
@@ -108,7 +108,7 @@
         <div class="table-responsive"><table class="tabla-res table mb-0">
           <thead><tr><th>Préstamo</th><th>Libro</th><th>Fecha préstamo</th><th>Devolver antes de</th><th>Días de atraso</th></tr></thead>
           <tbody>@for (prestamo of prestamos(); track prestamo.idPrestamo) {
-            <tr><td>#{{ prestamo.idPrestamo }}</td><td>{{ prestamo.tituloLibro }}</td><td>{{ prestamo.fechaPrestamo }}</td><td>{{ prestamo.fechaDevolucionEsperada }}</td><td>{{ prestamo.diasAtraso }}</td></tr>
+            <tr><td>#{{ prestamo.idPrestamo }}</td><td>{{ prestamo.tituloLibro }}</td><td>{{ fecha(prestamo.fechaPrestamo) }}</td><td>{{ fecha(prestamo.fechaDevolucionEsperada) }}</td><td>{{ prestamo.diasAtraso }}</td></tr>
           }</tbody>
         </table></div>
       }

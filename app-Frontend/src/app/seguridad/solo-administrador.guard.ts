@@ -6,5 +6,5 @@ export const soloAdministrador: CanActivateFn = () => {
   const sesion = inject(SesionServicio);
   const router = inject(Router);
   if (!sesion.estaAutenticado()) return router.createUrlTree(['/login']);
-  return sesion.obtenerRol() === 'ADMIN' ? true : router.createUrlTree(['/inicio']);
+  return (sesion.obtenerRol() === 'ADMIN' || sesion.obtenerRol() === 'SUPER_ADMIN') ? true : router.createUrlTree(['/inicio']);
 };

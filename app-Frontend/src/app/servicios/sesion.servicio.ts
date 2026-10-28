@@ -39,7 +39,7 @@ export class SesionServicio {
     const rol = this.leerDatosToken(token)?.rol?.toUpperCase();
     const opciones: RolUsuario[] = [
       'SUPER_ADMIN', 'ADMIN', 'SECRETARIA',
-      'BIBLIOTECARIO', 'MAESTRO', 'ESTUDIANTE'
+      'BIBLIOTECARIO', 'MAESTRO', 'ESTUDIANTE', 'MANTENIMIENTO', 'LIMPIEZA'
     ];
     return opciones.find(opcion => opcion === rol) ?? null;
   }

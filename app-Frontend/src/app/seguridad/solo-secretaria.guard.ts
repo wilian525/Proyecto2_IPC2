@@ -5,5 +5,5 @@ export const soloSecretaria: CanActivateFn = () => {
   const sesion = inject(SesionServicio);
   const router = inject(Router);
   if (!sesion.estaAutenticado()) return router.createUrlTree(['/login']);
-  return sesion.obtenerRol() === 'SECRETARIA' ? true : router.createUrlTree(['/inicio']);
+  return (sesion.obtenerRol() === 'SECRETARIA' || sesion.obtenerRol() === 'SUPER_ADMIN') ? true : router.createUrlTree(['/inicio']);
 };

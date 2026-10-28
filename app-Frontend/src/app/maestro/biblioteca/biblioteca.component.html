@@ -1,0 +1,24 @@
+<section>
+  <a routerLink="/inicio/maestro" class="btn btn-menta mb-3">← Volver al panel</a>
+  <h1 class="titulo-seccion">Mi biblioteca</h1>
+  <p class="subtitulo mb-4">Consulta tus libros pendientes de devolución y multas por atraso.</p>
+  @if (error()) { <p class="mensaje-error" role="alert">{{ error() }}</p> }
+  @if (cargando()) { <p class="texto-suave">Consultando biblioteca...</p> }
+  <div class="panel-res p-4 mb-4">
+    <h2 class="h4">Mis préstamos pendientes</h2>
+    @if (!cargando() && pendientes().length === 0) { <p class="texto-suave">No tienes préstamos pendientes.</p> }
+    @if (pendientes().length > 0) {
+      <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Libro</th><th>Fecha de préstamo</th><th>Devolver antes de</th><th>Días de atraso</th></tr></thead>
+      <tbody>@for (p of pendientes(); track p.idPrestamo) { <tr><td>{{p.tituloLibro}}</td><td>{{fecha(p.fechaPrestamo)}}</td><td>{{fecha(p.fechaDevolucionEsperada)}}</td><td>{{p.diasAtraso}}</td></tr> }</tbody></table></div>
+    }
+  </div>
+  <div class="panel-res p-4 mb-4">
+    <h2 class="h4">Mis multas de biblioteca</h2>
+    @if (!cargando() && multas().length === 0) { <p class="texto-suave">No tienes multas registradas.</p> }
+    @if (multas().length > 0) {
+      <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Libro</th><th>Días de atraso</th><th>Multa</th></tr></thead>
+      <tbody>@for (m of multas(); track m.idPrestamo) { <tr><td>{{m.tituloLibro}}</td><td>{{m.diasAtraso}}</td><td>Q {{m.montoMulta.toFixed(2)}}</td></tr> }</tbody></table></div>
+    }
+  </div>
+  <button type="button" class="btn btn-menta" (click)="cargar()">Actualizar datos</button>
+</section>

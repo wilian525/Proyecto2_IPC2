@@ -216,7 +216,7 @@ public class BibliotecaController {
 
     @GET
     @Path("mis-pendientes")
-    @RolesAllowed("ESTUDIANTE")
+    @RolesAllowed({"ESTUDIANTE", "MAESTRO"})
     public Response consultarMisPendientes(@Context SecurityContext securityContext) {
         try {
             int idUsuario = obtenerIdUsuario(securityContext);
@@ -228,10 +228,13 @@ public class BibliotecaController {
 
     @GET
     @Path("mis-multas")
-    @RolesAllowed("ESTUDIANTE")
+    @RolesAllowed({"ESTUDIANTE", "MAESTRO"})
     public Response consultarMisMultas(@Context SecurityContext securityContext) {
         try {
             int idUsuario = obtenerIdUsuario(securityContext);
+            if (securityContext.isUserInRole("MAESTRO")) {
+                return Response.ok(new BibliotecaProcesos().consultarMisMultasUsuario(idUsuario)).build();
+            }
             Estudiante estudiante = new EstudianteProcesos().consultarPerfil(idUsuario);
             return Response.ok(new BibliotecaProcesos().consultarMisMultas(estudiante.getIdEstudiante())).build();
         } catch (ProcesosException e) {

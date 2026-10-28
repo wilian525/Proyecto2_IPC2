@@ -25,4 +25,4 @@ export interface ErrorServidor {
 }
 
 export type RolUsuario = 'SUPER_ADMIN' | 'ADMIN' | 'SECRETARIA' |
-  'BIBLIOTECARIO' | 'MAESTRO' | 'ESTUDIANTE';
+  'BIBLIOTECARIO' | 'MAESTRO' | 'ESTUDIANTE' | 'MANTENIMIENTO' | 'LIMPIEZA';

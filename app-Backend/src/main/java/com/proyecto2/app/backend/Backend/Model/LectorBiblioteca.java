@@ -4,6 +4,7 @@ public class LectorBiblioteca {
     private int idUsuario;
     private String nombreUsuario;
     private String rol;
+    private String nombreCompleto;
 
     public LectorBiblioteca(int idUsuario, String nombreUsuario, String rol) {
         this.idUsuario = idUsuario;
@@ -14,4 +15,6 @@ public class LectorBiblioteca {
     public int getIdUsuario() { return idUsuario; }
     public String getNombreUsuario() { return nombreUsuario; }
     public String getRol() { return rol; }
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
 }

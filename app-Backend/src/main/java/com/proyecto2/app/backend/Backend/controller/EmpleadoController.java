@@ -46,13 +46,15 @@ public class EmpleadoController {
     @GET
     public Response consultarEmpleados(
             @DefaultValue("1") @QueryParam("pagina") int pagina,
-            @DefaultValue("20") @QueryParam("limite") int limite) {
+            @DefaultValue("20") @QueryParam("limite") int limite,
+            @DefaultValue("false") @QueryParam("personal") boolean soloPersonal) {
 
         EmpleadoProcesos procesos = new EmpleadoProcesos();
 
         try {
-            Collection<Empleado> empleados = procesos.consultarEmpleado(pagina, limite);
-            int total = procesos.contarEmpleados();
+            Collection<Empleado> empleados = soloPersonal ? procesos.consultarPersonal(pagina, limite)
+                    : procesos.consultarEmpleado(pagina, limite);
+            int total = soloPersonal ? procesos.contarPersonal() : procesos.contarEmpleados();
 
             return Response.ok(
                     Map.of(

@@ -104,20 +104,8 @@ export const rutas: Routes = [
       { path: 'maestro/rendimiento', canActivate: [soloMaestro],
         loadComponent: () => import('./maestro/rendimiento/rendimiento.component').then(m => m.RendimientoMaestroComponent)
       },
-      { path: 'bibliotecario', canActivate: [soloBibliotecario],
-        loadComponent: () => import('./bibliotecario/panel/panel.component').then(m => m.PanelBibliotecarioComponent)
-      },
-      { path: 'bibliotecario/libros', canActivate: [soloBibliotecario],
-        loadComponent: () => import('./bibliotecario/libros/libros.component').then(m => m.LibrosBibliotecarioComponent)
-      },
-      { path: 'bibliotecario/prestamos', canActivate: [soloBibliotecario],
-        loadComponent: () => import('./bibliotecario/prestamos/prestamos.component').then(m => m.PrestamosBibliotecarioComponent)
-      },
-      { path: 'bibliotecario/atrasos', canActivate: [soloBibliotecario],
-        loadComponent: () => import('./bibliotecario/atrasos/atrasos.component').then(m => m.AtrasosBibliotecarioComponent)
-      },
-      { path: 'bibliotecario/reportes', canActivate: [soloBibliotecario],
-        loadComponent: () => import('./bibliotecario/reportes/reportes.component').then(m => m.ReportesBibliotecarioComponent)
+      { path: 'maestro/biblioteca', canActivate: [soloMaestro],
+        loadComponent: () => import('./maestro/biblioteca/biblioteca.component').then(m => m.BibliotecaMaestroComponent)
       },
       { path: 'bibliotecario', canActivate: [soloBibliotecario],
         loadComponent: () => import('./bibliotecario/panel/panel.component').then(m => m.PanelBibliotecarioComponent)

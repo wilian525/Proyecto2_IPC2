@@ -119,7 +119,7 @@ public class JwtAuthFilter implements ContainerRequestFilter {
 
                 if (usuario.getRol().equalsIgnoreCase("SUPER_ADMIN")) {
                     // Solo el maestro puede ingresar y modificar calificaciones.
-                    return !"MAESTRO".equalsIgnoreCase(rol);
+                    return !"MAESTRO".equalsIgnoreCase(rol) && !"ESTUDIANTE".equalsIgnoreCase(rol);
                 }
 
                 return usuario.getRol().equalsIgnoreCase(rol);

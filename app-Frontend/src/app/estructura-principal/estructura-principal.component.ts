@@ -39,7 +39,12 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/super-administradores', titulo: 'Super Administradores', icono: 'bi-shield-lock' },
     { ruta: '/inicio/administradores', titulo: 'Administradores', icono: 'bi-people' },
     { ruta: '/inicio/ciclos', titulo: 'Años lectivos', icono: 'bi-calendar3' },
-    { ruta: '/inicio/grados', titulo: 'Grados por defecto', icono: 'bi-mortarboard' }
+    { ruta: '/inicio/grados', titulo: 'Grados por defecto', icono: 'bi-mortarboard' },
+    { ruta: '/inicio/admin', titulo: 'Administración', icono: 'bi-building' },
+    { ruta: '/inicio/secretaria', titulo: 'Secretaría', icono: 'bi-cash-coin' },
+    { ruta: '/inicio/bibliotecario', titulo: 'Biblioteca', icono: 'bi-book' },
+    { ruta: '/inicio/admin/reportes', titulo: 'Área docente / reportes', icono: 'bi-journal-check' },
+    { ruta: '/inicio/admin/estudiantes', titulo: 'Estudiantes', icono: 'bi-person-vcard' }
   ];
 
   readonly opcionesAdministrador = [
@@ -74,7 +79,8 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/maestro/asistencia', titulo: 'Asistencia', icono: 'bi-calendar-check' },
     { ruta: '/inicio/maestro/zona', titulo: 'Zona', icono: 'bi-pie-chart' },
     { ruta: '/inicio/maestro/notas', titulo: 'Notas', icono: 'bi-journal-check' },
-    { ruta: '/inicio/maestro/rendimiento', titulo: 'Rendimiento', icono: 'bi-file-earmark-pdf' }
+    { ruta: '/inicio/maestro/rendimiento', titulo: 'Rendimiento', icono: 'bi-file-earmark-pdf' },
+    { ruta: '/inicio/maestro/biblioteca', titulo: 'Mi biblioteca', icono: 'bi-book' }
   ];
 
   readonly opcionesBibliotecario = [

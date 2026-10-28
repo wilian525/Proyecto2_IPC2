@@ -43,6 +43,10 @@ public class EmpleadoDao {
     private static final String DESACTIVAR = "UPDATE EMPLEADO SET estado = 'INACTIVO' WHERE id_empleado = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM EMPLEADO";
+    private static final String PUESTOS_PERSONAL = "('SECRETARIA','MAESTRO','BIBLIOTECARIO','MANTENIMIENTO','LIMPIEZA')";
+    private static final String CONSULTAR_PERSONAL = "SELECT id_empleado, nombre, apellido, puesto, fecha_contratacion, salario, estado "
+            + "FROM EMPLEADO WHERE UPPER(puesto) IN " + PUESTOS_PERSONAL + " ORDER BY apellido, nombre LIMIT ? OFFSET ?";
+    private static final String CONTAR_PERSONAL = "SELECT COUNT(*) AS total FROM EMPLEADO WHERE UPPER(puesto) IN " + PUESTOS_PERSONAL;
 
     private static final String CONSULTAR_MAESTRO_ACTIVO = "SELECT 1 FROM EMPLEADO WHERE id_empleado = ? AND puesto = 'MAESTRO' AND estado = 'ACTIVO'";
 
@@ -331,6 +335,33 @@ public class EmpleadoDao {
             daoException.manejarError(e);
         }
 
+        return 0;
+    }
+
+    public Collection<Empleado> consultarPersonal(int pagina, int limite) {
+        Collection<Empleado> empleados = new ArrayList<>();
+        if (pagina <= 0 || limite <= 0) return empleados;
+        try (Connection conexion = conexionDB.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(CONSULTAR_PERSONAL)) {
+            ps.setInt(1, limite);
+            ps.setInt(2, (pagina - 1) * limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) empleados.add(construirEmpleado(rs));
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return empleados;
+    }
+
+    public int contarPersonal() {
+        try (Connection conexion = conexionDB.getConnection();
+             PreparedStatement ps = conexion.prepareStatement(CONTAR_PERSONAL);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt("total");
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
         return 0;
     }
 

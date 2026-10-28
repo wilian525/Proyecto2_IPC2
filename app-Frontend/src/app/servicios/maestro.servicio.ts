@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { URL_API } from '../configuracion/api';
 import { RespuestaAccion } from '../modelos/gestion-colegio';
+import { PrestamoAlumno } from '../modelos/alumno';
 import { AlumnoNomina, AsignacionMaestro, AsistenciaMaestro, NotaMaestro, RendimientoMaestro, ZonaMaestro } from '../modelos/maestro';
 
 @Injectable({ providedIn: 'root' })
@@ -10,6 +11,12 @@ export class MaestroServicio {
   private readonly http = inject(HttpClient);
   private readonly url = `${URL_API}/academico`;
 
+  misPrestamos(): Observable<PrestamoAlumno[]> {
+    return this.http.get<PrestamoAlumno[]>(`${URL_API}/biblioteca/mis-pendientes`);
+  }
+  misMultas(): Observable<PrestamoAlumno[]> {
+    return this.http.get<PrestamoAlumno[]>(`${URL_API}/biblioteca/mis-multas`);
+  }
   misCursos(): Observable<AsignacionMaestro[]> {
     return this.http.get<AsignacionMaestro[]>(`${this.url}/mis-asignaciones`);
   }
@@ -27,6 +34,9 @@ export class MaestroServicio {
   }
   definirZona(id: number, nombre: string, porcentaje: number): Observable<RespuestaAccion> {
     return this.http.post<RespuestaAccion>(`${this.url}/asignaciones/${id}/zonas`, {nombre, porcentaje});
+  }
+  actualizarZona(idAsignacion: number, idZona: number, nombre: string, porcentaje: number): Observable<RespuestaAccion> {
+    return this.http.put<RespuestaAccion>(`${this.url}/asignaciones/${idAsignacion}/zonas/${idZona}`, {nombre, porcentaje});
   }
   notas(id: number): Observable<NotaMaestro[]> {
     return this.http.get<NotaMaestro[]>(`${this.url}/asignaciones/${id}/notas`);

@@ -5,12 +5,14 @@
 package com.proyecto2.app.backend.Backend.procesos;
 
 import com.proyecto2.app.backend.Backend.Dao.EstudianteDao;
+import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
 import com.proyecto2.app.backend.Backend.Dao.LibroDao;
 import com.proyecto2.app.backend.Backend.Dao.PrestamoDao;
 import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Estudiante;
+import com.proyecto2.app.backend.Backend.Model.Empleado;
 import com.proyecto2.app.backend.Backend.Model.Libro;
 import com.proyecto2.app.backend.Backend.Model.LectorBiblioteca;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
@@ -41,11 +43,31 @@ public class BibliotecaProcesos {
     public Collection<LectorBiblioteca> consultarLectores() {
         Collection<LectorBiblioteca> lectores = new ArrayList<>();
         try {
+            Collection<Estudiante> estudiantes = estudianteDAO.consultar();
+            Collection<Empleado> empleados = new EmpleadoDao().consultar();
             for (Usuario usuario : new UsuarioDao().consultar()) {
-                if ("ACTIVO".equalsIgnoreCase(usuario.getEstado())
-                        && ("ESTUDIANTE".equalsIgnoreCase(usuario.getRol()) || "MAESTRO".equalsIgnoreCase(usuario.getRol()))) {
-                    lectores.add(new LectorBiblioteca(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol()));
+                if (!"ACTIVO".equalsIgnoreCase(usuario.getEstado())
+                        || (!"ESTUDIANTE".equalsIgnoreCase(usuario.getRol()) && !"MAESTRO".equalsIgnoreCase(usuario.getRol()))) continue;
+
+                LectorBiblioteca lector = new LectorBiblioteca(usuario.getIdUsuario(), usuario.getNombreUsuario(), usuario.getRol());
+                String nombre = "";
+                if ("ESTUDIANTE".equalsIgnoreCase(usuario.getRol())) {
+                    for (Estudiante e : estudiantes) {
+                        if (e.getIdUsuario() == usuario.getIdUsuario()) {
+                            nombre = e.getNombre() + " " + e.getApellido();
+                            break;
+                        }
+                    }
+                } else {
+                    for (Empleado e : empleados) {
+                        if (usuario.getIdEmpleado() != null && e.getIdEmpleado() == usuario.getIdEmpleado()) {
+                            nombre = e.getNombre() + " " + e.getApellido();
+                            break;
+                        }
+                    }
                 }
+                lector.setNombreCompleto(nombre.isBlank() ? usuario.getNombreUsuario() : nombre.trim());
+                lectores.add(lector);
             }
             return lectores;
         } catch (daoException e) {
@@ -149,6 +171,14 @@ public class BibliotecaProcesos {
         return agregarTitulos(consultarMultasEstudiante(idEstudiante));
     }
 
+    public Collection<PrestamoConsulta> consultarMisMultasUsuario(int idUsuario) {
+        try {
+            return agregarTitulos(consultarMultasUsuario(idUsuario));
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudieron consultar las multas", e);
+        }
+    }
+
     private Collection<PrestamoConsulta> agregarTitulos(Collection<Prestamo> prestamos) {
         Collection<PrestamoConsulta> resultado = new ArrayList<>();
         Collection<Libro> libros = libroDAO.consultar();
@@ -198,22 +228,22 @@ public class BibliotecaProcesos {
                 throw new ProcesosException("NO_ENCONTRADO", "No se encontró el estudiante");
             }
 
-            Collection<Prestamo> multas = new ArrayList<>();
-
-            for (Prestamo prestamo : prestamoDAO.consultar()) {
-                if (prestamo.getIdUsuario() == estudiante.getIdUsuario()) {
-                    controlarAtraso(prestamo);
-
-                    if (prestamo.getMontoMulta() > 0) {
-                        multas.add(prestamo);
-                    }
-                }
-            }
-
-            return multas;
+            return consultarMultasUsuario(estudiante.getIdUsuario());
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudieron consultar las multas del estudiante", e);
         }
+    }
+
+    private Collection<Prestamo> consultarMultasUsuario(int idUsuario) {
+        if (idUsuario <= 0) throw new ProcesosException("DATOS_INVALIDOS", "El usuario no es válido");
+        Collection<Prestamo> multas = new ArrayList<>();
+        for (Prestamo prestamo : prestamoDAO.consultar()) {
+            if (prestamo.getIdUsuario() == idUsuario) {
+                controlarAtraso(prestamo);
+                if (prestamo.getMontoMulta() > 0) multas.add(prestamo);
+            }
+        }
+        return multas;
     }
 
     private Estudiante buscarEstudiante(int idEstudiante) {
