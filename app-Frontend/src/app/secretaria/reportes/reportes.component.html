@@ -20,4 +20,8 @@
 <p>Estudiante: {{historial()['estudiante']}}</p><p>Pagado: {{ $any(historial()['totalPagado'])|currency:'GTQ':'Q ':'1.2-2' }} · Pendiente (incluye cuotas futuras): {{ $any(historial()['saldoPendiente'])|currency:'GTQ':'Q ':'1.2-2' }}</p>
 <div class="table-responsive"><table class="table tabla-res"><thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead><tbody>@for(p of $any(historial()['pagos']??[]);track $index){<tr><td>{{p.concepto}}</td><td>{{p.monto|currency:'GTQ':'Q ':'1.2-2'}}</td><td>{{fechaPago(p.fecha)}}</td></tr>}@empty{<tr><td colspan="3">No hay pagos registrados.</td></tr>}</tbody></table></div>
 }
+<div class="d-flex align-items-center justify-content-between gap-2 mt-3">
+<span class="texto-suave">{{total()}} registros · Página {{pagina()}}</span>
+<div class="d-flex gap-2"><button type="button" class="btn btn-menta btn-sm" (click)="anterior()" [disabled]="pagina()===1">Anterior</button>
+<button type="button" class="btn btn-menta btn-sm" (click)="siguiente()" [disabled]="pagina()*limite>=total()">Siguiente</button></div></div>
 }@else{<p class="texto-suave">Selecciona filtros y consulta para ver los registros.</p>}</div></section>

@@ -57,6 +57,14 @@ public class PrestamoDao {
     private static final String AVISO = "UPDATE PRESTAMO SET fecha_aviso=CURDATE() WHERE id_prestamo=? AND fecha_devolucion IS NULL AND fecha_devolucion_esperada<CURDATE()";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM PRESTAMO";
     private static final String CONSULTAR_ATRASOS_PAGINADO = CONSULTAR_ATRASOS + " LIMIT ? OFFSET ?";
+    private static final String CONSULTAR_MORA_ESTUDIANTES = "SELECT p.id_prestamo, p.id_libro, p.id_usuario, "
+            + "p.fecha_prestamo, p.fecha_devolucion_esperada, p.fecha_devolucion, p.dias_atraso, p.monto_multa, p.fecha_aviso "
+            + "FROM PRESTAMO p JOIN ESTUDIANTE e ON e.id_usuario = p.id_usuario "
+            + "WHERE p.fecha_devolucion IS NULL AND p.fecha_devolucion_esperada < CURDATE() "
+            + "ORDER BY p.fecha_devolucion_esperada, p.id_prestamo LIMIT ? OFFSET ?";
+    private static final String CONTAR_MORA_ESTUDIANTES = "SELECT COUNT(*) AS total FROM PRESTAMO p "
+            + "JOIN ESTUDIANTE e ON e.id_usuario = p.id_usuario "
+            + "WHERE p.fecha_devolucion IS NULL AND p.fecha_devolucion_esperada < CURDATE()";
     private static final String CONTAR_ATRASOS = "SELECT COUNT(*) AS total FROM PRESTAMO WHERE fecha_devolucion IS NULL AND fecha_devolucion_esperada < CURDATE()";
 
     public void crearTabla() {
@@ -308,6 +316,33 @@ public class PrestamoDao {
     return 0;
 }
     
+    // El reporte de mora muestra solo prestamos de estudiantes.
+    public Collection<Prestamo> consultarMoraEstudiantes(int pagina, int limite) {
+        Collection<Prestamo> resultado = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_MORA_ESTUDIANTES)) {
+            ps.setInt(1, limite);
+            ps.setInt(2, (pagina - 1) * limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) resultado.add(construirPrestamo(rs));
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return resultado;
+    }
+
+    public int contarMoraEstudiantes() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONTAR_MORA_ESTUDIANTES);
+                ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt("total") : 0;
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return 0;
+        }
+    }
+
     public Collection<Prestamo> consultarAtrasos(int pagina, int limite) {
     if (pagina <= 0 || limite <= 0) {
         return new ArrayList<>();

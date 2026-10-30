@@ -61,6 +61,12 @@ public class InscripcionDao {
     private static final String CONSULTAR_INSCRIPCION_EXISTENTE = "SELECT id_inscripcion FROM INSCRIPCION WHERE id_estudiante = ? AND id_ciclo = ?";
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM INSCRIPCION";
+    private static final String CONSULTAR_REPORTE = "SELECT id_inscripcion, id_estudiante, id_ciclo, id_grado, id_seccion "
+            + "FROM INSCRIPCION WHERE (? = 0 OR id_grado = ?) AND (? = 0 OR id_seccion = ?) "
+            + "AND (? = 0 OR id_ciclo = ?) ORDER BY id_inscripcion LIMIT ? OFFSET ?";
+    private static final String CONTAR_REPORTE = "SELECT COUNT(*) AS total FROM INSCRIPCION "
+            + "WHERE (? = 0 OR id_grado = ?) AND (? = 0 OR id_seccion = ?) AND (? = 0 OR id_ciclo = ?)";
+
     private static final String CONSULTAR_POR_ID = "SELECT id_inscripcion, id_estudiante, id_ciclo, id_grado, id_seccion FROM INSCRIPCION WHERE id_inscripcion = ?";
 
     private static final String CONSULTAR_NOMINA_ASIGNACION = """
@@ -326,6 +332,43 @@ public class InscripcionDao {
         int idSeccion = rs.getInt("id_seccion");
 
         return new Inscripcion(idInscripcion, idEstudiante, idCiclo, idGrado, idSeccion);
+    }
+
+    // Consultas para mostrar una sola pagina del reporte; no modifican datos.
+    public Collection<Inscripcion> consultarReporte(int grado, int seccion, int ciclo, int pagina, int limite) {
+        Collection<Inscripcion> resultado = new ArrayList<>();
+        int desplazamiento = (pagina - 1) * limite;
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_REPORTE)) {
+            parametrosReporte(ps, grado, seccion, ciclo);
+            ps.setInt(7, limite);
+            ps.setInt(8, desplazamiento);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) resultado.add(construirInscripcion(rs));
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return resultado;
+    }
+
+    public int contarReporte(int grado, int seccion, int ciclo) {
+        try (Connection conexion = conexionDB.getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONTAR_REPORTE)) {
+            parametrosReporte(ps, grado, seccion, ciclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("total") : 0;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return 0;
+        }
+    }
+
+    private void parametrosReporte(PreparedStatement ps, int grado, int seccion, int ciclo) throws SQLException {
+        ps.setInt(1, grado); ps.setInt(2, grado);
+        ps.setInt(3, seccion); ps.setInt(4, seccion);
+        ps.setInt(5, ciclo); ps.setInt(6, ciclo);
     }
 
     public Collection<Inscripcion> consultar(int pagina, int limite) {

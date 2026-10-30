@@ -14,6 +14,7 @@ import com.proyecto2.app.backend.Backend.Dao.InscripcionDao;
 import com.proyecto2.app.backend.Backend.Dao.LibroDao;
 import com.proyecto2.app.backend.Backend.Dao.NotaDao;
 import com.proyecto2.app.backend.Backend.Dao.PagoDao;
+import com.proyecto2.app.backend.Backend.Dao.PrestamoDao;
 import com.proyecto2.app.backend.Backend.Dao.SeccionDao;
 import com.proyecto2.app.backend.Backend.Dao.ZonaDao;
 import com.proyecto2.app.backend.Backend.Exception.ProcesosException;
@@ -41,6 +42,9 @@ import com.proyecto2.app.backend.Backend.Model.Zona;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -347,6 +351,141 @@ public class ReporteProcesos {
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo generar el reporte de préstamos en mora", e);
         }
+    }
+
+    // Estas consultas son solo de lectura. Los PDF usan los metodos completos de arriba.
+    public Map<String, Object> paginaSolventes(int grado, int seccion, int ciclo, int mensualidades,
+            int pagina, int limite) {
+        validarPagina(pagina, limite);
+        if (grado < 0 || seccion < 0 || ciclo < 0 || mensualidades < 0) {
+            throw new ProcesosException("DATOS_INVALIDOS", "Filtros de reporte no válidos");
+        }
+        try {
+            Collection<ReporteSolventeMoroso> filas = new ArrayList<>();
+            Collection<Estudiante> estudiantes = estudianteDAO.consultar();
+            Collection<Grado> grados = gradoDAO.consultar();
+            Collection<Seccion> secciones = seccionDAO.consultar();
+            for (Inscripcion i : inscripcionDAO.consultarReporte(grado, seccion, ciclo, pagina, limite)) {
+                Estudiante e = buscarEstudiante(i.getIdEstudiante(), estudiantes);
+                if (e == null) continue;
+                Grado g = buscarGrado(i.getIdGrado(), grados);
+                Seccion sec = buscarSeccion(i.getIdSeccion(), secciones);
+                double pendiente = pagoProcesos.consultarEstadoCuentaPorCiclo(e.getIdEstudiante(), i.getIdCiclo());
+                double vencido = pagoProcesos.consultarSaldoVencido(e.getIdEstudiante(), i.getIdCiclo());
+                String estado = vencido > 0.01 ? "MOROSO" : pendiente > 0.01 ? "PENDIENTE" : "SOLVENTE";
+                filas.add(new ReporteSolventeMoroso(e.getIdEstudiante(), e.getNombre() + " " + e.getApellido(),
+                        i.getIdGrado(), g == null ? "" : g.getNombre(), i.getIdSeccion(),
+                        sec == null ? "" : sec.getNombre(), i.getIdCiclo(), redondear(pendiente), estado));
+            }
+            return respuestaPagina(filas, inscripcionDAO.contarReporte(grado, seccion, ciclo), pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar el reporte paginado", e);
+        }
+    }
+
+    public Map<String, Object> paginaPrestamosMora(int pagina, int limite) {
+        validarPagina(pagina, limite);
+        try {
+            PrestamoDao dao = new PrestamoDao();
+            Collection<ReportePrestamoMora> filas = new ArrayList<>();
+            Collection<Estudiante> estudiantes = estudianteDAO.consultar();
+            Collection<Libro> libros = libroDAO.consultar();
+            for (Prestamo prestamo : dao.consultarMoraEstudiantes(pagina, limite)) {
+                bibliotecaProcesos.controlarAtraso(prestamo);
+                Estudiante estudiante = buscarEstudiantePorUsuario(prestamo.getIdUsuario(), estudiantes);
+                if (estudiante == null) continue;
+                Libro libro = buscarLibro(prestamo.getIdLibro(), libros);
+                filas.add(new ReportePrestamoMora(prestamo.getIdPrestamo(), estudiante.getIdEstudiante(),
+                        estudiante.getNombre() + " " + estudiante.getApellido(), prestamo.getIdLibro(),
+                        libro == null ? "" : libro.getTitulo(), prestamo.getFechaPrestamo(),
+                        prestamo.getFechaDevolucionEsperada(), prestamo.getDiasAtraso(), redondear(prestamo.getMontoMulta())));
+            }
+            return respuestaPagina(filas, dao.contarMoraEstudiantes(), pagina, limite);
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar la mora paginada", e);
+        }
+    }
+
+    public Map<String, Object> paginaHistorialPagos(int idEstudiante, LocalDate inicio, LocalDate fin,
+            int mensualidades, int pagina, int limite) {
+        validarPagina(pagina, limite);
+        ReporteHistorialPago completo = generarReporteHistorialPagos(idEstudiante, inicio, fin, mensualidades);
+        try {
+            Collection<Pago> pagos = pagoDAO.consultarReporte(idEstudiante, inicio, fin, pagina, limite);
+            Collection<Empleado> empleados = new EmpleadoDao().consultar();
+            for (Pago pago : pagos) {
+                for (Empleado empleado : empleados) {
+                    if (empleado.getIdEmpleado() == pago.getIdEmpleado()) {
+                        pago.setNombreEmpleado(empleado.getNombre() + " " + empleado.getApellido());
+                        break;
+                    }
+                }
+            }
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("estudiante", completo.getEstudiante());
+            respuesta.put("idEstudiante", completo.getIdEstudiante());
+            respuesta.put("totalPagado", completo.getTotalPagado());
+            respuesta.put("saldoPendiente", completo.getSaldoPendiente());
+            respuesta.put("estadoCuenta", completo.getEstadoCuenta());
+            respuesta.put("pagos", pagos);
+            respuesta.put("total", pagoDAO.contarReporte(idEstudiante, inicio, fin));
+            respuesta.put("pagina", pagina);
+            respuesta.put("limite", limite);
+            return respuesta;
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo consultar el historial paginado", e);
+        }
+    }
+
+    public Map<String, Object> paginaIngresos(LocalDate inicio, LocalDate fin, int pagina, int limite) {
+        validarPagina(pagina, limite);
+        ReporteIngresos completo = generarReporteIngresos(inicio, fin);
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("totalIngresos", completo.getTotalIngresos());
+        respuesta.put("detalle", cortarPagina(completo.getDetalle(), pagina, limite));
+        respuesta.put("total", completo.getDetalle().size());
+        respuesta.put("pagina", pagina);
+        respuesta.put("limite", limite);
+        return respuesta;
+    }
+
+    public Map<String, Object> paginaRendimiento(int grado, int seccion, int ciclo,
+            int paginaCursos, int paginaEstudiantes, int limite) {
+        validarPagina(paginaCursos, limite);
+        validarPagina(paginaEstudiantes, limite);
+        ReporteRendimiento completo = generarReporteRendimiento(grado, seccion, ciclo);
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("grado", completo.getGrado());
+        respuesta.put("seccion", completo.getSeccion());
+        respuesta.put("idGrado", completo.getIdGrado());
+        respuesta.put("idSeccion", completo.getIdSeccion());
+        respuesta.put("idCiclo", completo.getIdCiclo());
+        respuesta.put("cursoMayorDificultad", completo.getCursoMayorDificultad());
+        respuesta.put("promediosCursos", cortarPagina(completo.getPromediosCursos(), paginaCursos, limite));
+        respuesta.put("mejoresPromedios", cortarPagina(completo.getMejoresPromedios(), paginaEstudiantes, limite));
+        respuesta.put("totalCursos", completo.getPromediosCursos().size());
+        respuesta.put("totalEstudiantes", completo.getMejoresPromedios().size());
+        respuesta.put("paginaCursos", paginaCursos);
+        respuesta.put("paginaEstudiantes", paginaEstudiantes);
+        respuesta.put("limite", limite);
+        return respuesta;
+    }
+
+    private void validarPagina(int pagina, int limite) {
+        if (pagina < 1 || limite < 1 || limite > 100 || (long)pagina * limite > Integer.MAX_VALUE) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página o el límite no son válidos");
+        }
+    }
+
+    private <T> Map<String, Object> respuestaPagina(Collection<T> filas, int total, int pagina, int limite) {
+        return Map.of("datos", filas, "total", total, "pagina", pagina, "limite", limite);
+    }
+
+    private <T> Collection<T> cortarPagina(Collection<T> datos, int pagina, int limite) {
+        List<T> lista = new ArrayList<>(datos);
+        int inicio = Math.min(lista.size(), (pagina - 1) * limite);
+        int fin = Math.min(lista.size(), inicio + limite);
+        return new ArrayList<>(lista.subList(inicio, fin));
     }
 
     private ReportePromedioCurso calcularPromedioCurso(int idCurso, int idSeccion, int idCiclo, String nombreCurso, Collection<Asignacion> asignaciones, Collection<Zona> zonas, Collection<Nota> notas, Collection<Inscripcion> inscripciones) {

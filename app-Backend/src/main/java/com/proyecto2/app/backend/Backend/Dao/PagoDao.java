@@ -48,6 +48,11 @@ public class PagoDao {
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM PAGO";
     private static final String CONSULTAR_POR_ID = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO WHERE id_pago = ? FOR UPDATE";
     private static final String CONSULTAR_ESTUDIANTE_PAGINADO = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha FROM PAGO WHERE id_estudiante = ? ORDER BY fecha DESC LIMIT ? OFFSET ?";
+    private static final String CONSULTAR_REPORTE = "SELECT id_pago, id_estudiante, id_empleado, concepto, monto, fecha "
+            + "FROM PAGO WHERE id_estudiante = ? AND fecha >= ? AND fecha <= ? "
+            + "ORDER BY fecha DESC, id_pago DESC LIMIT ? OFFSET ?";
+    private static final String CONTAR_REPORTE = "SELECT COUNT(*) AS total FROM PAGO "
+            + "WHERE id_estudiante = ? AND fecha >= ? AND fecha <= ?";
     private static final String CONTAR_ESTUDIANTE = "SELECT COUNT(*) AS total FROM PAGO WHERE id_estudiante = ?";
 
     public void crearTabla() {
@@ -206,6 +211,42 @@ public class PagoDao {
         }
 
         return 0;
+    }
+
+    // El rango es opcional. Sin fecha se consulta todo el historial.
+    public Collection<Pago> consultarReporte(int idEstudiante, LocalDate inicio, LocalDate fin, int pagina, int limite) {
+        Collection<Pago> resultado = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONSULTAR_REPORTE)) {
+            parametrosReporte(ps, idEstudiante, inicio, fin);
+            ps.setInt(4, limite);
+            ps.setInt(5, (pagina - 1) * limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) resultado.add(construirPago(rs));
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return resultado;
+    }
+
+    public int contarReporte(int idEstudiante, LocalDate inicio, LocalDate fin) {
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONTAR_REPORTE)) {
+            parametrosReporte(ps, idEstudiante, inicio, fin);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("total") : 0;
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+            return 0;
+        }
+    }
+
+    private void parametrosReporte(PreparedStatement ps, int idEstudiante, LocalDate inicio, LocalDate fin) throws SQLException {
+        ps.setInt(1, idEstudiante);
+        ps.setDate(2, Date.valueOf(inicio == null ? LocalDate.of(1000, 1, 1) : inicio));
+        ps.setDate(3, Date.valueOf(fin == null ? LocalDate.of(9999, 12, 31) : fin));
     }
 
     public Collection<Pago> consultarPorEstudiante(int idEstudiante, int pagina, int limite) {

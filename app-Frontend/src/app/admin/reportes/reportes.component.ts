@@ -7,7 +7,7 @@ import { GestionColegioServicio } from '../gestion.servicio';
 import { explicarError } from '../mensajes-error';
 import { AdministracionServicio } from '../../super-admin/administracion.servicio';
 import { CicloEscolar, GradoEscolar } from '../../modelos/administracion';
-import { EstudianteColegio, SeccionColegio } from '../../modelos/gestion-colegio';
+import { EstudianteColegio, SeccionColegio, fechaFormulario, FechaServidor } from '../../modelos/gestion-colegio';
 
 interface DetalleIngreso { concepto: string; total: number; }
 interface DatosIngresos { detalle: DetalleIngreso[]; totalIngresos: number; }
@@ -25,6 +25,11 @@ export class ReportesAdministradorComponent {
   private readonly destruir = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   readonly datos = signal<unknown>(null);
+  readonly pagina = signal(1);
+  readonly paginaEstudiantes = signal(1);
+  readonly total = signal(0);
+  readonly totalEstudiantes = signal(0);
+  readonly limite = 7;
   readonly grados = signal<GradoEscolar[]>([]);
   readonly secciones = signal<SeccionColegio[]>([]);
   readonly ciclos = signal<CicloEscolar[]>([]);
@@ -82,15 +87,42 @@ export class ReportesAdministradorComponent {
     }};
   }
   consultar(): void {
+    this.pagina.set(1);
+    this.paginaEstudiantes.set(1);
+    this.cargar();
+  }
+  private cargar(): void {
     const filtros = this.parametros(); if (!filtros) return;
+    const parametros = { ...filtros.parametros, limite: this.limite,
+      ...(this.tipo() === 'rendimiento' ? { paginaCursos: this.pagina(), paginaEstudiantes: this.paginaEstudiantes() }
+        : { pagina: this.pagina() }) };
     this.cargando.set(true); this.datos.set(null); this.error.set(''); this.mensaje.set('');
-    this.servicio.consultarReporte(filtros.ruta, filtros.parametros)
+    this.servicio.consultarReporte(filtros.ruta, parametros)
       .pipe(takeUntilDestroyed(this.destruir)).subscribe({
-        next: valor => { this.datos.set(valor); this.cargando.set(false); },
+        next: valor => {
+          this.datos.set(valor);
+          const resultado = valor as Record<string, unknown>;
+          this.total.set(Number(this.tipo() === 'rendimiento' ? resultado['totalCursos'] : resultado['total']) || 0);
+          this.totalEstudiantes.set(Number(resultado['totalEstudiantes']) || 0);
+          this.cargando.set(false);
+        },
         error: e => { this.cargando.set(false); this.error.set(explicarError(e, 'consultar el reporte')); }
       });
   }
-  cambiarReporte(): void { this.datos.set(null); this.error.set(''); this.mensaje.set(''); }
+  cambiarReporte(): void {
+    this.datos.set(null); this.error.set(''); this.mensaje.set('');
+    this.pagina.set(1); this.paginaEstudiantes.set(1); this.total.set(0); this.totalEstudiantes.set(0);
+  }
+  anterior(): void { if (this.pagina() > 1) { this.pagina.update(p => p - 1); this.cargar(); } }
+  siguiente(): void { if (this.pagina() * this.limite < this.total()) { this.pagina.update(p => p + 1); this.cargar(); } }
+  anterioresEstudiantes(): void { if (this.paginaEstudiantes() > 1) { this.paginaEstudiantes.update(p => p - 1); this.cargar(); } }
+  siguientesEstudiantes(): void { if (this.paginaEstudiantes() * this.limite < this.totalEstudiantes()) { this.paginaEstudiantes.update(p => p + 1); this.cargar(); } }
+  fechaPago(valor: FechaServidor): string {
+    const fecha = fechaFormulario(valor);
+    if (!fecha) return '';
+    const partes = fecha.split('-');
+    return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : fecha;
+  }
   descargarPdf(): void {
     const filtros = this.parametros(); if (!filtros || this.procesando()) return;
     this.procesando.set(true); this.error.set('');
@@ -108,7 +140,7 @@ export class ReportesAdministradorComponent {
       });
   }
   ingresos(): DatosIngresos { return this.datos() as DatosIngresos; }
-  filas(): Record<string,unknown>[] { return Array.isArray(this.datos()) ? this.datos() as Record<string,unknown>[] : []; }
+  filas(): Record<string,unknown>[] { return (this.registro()['datos'] ?? []) as Record<string,unknown>[]; }
   registro(): Record<string, unknown> { return (this.datos() ?? {}) as Record<string,unknown>; }
   texto(valor: unknown): string { return typeof valor === 'string' || typeof valor === 'number' ? String(valor) : JSON.stringify(valor ?? ''); }
 }

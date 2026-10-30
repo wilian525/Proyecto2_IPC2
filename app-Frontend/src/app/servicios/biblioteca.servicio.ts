@@ -19,6 +19,6 @@ export class BibliotecaServicio {
   devolver(id:number):Observable<RespuestaAccion> { return this.http.put<RespuestaAccion>(`${this.url}/prestamos/${id}/devolucion`,{fechaDevolucion:new Date().toLocaleDateString('en-CA')}); }
   atrasos(pagina=1):Observable<RespuestaPagina<PrestamoBiblioteca>> { return this.http.get<RespuestaPagina<PrestamoBiblioteca>>(`${this.url}/atrasos`,{params:{pagina,limite:10}}); }
   aviso(id:number):Observable<RespuestaAccion> { return this.http.put<RespuestaAccion>(`${this.url}/prestamos/${id}/aviso`,{}); }
-  reporte():Observable<ReporteMora[]> { return this.http.get<ReporteMora[]>(`${URL_API}/reportes/prestamos-mora`); }
+  reporte(pagina=1,limite=7):Observable<RespuestaPagina<ReporteMora>> { return this.http.get<RespuestaPagina<ReporteMora>>(`${URL_API}/reportes/prestamos-mora`,{params:{pagina,limite}}); }
   reportePdf():Observable<Blob> { return this.http.get(`${URL_API}/reportes/prestamos-mora/pdf`,{responseType:'blob'}); }
 }

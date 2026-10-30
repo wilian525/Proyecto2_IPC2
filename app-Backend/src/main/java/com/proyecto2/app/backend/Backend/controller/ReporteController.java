@@ -33,10 +33,11 @@ public class ReporteController {
    @GET
     @Path("solventes-morosos")
     @RolesAllowed({"ADMIN", "SECRETARIA"})
-    public Response solventesMorosos(@Context SecurityContext seguridad, @QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
+    public Response solventesMorosos(@Context SecurityContext seguridad, @QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades,
+            @DefaultValue("1") @QueryParam("pagina") int pagina, @DefaultValue("7") @QueryParam("limite") int limite) {
         try {
             verificarCicloSecretaria(seguridad,idCiclo);
-            return Response.ok(new ReporteProcesos().generarReporteSolventesMorosos(idGrado, idSeccion, idCiclo, mensualidades)).build();
+            return Response.ok(new ReporteProcesos().paginaSolventes(idGrado, idSeccion, idCiclo, mensualidades, pagina, limite)).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -60,9 +61,13 @@ public class ReporteController {
     @GET
     @Path("rendimiento")
     @RolesAllowed("ADMIN")
-    public Response rendimiento(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo) {
+    public Response rendimiento(@QueryParam("grado") int idGrado, @QueryParam("seccion") int idSeccion, @QueryParam("ciclo") int idCiclo,
+            @DefaultValue("1") @QueryParam("paginaCursos") int paginaCursos,
+            @DefaultValue("1") @QueryParam("paginaEstudiantes") int paginaEstudiantes,
+            @DefaultValue("7") @QueryParam("limite") int limite) {
         try {
-            return Response.ok(new ReporteProcesos().generarReporteRendimiento(idGrado, idSeccion, idCiclo)).build();
+            return Response.ok(new ReporteProcesos().paginaRendimiento(idGrado, idSeccion, idCiclo,
+                    paginaCursos, paginaEstudiantes, limite)).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }
@@ -120,9 +125,12 @@ public class ReporteController {
     @GET
     @Path("historial-pagos/{idEstudiante}")
     @RolesAllowed({"ADMIN", "SECRETARIA"})
-    public Response historialPagos(@PathParam("idEstudiante") int idEstudiante, @QueryParam("fechaInicio") String fechaInicio, @QueryParam("fechaFin") String fechaFin, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades) {
+    public Response historialPagos(@PathParam("idEstudiante") int idEstudiante, @QueryParam("fechaInicio") String fechaInicio,
+            @QueryParam("fechaFin") String fechaFin, @DefaultValue("0") @QueryParam("mensualidades") int mensualidades,
+            @DefaultValue("1") @QueryParam("pagina") int pagina, @DefaultValue("7") @QueryParam("limite") int limite) {
         try {
-            return Response.ok(new ReporteProcesos().generarReporteHistorialPagos(idEstudiante, convertirFecha(fechaInicio), convertirFecha(fechaFin), mensualidades)).build();
+            return Response.ok(new ReporteProcesos().paginaHistorialPagos(idEstudiante,
+                    convertirFecha(fechaInicio), convertirFecha(fechaFin), mensualidades, pagina, limite)).build();
         } catch (DateTimeParseException e) {
             return error("DATOS_INVALIDOS", "Las fechas deben tener formato yyyy-MM-dd");
         } catch (ProcesosException e) {
@@ -151,9 +159,10 @@ public class ReporteController {
     @GET
     @Path("ingresos")
     @RolesAllowed("ADMIN")
-    public Response ingresos(@QueryParam("fechaInicio") String fechaInicio, @QueryParam("fechaFin") String fechaFin) {
+    public Response ingresos(@QueryParam("fechaInicio") String fechaInicio, @QueryParam("fechaFin") String fechaFin,
+            @DefaultValue("1") @QueryParam("pagina") int pagina, @DefaultValue("7") @QueryParam("limite") int limite) {
         try {
-            return Response.ok(new ReporteProcesos().generarReporteIngresos(convertirFecha(fechaInicio), convertirFecha(fechaFin))).build();
+            return Response.ok(new ReporteProcesos().paginaIngresos(convertirFecha(fechaInicio), convertirFecha(fechaFin), pagina, limite)).build();
         } catch (DateTimeParseException e) {
             return error("DATOS_INVALIDOS", "Las fechas deben tener formato yyyy-MM-dd");
         } catch (ProcesosException e) {
@@ -182,9 +191,10 @@ public class ReporteController {
     @GET
     @Path("prestamos-mora")
     @RolesAllowed({"ADMIN", "BIBLIOTECARIO"})
-    public Response prestamosMora() {
+    public Response prestamosMora(@DefaultValue("1") @QueryParam("pagina") int pagina,
+            @DefaultValue("7") @QueryParam("limite") int limite) {
         try {
-            return Response.ok(new ReporteProcesos().generarReportePrestamosMora()).build();
+            return Response.ok(new ReporteProcesos().paginaPrestamosMora(pagina, limite)).build();
         } catch (ProcesosException e) {
             return error(e.getCodigo(), e.getMessage());
         }

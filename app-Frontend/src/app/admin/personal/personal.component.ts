@@ -104,6 +104,17 @@ export class PersonalAdministradorComponent {
       error: err => { this.procesando.set(false); this.error.set(explicarError(err, 'activar al empleado')); }
     });
   }
-  anterior(): void { if (this.pagina() > 1) { this.pagina.update(p => p-1); this.cargar(); } }
-  siguiente(): void { if (this.pagina()*10 < this.total()) { this.pagina.update(p => p+1); this.cargar(); } }
+  anterior(): void {
+  if (this.pagina() > 1) {
+    this.pagina.update(p => p - 1);
+    this.cargar();
+  }
 }
+
+siguiente(): void {
+  if (this.pagina() * 7 < this.total()) {
+    this.pagina.update(p => p + 1);
+    this.cargar();
+    }
+  }
+}   

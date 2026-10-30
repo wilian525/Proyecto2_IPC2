@@ -21,7 +21,7 @@ export class GestionColegioServicio {
   }
   personal(pagina: number): Observable<RespuestaPagina<EmpleadoColegio>> {
     return this.http.get<RespuestaPagina<EmpleadoColegio>>(`${this.api}/empleados`, {
-      params: this.pagina(pagina, 10).set('personal', true)
+      params: this.pagina(pagina, 7).set('personal', true)
     });
   }
   crearEmpleado(empleado: Partial<EmpleadoColegio>, usuario: UsuarioNuevo): Observable<RespuestaAccion> {
