@@ -93,19 +93,22 @@ public class BibliotecaProcesos {
         }
     }
 
-    public Collection<Libro> consultarCatalogo() {
+    public Collection<Libro> consultarCatalogo(int pagina, int limite) {
+        if (pagina <= 0 || limite <= 0 || limite > 100) {
+            throw new ProcesosException("DATOS_INVALIDOS", "La página o el límite no son válidos");
+        }
         try {
-            Collection<Libro> catalogo = new ArrayList<>();
-
-            for (Libro libro : libroDAO.consultar()) {
-                if ("ACTIVO".equalsIgnoreCase(libro.getEstado()) && libro.getCantidadDisponible() > 0) {
-                    catalogo.add(libro);
-                }
-            }
-
-            return catalogo;
+            return libroDAO.consultarCatalogo(pagina, limite);
         } catch (daoException e) {
             throw new ProcesosException("BD_ERROR", "No se pudo consultar el catálogo de libros", e);
+        }
+    }
+
+    public int contarCatalogo() {
+        try {
+            return libroDAO.contarCatalogo();
+        } catch (daoException e) {
+            throw new ProcesosException("BD_ERROR", "No se pudo contar el catálogo de libros", e);
         }
     }
 

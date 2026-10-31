@@ -99,6 +99,13 @@
             <div class="disponibilidad mt-3">{{ libro.cantidadDisponible }} disponible(s)</div>
           </div></div>
         }</div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+          <span class="nota-ayuda">{{ totalLibros() }} libros · Página {{ paginaLibros() }}</span>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-actualizar" (click)="anteriorLibros()" [disabled]="paginaLibros() === 1">Anterior</button>
+            <button type="button" class="btn btn-actualizar" (click)="siguienteLibros()" [disabled]="paginaLibros() * 9 >= totalLibros()">Siguiente</button>
+          </div>
+        </div>
       }
     }
 

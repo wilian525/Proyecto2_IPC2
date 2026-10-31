@@ -32,6 +32,8 @@ export class ConsultaAlumnoComponent {
   readonly historial = signal<PaginaPagos | null>(null);
   readonly cargandoMasPagos = signal(false);
   readonly libros = signal<LibroAlumno[]>([]);
+  readonly paginaLibros = signal(1);
+  readonly totalLibros = signal(0);
   readonly prestamos = signal<PrestamoAlumno[]>([]);
   readonly multas = signal<PrestamoAlumno[]>([]);
 
@@ -73,8 +75,18 @@ export class ConsultaAlumnoComponent {
         });
         break;
       case 'catalogo':
-        this.servicio.obtenerCatalogo().pipe(takeUntilDestroyed(this.destruir)).subscribe({
-          next: datos => { this.libros.set(datos); this.finalizar(); }, error: err => this.error(err)
+        this.servicio.obtenerCatalogo(this.paginaLibros()).pipe(takeUntilDestroyed(this.destruir)).subscribe({
+          next: r => {
+            if (!r.datos.length && this.paginaLibros() > 1) {
+              this.paginaLibros.set(Math.max(1, Math.ceil(r.total / 9)));
+              this.cargar();
+              return;
+            }
+            this.libros.set(r.datos);
+            this.totalLibros.set(r.total);
+            this.finalizar();
+          },
+          error: err => this.error(err)
         });
         break;
       case 'prestamos':
@@ -87,6 +99,20 @@ export class ConsultaAlumnoComponent {
           next: datos => { this.multas.set(datos); this.finalizar(); }, error: err => this.error(err)
         });
         break;
+    }
+  }
+
+  anteriorLibros(): void {
+    if (this.paginaLibros() > 1) {
+      this.paginaLibros.update(p => p - 1);
+      this.cargar();
+    }
+  }
+
+  siguienteLibros(): void {
+    if (this.paginaLibros() * 9 < this.totalLibros()) {
+      this.paginaLibros.update(p => p + 1);
+      this.cargar();
     }
   }
 

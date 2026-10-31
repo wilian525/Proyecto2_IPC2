@@ -7,7 +7,7 @@
   </div>
   <div class="mb-3">
     <label for="grado-nivel" class="form-label">Nivel académico</label>
-    <select id="grado-nivel" class="form-select" formControlName="idNivel">
+    <select id="grado-nivel" class="form-select" formControlName="idNivel" (change)="formulario.controls.idCarrera.setValue('')">
       <option value="0">Selecciona un nivel</option>
       @for (nivel of niveles; track nivel.idNivel) {
         <option [value]="nivel.idNivel">{{ nivel.nombre }}</option>
@@ -17,11 +17,20 @@
     @if (!niveles.length) { <p class="campo-ayuda">No hay niveles para seleccionar; verifica el backend.</p> }
   </div>
   <div class="mb-3">
-    <label for="grado-carrera" class="form-label">ID de carrera (opcional)</label>
-    <input id="grado-carrera" type="text" inputmode="numeric" pattern="[0-9]*" class="form-control" formControlName="idCarrera" placeholder="Solo si pertenece a diversificado" />
-    <div class="texto-suave mt-1">Usa el identificador real de una carrera existente, cuando corresponda.</div>
-    @if (intentado && formulario.controls.idCarrera.value.trim() !== '' && (+formulario.controls.idCarrera.value <= 0)) {
-      <div class="campo-ayuda">El ID de carrera debe ser un entero positivo.</div>
+    <label for="grado-carrera" class="form-label">Carrera (solo Diversificado)</label>
+    @if (esDiversificado()) {
+      <select id="grado-carrera" class="form-select" formControlName="idCarrera">
+        <option value="">Selecciona una carrera</option>
+        @for (carrera of carrerasDisponibles(); track carrera.idCarrera) {
+          <option [value]="carrera.idCarrera">{{ carrera.nombre }} (#{{ carrera.idCarrera }}){{ carrera.estado === 'ACTIVO' ? '' : ' - INACTIVA' }}</option>
+        }
+      </select>
+      <div class="texto-suave mt-1">Selecciona una carrera activa. Si es inactiva, puedes conservarla sin cambiarla.</div>
+      @if (intentado && !formulario.controls.idCarrera.value) {
+        <div class="campo-ayuda">Selecciona una carrera para este grado.</div>
+      }
+    } @else {
+      <p class="texto-suave mt-1">Los demás niveles no utilizan carrera.</p>
     }
   </div>
   <div class="d-flex justify-content-end flex-wrap gap-2">

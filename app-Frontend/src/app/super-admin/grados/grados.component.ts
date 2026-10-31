@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GradoEscolar, NivelEscolar } from '../../modelos/administracion';
+import { CarreraColegio } from '../../modelos/gestion-colegio';
+import { GestionColegioServicio } from '../../admin/gestion.servicio';
 import { AdministracionServicio } from '../administracion.servicio';
 import { FormularioGradoComponent } from '../formulario-grado/formulario-grado.component';
 
@@ -14,9 +16,11 @@ import { FormularioGradoComponent } from '../formulario-grado/formulario-grado.c
 })
 export class GradosComponent {
   private readonly servicio = inject(AdministracionServicio);
+  private readonly gestion = inject(GestionColegioServicio);
   private readonly destruir = inject(DestroyRef);
   readonly grados = signal<GradoEscolar[]>([]);
   readonly niveles = signal<NivelEscolar[]>([]);
+  readonly carreras = signal<CarreraColegio[]>([]);
   readonly seleccionado = signal<GradoEscolar | null>(null);
   readonly pagina = signal(1);
   readonly limite = 10;
@@ -27,7 +31,19 @@ export class GradosComponent {
   readonly mensaje = signal('');
   readonly error = signal('');
 
-  constructor() { this.cargar(); this.cargarNiveles(); }
+  constructor() { this.cargar(); this.cargarNiveles(); this.cargarCarreras(); }
+
+  cargarCarreras(): void {
+    this.gestion.carreras().pipe(takeUntilDestroyed(this.destruir)).subscribe({
+      next: datos => this.carreras.set(datos),
+      error: () => this.error.set('No se pudieron consultar las carreras.')
+    });
+  }
+
+  nombreCarrera(id: number | null): string {
+    if (id == null) return '—';
+    return this.carreras().find(c => c.idCarrera === id)?.nombre ?? `Carrera #${id}`;
+  }
 
   cargarNiveles(): void {
     this.servicio.consultarNiveles().pipe(takeUntilDestroyed(this.destruir)).subscribe({

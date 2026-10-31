@@ -6,6 +6,8 @@ package com.proyecto2.app.backend.Backend.servicio;
 
 import com.proyecto2.app.backend.Backend.ConexionDB.ConexionDB;
 import com.proyecto2.app.backend.Backend.Dao.GradoDao;
+import com.proyecto2.app.backend.Backend.Dao.CarreraDao;
+import com.proyecto2.app.backend.Backend.Dao.NivelDao;
 import com.proyecto2.app.backend.Backend.Dao.EmpleadoDao;
 import com.proyecto2.app.backend.Backend.Dao.UsuarioDao;
 import com.proyecto2.app.backend.Backend.Dao.cicloDao;
@@ -13,6 +15,8 @@ import com.proyecto2.app.backend.Backend.Exception.ServicioException;
 import com.proyecto2.app.backend.Backend.Exception.daoException;
 import com.proyecto2.app.backend.Backend.Model.Ciclo;
 import com.proyecto2.app.backend.Backend.Model.Grado;
+import com.proyecto2.app.backend.Backend.Model.Carrera;
+import com.proyecto2.app.backend.Backend.Model.Nivel;
 import com.proyecto2.app.backend.Backend.Model.Empleado;
 import com.proyecto2.app.backend.Backend.Model.Usuario;
 import com.proyecto2.app.backend.Backend.seguridad.SeguridadContrasena;
@@ -414,6 +418,7 @@ public class AdministracionServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
+            validarGrado(grado, conexion);
             boolean creado = gradoDAO.insertar(grado, conexion);
 
             if (!creado) {
@@ -455,6 +460,7 @@ public class AdministracionServicio {
             autoCommitAnterior = conexion.getAutoCommit();
             conexion.setAutoCommit(false);
 
+            validarGrado(grado, conexion);
             boolean actualizado = gradoDAO.actualizar(grado, conexion);
 
             if (!actualizado) {
@@ -479,6 +485,61 @@ public class AdministracionServicio {
         } finally {
             restaurarAutoCommit(conexion, autoCommitAnterior);
             cerrarConexion(conexion);
+        }
+    }
+
+    // Comprueba los datos antes de insertar o actualizar, usando los DAO existentes.
+    private void validarGrado(Grado grado, Connection conexion) {
+        boolean nivelExiste = false;
+        boolean diversificado = false;
+        for (Nivel nivel : new NivelDao().consultar(conexion)) {
+            if (nivel.getIdNivel() == grado.getIdNivel()) {
+                nivelExiste = true;
+                diversificado = "DIVERSIFICADO".equalsIgnoreCase(nivel.getNombre().trim());
+                break;
+            }
+        }
+        if (!nivelExiste) {
+            throw new ServicioException("NO_ENCONTRADO", "El nivel académico seleccionado no existe");
+        }
+
+        if (diversificado) {
+            if (grado.getIdCarrera() == null || grado.getIdCarrera() <= 0) {
+                throw new ServicioException("DATOS_INVALIDOS", "Selecciona una carrera para el grado de Diversificado");
+            }
+            // Una carrera inactiva puede permanecer en un grado histórico si no se cambia.
+            boolean carreraAnterior = false;
+            for (Grado actual : gradoDAO.consultar(conexion)) {
+                if (actual.getIdGrado() == grado.getIdGrado()
+                        && grado.getIdCarrera().equals(actual.getIdCarrera())) {
+                    carreraAnterior = true;
+                    break;
+                }
+            }
+            boolean carreraValida = false;
+            for (Carrera carrera : new CarreraDao().consultar(conexion)) {
+                if (carrera.getIdCarrera() == grado.getIdCarrera()
+                        && carrera.getIdNivel() == grado.getIdNivel()
+                        && ("ACTIVO".equalsIgnoreCase(carrera.getEstado()) || carreraAnterior)) {
+                    carreraValida = true;
+                    break;
+                }
+            }
+            if (!carreraValida) {
+                throw new ServicioException("DATOS_INVALIDOS", "La carrera indicada no existe, está inactiva o no pertenece a Diversificado");
+            }
+        } else if (grado.getIdCarrera() != null) {
+            throw new ServicioException("DATOS_INVALIDOS", "Este nivel académico no utiliza carrera");
+        }
+
+        for (Grado existente : gradoDAO.consultar(conexion)) {
+            if (existente.getIdGrado() != grado.getIdGrado()
+                    && existente.getIdNivel() == grado.getIdNivel()
+                    && existente.getNombre().trim().equalsIgnoreCase(grado.getNombre().trim())
+                    && (existente.getIdCarrera() == null ? grado.getIdCarrera() == null
+                        : existente.getIdCarrera().equals(grado.getIdCarrera()))) {
+                throw new ServicioException("CONFLICTO", "Ya existe un grado con ese nombre, nivel y carrera");
+            }
         }
     }
 

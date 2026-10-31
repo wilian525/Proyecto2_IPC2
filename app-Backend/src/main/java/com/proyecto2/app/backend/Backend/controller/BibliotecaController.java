@@ -122,9 +122,13 @@ public class BibliotecaController {
     @GET
     @Path("catalogo")
     @RolesAllowed({"BIBLIOTECARIO", "ESTUDIANTE"})
-    public Response consultarCatalogo() {
+    public Response consultarCatalogo(@DefaultValue("1") @QueryParam("pagina") int pagina,
+            @DefaultValue("9") @QueryParam("limite") int limite) {
         try {
-            return Response.ok(new BibliotecaProcesos().consultarCatalogo()).build();
+            BibliotecaProcesos procesos = new BibliotecaProcesos();
+            Collection<Libro> libros = procesos.consultarCatalogo(pagina, limite);
+            return Response.ok(Map.of("datos", libros, "pagina", pagina, "limite", limite,
+                    "total", procesos.contarCatalogo())).build();
         } catch (ProcesosException e) {
             return responderError(e.getCodigo(), e.getMessage());
         }

@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { URL_API } from '../configuracion/api';
+import { RespuestaPagina } from '../modelos/gestion-colegio';
 import {
   Alumno, EstadoCuenta, LibroAlumno, NotaAlumno,
   PaginaPagos, PrestamoAlumno
@@ -27,8 +28,9 @@ export class AlumnoServicio {
     return this.http.get<PaginaPagos>(`${URL_API}/pagos/mi-historial`, { params: { pagina, limite: 20 } });
   }
 
-  obtenerCatalogo(): Observable<LibroAlumno[]> {
-    return this.http.get<LibroAlumno[]>(`${URL_API}/biblioteca/catalogo`);
+  obtenerCatalogo(pagina = 1): Observable<RespuestaPagina<LibroAlumno>> {
+    return this.http.get<RespuestaPagina<LibroAlumno>>(`${URL_API}/biblioteca/catalogo`,
+      { params: { pagina, limite: 9 } });
   }
 
   obtenerPendientes(): Observable<PrestamoAlumno[]> {

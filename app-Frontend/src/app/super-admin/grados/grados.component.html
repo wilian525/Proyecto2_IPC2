@@ -17,7 +17,7 @@
           <thead><tr><th>ID</th><th>Grado</th><th>Nivel</th><th>Carrera</th><th>Acción</th></tr></thead>
           <tbody>@for (grado of visibles(); track grado.idGrado) {
             <tr><td>#{{ grado.idGrado }}</td><td>{{ grado.nombre }}</td><td>{{ nombreNivel(grado.idNivel) }}</td>
-              <td>{{ grado.idCarrera ?? '—' }}</td>
+              <td>{{ nombreCarrera(grado.idCarrera) }}</td>
               <td><button class="btn btn-menta btn-sm" type="button" (click)="seleccionar(grado)"><i class="bi bi-pencil me-1"></i>Editar</button></td></tr>
           }</tbody>
         </table></div>
@@ -28,7 +28,7 @@
       }
     </div></div>
     <div class="col-xl-5"><div class="panel-res">
-      <app-formulario-grado [grado]="seleccionado()" [niveles]="niveles()" [procesando]="procesando()"
+      <app-formulario-grado [grado]="seleccionado()" [niveles]="niveles()" [carreras]="carreras()" [procesando]="procesando()"
         (guardar)="guardar($event)" (cancelar)="cancelar()" />
     </div></div>
   </div>

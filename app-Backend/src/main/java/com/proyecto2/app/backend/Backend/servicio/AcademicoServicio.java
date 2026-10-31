@@ -1416,6 +1416,7 @@ public class AcademicoServicio {
         }
 
         if (!gradoExiste) throw new ServicioException("NO_ENCONTRADO", "El grado no existe");
+        validarNombreSeccion(seccion, conexion);
         if (!seccionDAO.insertar(seccion, conexion)) throw new ServicioException("OPERACION_ERROR", "No fue posible crear la sección");
 
         conexion.commit();
@@ -1467,6 +1468,7 @@ public class AcademicoServicio {
         }
 
         if (!existe) throw new ServicioException("NO_ENCONTRADO", "La sección no existe");
+        validarNombreSeccion(seccion, conexion);
         if (!seccionDAO.actualizar(seccion, conexion)) throw new ServicioException("OPERACION_ERROR", "No fue posible modificar la sección");
 
         conexion.commit();
@@ -1485,6 +1487,16 @@ public class AcademicoServicio {
         cerrarConexion(conexion);
     }
 }
+
+    private void validarNombreSeccion(Seccion seccion, Connection conexion) {
+        for (Seccion actual : seccionDAO.consultar(conexion)) {
+            if (actual.getIdSeccion() != seccion.getIdSeccion()
+                    && actual.getIdGrado() == seccion.getIdGrado()
+                    && actual.getNombre().trim().equalsIgnoreCase(seccion.getNombre().trim())) {
+                throw new ServicioException("CONFLICTO", "Ya existe una sección con ese nombre en el grado seleccionado");
+            }
+        }
+    }
 
     private void restaurarAutoCommit(Connection conexion, boolean autoCommitAnterior) {
     if (conexion != null) {

@@ -43,7 +43,7 @@ export class EstructuraPrincipalComponent {
     { ruta: '/inicio/admin', titulo: 'Administración', icono: 'bi-building' },
     { ruta: '/inicio/secretaria', titulo: 'Secretaría', icono: 'bi-cash-coin' },
     { ruta: '/inicio/bibliotecario', titulo: 'Biblioteca', icono: 'bi-book' },
-    { ruta: '/inicio/admin/reportes', titulo: 'Área docente / reportes', icono: 'bi-journal-check' },
+    { ruta: '/inicio/admin/reportes', titulo: 'Reportes del colegio', icono: 'bi-journal-check' },
     { ruta: '/inicio/admin/estudiantes', titulo: 'Estudiantes', icono: 'bi-person-vcard' }
   ];
 

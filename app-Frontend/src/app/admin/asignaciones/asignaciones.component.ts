@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsignacionColegio, CursoColegio, SeccionColegio, EmpleadoColegio } from '../../modelos/gestion-colegio';
-import { CicloEscolar } from '../../modelos/administracion';
+import { CicloEscolar, GradoEscolar } from '../../modelos/administracion';
 import { GestionColegioServicio } from '../gestion.servicio';
 import { AdministracionServicio } from '../../super-admin/administracion.servicio';
 import { explicarError } from '../mensajes-error';
@@ -22,6 +22,7 @@ export class AsignacionesAdministradorComponent {
   readonly maestros = signal<EmpleadoColegio[]>([]);
   readonly cursos = signal<CursoColegio[]>([]);
   readonly secciones = signal<SeccionColegio[]>([]);
+  readonly grados = signal<GradoEscolar[]>([]);
   readonly ciclos = signal<CicloEscolar[]>([]);
   readonly asignaciones = signal<AsignacionColegio[]>([]);
   readonly procesando = signal(false);
@@ -39,6 +40,8 @@ export class AsignacionesAdministradorComponent {
     });
     this.servicio.cursos().pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => this.cursos.set(r), error: e => this.error.set(explicarError(e, 'consultar cursos')) });
+    this.administracion.consultarGrados().pipe(takeUntilDestroyed(this.destruir)).subscribe({
+      next: r => this.grados.set(r), error: e => this.error.set(explicarError(e, 'consultar grados')) });
     this.servicio.secciones().pipe(takeUntilDestroyed(this.destruir)).subscribe({
       next: r => this.secciones.set(r), error: e => this.error.set(explicarError(e, 'consultar secciones')) });
     this.administracion.consultarCiclos().pipe(takeUntilDestroyed(this.destruir)).subscribe({
@@ -54,7 +57,12 @@ export class AsignacionesAdministradorComponent {
     });
   }
   nombreCurso(id: number): string { return this.cursos().find(c=>c.idCurso===id)?.nombre ?? `Curso #${id}`; }
-  nombreSeccion(id: number): string { return this.secciones().find(s=>s.idSeccion===id)?.nombre ?? `Sección #${id}`; }
+  nombreSeccion(id: number): string {
+    const seccion = this.secciones().find(s => s.idSeccion === id);
+    if (!seccion) return `Sección #${id}`;
+    const grado = this.grados().find(g => g.idGrado === seccion.idGrado);
+    return `${grado?.nombre ?? 'Grado #' + seccion.idGrado} / ${seccion.nombre} (#${id})`;
+  }
   guardar(): void {
     this.formulario.markAllAsTouched();
     if (this.formulario.invalid || this.procesando()) return;

@@ -41,6 +41,8 @@ public class LibroDao {
     private static final String CONSULTAR_PAGINADO = CONSULTAR + " LIMIT ? OFFSET ?";
     private static final String CONSULTAR_ID = "SELECT id_libro, titulo, autor, editorial, cantidad_disponible, estado FROM LIBRO WHERE id_libro=? FOR UPDATE";
     private static final String CONTAR = "SELECT COUNT(*) AS total FROM LIBRO";
+    private static final String CATALOGO_PAGINADO = "SELECT id_libro, titulo, autor, editorial, cantidad_disponible, estado FROM LIBRO WHERE estado = 'ACTIVO' AND cantidad_disponible > 0 ORDER BY titulo LIMIT ? OFFSET ?";
+    private static final String CONTAR_CATALOGO = "SELECT COUNT(*) AS total FROM LIBRO WHERE estado = 'ACTIVO' AND cantidad_disponible > 0";
 
     public void crearTabla() {
         try (Connection conexion = ConexionDB.getInstance().getConnection(); 
@@ -316,6 +318,32 @@ public class LibroDao {
 
     return 0;
 }
+
+    public Collection<Libro> consultarCatalogo(int pagina, int limite) {
+        Collection<Libro> libros = new ArrayList<>();
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CATALOGO_PAGINADO)) {
+            ps.setInt(1, limite);
+            ps.setInt(2, (pagina - 1) * limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) libros.add(construirLibro(rs));
+            }
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return libros;
+    }
+
+    public int contarCatalogo() {
+        try (Connection conexion = ConexionDB.getInstance().getConnection();
+                PreparedStatement ps = conexion.prepareStatement(CONTAR_CATALOGO);
+                ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt("total");
+        } catch (SQLException e) {
+            daoException.manejarError(e);
+        }
+        return 0;
+    }
 
     private void cerrar(Statement statement) {
         if (statement != null) {
